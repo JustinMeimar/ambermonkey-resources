@@ -8,10 +8,22 @@ from pathlib import Path
 from fossil_figures import load_stdin, write_typst_table
 
 
-VARIANT_ORDER = ("awsy-tp6-stock", "awsy-tp6-aot", "awsy-tp6-aot-only",
-                 "awsy-tp6-stock-quick", "awsy-tp6-aot-quick", "awsy-tp6-aot-only-quick")
+VARIANT_ORDER = ("awsy-tp6-stock", "awsy-tp6-stock-baseline",
+                 "awsy-tp6-aot", "awsy-tp6-aot-only",
+                 "awsy-tp6-stock-quick", "awsy-tp6-stock-baseline-quick",
+                 "awsy-tp6-aot-quick", "awsy-tp6-aot-only-quick")
 ANCHOR = "TabsOpenForceGC"
 FALLBACK = "TabsOpenSettled"
+
+
+def family_baseline(variant):
+    """Reduction column compares each variant to its family's plain 'stock'
+    (default JIT). Family is determined by the workload-intensity suffix:
+    -quick (--entities 4) or default. Mixing families in one table is fine;
+    each row uses its own reference."""
+    if variant.endswith("-quick"):
+        return "awsy-tp6-stock-quick"
+    return "awsy-tp6-stock"
 
 
 def scalar(metric, *path):
@@ -43,7 +55,7 @@ def main():
         raise SystemExit("aggregate_table: no known variants")
 
     rows_data = []
-    stock_engine_pss = None
+    family_stock_pss = {}
     for v in variants:
         col = data.columns[v]
         name, cp = anchor_of(col)
@@ -56,8 +68,11 @@ def main():
         lx_rss = scalar(cp, "totals", "libxul_exec", "rss_mb") or 0
         engine_pss = scalar(cp, "engine_pss_mb") or (anon_pss + lx_pss)
         per_proc_pss = scalar(cp, "per_proc_engine_pss_mb") or (engine_pss / n_procs if n_procs else 0)
-        if v.startswith("awsy-tp6-stock"):
-            stock_engine_pss = engine_pss
+        # Cache the plain-stock engine PSS for each workload family so the
+        # reduction column below can look it up without depending on iteration
+        # order. Do not let 'stock-baseline*' overwrite plain stock.
+        if v == family_baseline(v):
+            family_stock_pss[v] = engine_pss
         rows_data.append({
             "config": v, "checkpoint": name,
             "n_procs": int(n_procs),
@@ -84,8 +99,11 @@ def main():
 
     rows = []
     for r in rows_data:
-        if stock_engine_pss and stock_engine_pss > 0 and not r["config"].startswith("awsy-tp6-stock"):
-            reduction = 1.0 - r["engine_pss_mb"] / stock_engine_pss
+        baseline_name = family_baseline(r["config"])
+        baseline_pss = family_stock_pss.get(baseline_name)
+        is_baseline = r["config"] == baseline_name
+        if baseline_pss and baseline_pss > 0 and not is_baseline:
+            reduction = 1.0 - r["engine_pss_mb"] / baseline_pss
         else:
             reduction = 0.0
         rows.append([

@@ -8,6 +8,8 @@ constant across both column widths and match the paper's Times-compatible font.
 
 from __future__ import annotations
 
+import os
+import tomllib
 from pathlib import Path
 
 import matplotlib as mpl
@@ -32,10 +34,55 @@ FONT_SIZES = {
 }
 
 # Canonical deep endpoints from RdBu_r, also used by the 3-3 inter-workload
-# coverage figure.
+# coverage figure. The `default` / `aot-corpus` / etc. mappings below reuse
+# these plus one PuOr orange for the AOT-with-full-tiering variant.
 AMBER_BLUE = "#2166AC"
 AMBER_RED = "#B2182B"
 AMBER_PURPLE = "#762A83"
+AMBER_ORANGE = "#E08214"
+AMBER_GREY = "#7A7A7A"
+
+
+def load_variant_colors():
+    """Return {variant_name: hex_color} from the project's project.toml.
+
+    Falls back to hardcoded defaults if the file or the individual keys are
+    missing so a figure script cannot silently render with wrong colors —
+    if a variant is unknown, its lookup raises KeyError at draw time.
+    """
+    project_toml = _find_project_toml()
+    values = {}
+    if project_toml is not None:
+        try:
+            data = tomllib.loads(project_toml.read_text())
+            values = data.get("constants", {})
+        except (OSError, tomllib.TOMLDecodeError):
+            values = {}
+
+    # Variant name -> project.toml key. Keep in sync with fossil variants
+    # in 7-3-ambermonkey-perf and 7-11-sp3-memory.
+    mapping = {
+        "interp-only":    "VARIANT_COLOR_INTERP_ONLY",
+        "aot-corpus":     "VARIANT_COLOR_AOT_CORPUS",
+        "aot":            "VARIANT_COLOR_AOT",
+        "default-no-ion": "VARIANT_COLOR_DEFAULT_NO_ION",
+        "default":        "VARIANT_COLOR_DEFAULT",
+    }
+    defaults = {
+        "interp-only":    AMBER_GREY,
+        "aot-corpus":     AMBER_RED,
+        "aot":            AMBER_ORANGE,
+        "default-no-ion": AMBER_BLUE,
+        "default":        AMBER_PURPLE,
+    }
+    return {v: values.get(key, defaults[v]) for v, key in mapping.items()}
+
+
+def _find_project_toml():
+    """Locate the ambermonkey project.toml under $FOSSIL_HOME (or ~/.fossil)."""
+    home = Path(os.environ.get("FOSSIL_HOME", str(Path.home() / ".fossil")))
+    candidate = home / "projects" / "ambermonkey" / "project.toml"
+    return candidate if candidate.exists() else None
 
 
 def apply_amber_style(column: str) -> None:

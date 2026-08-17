@@ -6,6 +6,10 @@ allow_failure = false
 [analyze]
 speedometer-detail = "analyses/parse_speedometer.py"
 
+[figures.subtest-bars]
+analysis = "speedometer-detail"
+script   = "figures/subtest_bars.py"
+
 [figures.tier-throughput]
 analysis = "speedometer-detail"
 script   = "figures/tier_throughput.py"

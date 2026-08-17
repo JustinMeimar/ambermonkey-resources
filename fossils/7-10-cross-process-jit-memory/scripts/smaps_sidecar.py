@@ -151,11 +151,43 @@ def safe_marker_slug(marker):
 MEMREPORT_RE = re.compile(r"^memory-report-(?P<checkpoint>.+?)-(?P<iter>\d+)\.json\.gz$")
 
 
+def resolve_exe(pid):
+    """Return the absolute exe target of /proc/<pid>/exe, or None on OSError.
+
+    Uses readlink so we get the launcher's actual binary (following any
+    symlink), independent of what argv[0] happens to be. Strips the
+    Linux "(deleted)" suffix that appears when the exe file was unlinked
+    after the process started.
+    """
+    try:
+        target = os.readlink(f"/proc/{pid}/exe")
+    except OSError:
+        return None
+    if target.endswith(" (deleted)"):
+        target = target[: -len(" (deleted)")]
+    return target
+
+
 class Sidecar:
-    def __init__(self, dir_path, parent_cmdline, poll_ms):
+    def __init__(self, dir_path, parent_exe, parent_cmdline, poll_ms,
+                 interval_ms):
         self.dir = Path(dir_path)
+        # Absolute path of the test binary. PIDs whose /proc/<pid>/exe does
+        # not resolve to this exact file are ignored. This is what stops
+        # co-resident daily-driver Firefox processes from polluting the run.
+        self.parent_exe = os.path.realpath(parent_exe) if parent_exe else None
+        # Optional cmdline substring filter, applied on top of exe. Kept for
+        # backward compatibility; on its own it is too loose because argv[0]
+        # collisions between a test binary and a user's system browser (e.g.
+        # both contain "firefox") pull unrelated processes into the sample.
         self.parent_cmdline = parent_cmdline
         self.poll_s = poll_ms / 1000.0
+        # When set, sample smaps every interval_ms regardless of any external
+        # marker files. Emits markers of the form "interval:<seq>". Use for
+        # workloads that do not write memory-report-*.json.gz (e.g. Speedometer
+        # under Raptor). Marker-file watching still runs in parallel, so a
+        # workload that DOES emit markers gets both sample streams.
+        self.interval_s = interval_ms / 1000.0 if interval_ms else 0.0
         self.stop = threading.Event()
 
         self.sidecar_dir = self.dir / "sidecar"
@@ -176,6 +208,7 @@ class Sidecar:
         # at each checkpoint via nsIMemoryInfoDumper.
         self.seen_reports = set()
         self.seq = 0
+        self.interval_seq = 0
         self.epperm_reported = False
 
     def append_pid_event(self, event, pid, starttime, kind, cmd):
@@ -200,7 +233,11 @@ class Sidecar:
             cmd = read_cmdline(pid)
             if cmd is None:
                 continue
-            if self.parent_cmdline not in cmd:
+            if self.parent_exe is not None:
+                exe = resolve_exe(pid)
+                if exe != self.parent_exe:
+                    continue
+            if self.parent_cmdline and self.parent_cmdline not in cmd:
                 continue
             starttime = read_starttime(pid)
             if starttime is None:
@@ -228,6 +265,20 @@ class Sidecar:
             except Exception as e:
                 self.warnings.append(f"marker_pass: {type(e).__name__}: {e}")
             self.stop.wait(self.poll_s)
+
+    def interval_loop(self):
+        # Wait one interval before the first sample so the browser can spawn
+        # its content procs before we start counting.
+        while not self.stop.is_set():
+            if self.stop.wait(self.interval_s):
+                return
+            try:
+                self.interval_seq += 1
+                self.take_snapshot(f"interval:{self.interval_seq}")
+            except Exception as e:
+                self.warnings.append(
+                    f"interval_pass: {type(e).__name__}: {e}"
+                )
 
     def _marker_pass(self):
         """Scan $DIR for new memory-report-*.json.gz files. Each new file is
@@ -297,10 +348,16 @@ class Sidecar:
         t_mark = threading.Thread(target=self.marker_loop, daemon=True)
         t_disc.start()
         t_mark.start()
+        t_intv = None
+        if self.interval_s > 0:
+            t_intv = threading.Thread(target=self.interval_loop, daemon=True)
+            t_intv.start()
         while not self.stop.is_set():
             self.stop.wait(0.5)
         t_disc.join(timeout=2.0)
         t_mark.join(timeout=2.0)
+        if t_intv is not None:
+            t_intv.join(timeout=self.interval_s + 2.0)
         self._write_meta()
         try:
             self.pids_log.flush()
@@ -329,15 +386,32 @@ class Sidecar:
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--dir", required=True, help="JS_INSTR_DIR (run scratch dir)")
-    p.add_argument("--parent-cmdline", default="firefox",
-                   help="substring PIDs must contain in /proc/<pid>/cmdline")
+    p.add_argument("--parent-exe", default=None,
+                   help="absolute path to the test binary; PIDs whose "
+                        "/proc/<pid>/exe does not resolve here are ignored. "
+                        "Strongly preferred over --parent-cmdline for isolating "
+                        "the test browser from any co-resident Firefox instance.")
+    p.add_argument("--parent-cmdline", default=None,
+                   help="optional substring PIDs must contain in "
+                        "/proc/<pid>/cmdline; applied on top of --parent-exe "
+                        "when both are set. On its own, this filter is too "
+                        "loose on machines with an unrelated Firefox running.")
     p.add_argument("--poll-ms", type=int, default=50)
-    return p.parse_args()
+    p.add_argument("--interval-ms", type=int, default=0,
+                   help="if >0, also sample smaps on this interval regardless "
+                        "of marker files. Emits marker 'interval:<n>'. Use "
+                        "for workloads (e.g. Raptor Speedometer) that do not "
+                        "themselves write memory-report-*.json.gz files.")
+    args = p.parse_args()
+    if args.parent_exe is None and args.parent_cmdline is None:
+        p.error("at least one of --parent-exe or --parent-cmdline is required")
+    return args
 
 
 def main():
     args = parse_args()
-    Sidecar(args.dir, args.parent_cmdline, args.poll_ms).run()
+    Sidecar(args.dir, args.parent_exe, args.parent_cmdline, args.poll_ms,
+            args.interval_ms).run()
 
 
 if __name__ == "__main__":

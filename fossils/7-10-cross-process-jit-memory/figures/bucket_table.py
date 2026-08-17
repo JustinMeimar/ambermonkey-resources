@@ -7,8 +7,10 @@ from pathlib import Path
 from fossil_figures import load_stdin, write_typst_table
 
 
-VARIANT_ORDER = ("awsy-tp6-stock", "awsy-tp6-aot", "awsy-tp6-aot-only",
-                 "awsy-tp6-stock-quick", "awsy-tp6-aot-quick", "awsy-tp6-aot-only-quick")
+VARIANT_ORDER = ("awsy-tp6-stock", "awsy-tp6-stock-baseline",
+                 "awsy-tp6-aot", "awsy-tp6-aot-only",
+                 "awsy-tp6-stock-quick", "awsy-tp6-stock-baseline-quick",
+                 "awsy-tp6-aot-quick", "awsy-tp6-aot-only-quick")
 BUCKETS = ("libxul_exec", "libxul_rodata", "libxul_rw",
            "anon_exec", "anon_rw", "other_file", "other_anon")
 ANCHOR = "TabsOpenForceGC"

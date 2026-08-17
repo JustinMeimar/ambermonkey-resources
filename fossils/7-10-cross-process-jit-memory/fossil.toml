@@ -22,23 +22,32 @@ script   = "figures/per_proc_table.py"
 analysis = "memory"
 script   = "figures/marker_progression_table.py"
 
+[figures.marker-bars]
+analysis = "memory"
+script   = "figures/marker_bars.py"
+
 [variables]
-# NOTE: separators around $SIDECAR_START must be `;` not `&&`. The sidecar's
-# trailing `&` (backgrounding) makes bash treat any preceding `A &&` as one
-# compound in a subshell, which loses the D= assignment.
 INIT           = "D=$(mktemp -d /tmp/amber-7-10.XXXXXX)"
-SIDECAR_START  = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-10-cross-process-jit-memory/scripts/smaps_sidecar.py --dir \"$D\" --parent-cmdline firefox --poll-ms 50 >\"$D/sidecar.log\" 2>&1 & echo $! > \"$D/sidecar.pid\""
+
+SIDECAR_BIN        = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-10-cross-process-jit-memory/scripts/smaps_sidecar.py"
+SIDECAR_TAIL       = ">\"$D/sidecar.log\" 2>&1 & echo $! > \"$D/sidecar.pid\""
+SIDECAR_START_REL  = "$SIDECAR_BIN --dir \"$D\" --parent-exe @BIN_RELEASE --poll-ms 50 $SIDECAR_TAIL"
+SIDECAR_START_AOT  = "$SIDECAR_BIN --dir \"$D\" --parent-exe @BIN_AOT     --poll-ms 50 $SIDECAR_TAIL"
 SIDECAR_STOP   = "kill -TERM $(cat \"$D/sidecar.pid\") 2>/dev/null; sleep 1; true"
 EMIT           = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-10-cross-process-jit-memory/scripts/emit_summary.py \"$D\" && rm -rf \"$D\""
-AWSY_ARGS      = "--iterations 1"
+
+AWSY_ARGS      = "--iterations 5"
 AWSY_QUICK     = "--entities 4 --iterations 1 --per-tab-pause 3 --settle-wait-time 5"
 AOT_ONLY_ENV   = "JIT_OPTION_aotOnly=1"
+NO_ION_ENV     = "JIT_OPTION_ion=0"
 
 [variants]
-awsy-tp6-stock          = "$INIT ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_ARGS  --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
-awsy-tp6-aot            = "$INIT ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_AOT     ./mach awsy-test $AWSY_ARGS  --binary @BIN_AOT     --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
-awsy-tp6-aot-only       = "$INIT ; export $AOT_ONLY_ENV ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_AOT ./mach awsy-test $AWSY_ARGS  --binary @BIN_AOT --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-stock          = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_ARGS  --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-stock-baseline = "$INIT ; export $NO_ION_ENV ; $SIDECAR_START_REL ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_ARGS  --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-aot            = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && @SANDBOX @MC_AOT     ./mach awsy-test $AWSY_ARGS  --binary @BIN_AOT     --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-aot-only       = "$INIT ; export $AOT_ONLY_ENV ; $SIDECAR_START_AOT ; cd @FIREFOX && @SANDBOX @MC_AOT ./mach awsy-test $AWSY_ARGS  --binary @BIN_AOT --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
 
-awsy-tp6-stock-quick    = "$INIT ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_QUICK --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
-awsy-tp6-aot-quick      = "$INIT ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_AOT     ./mach awsy-test $AWSY_QUICK --binary @BIN_AOT     --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
-awsy-tp6-aot-only-quick = "$INIT ; export $AOT_ONLY_ENV ; $SIDECAR_START ; cd @FIREFOX && @SANDBOX @MC_AOT ./mach awsy-test $AWSY_QUICK --binary @BIN_AOT --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-stock-quick          = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_QUICK --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-stock-baseline-quick = "$INIT ; export $NO_ION_ENV ; $SIDECAR_START_REL ; cd @FIREFOX && @SANDBOX @MC_BROWSER ./mach awsy-test $AWSY_QUICK --binary @BIN_RELEASE --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-aot-quick            = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && @SANDBOX @MC_AOT     ./mach awsy-test $AWSY_QUICK --binary @BIN_AOT     --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"
+awsy-tp6-aot-only-quick       = "$INIT ; export $AOT_ONLY_ENV ; $SIDECAR_START_AOT ; cd @FIREFOX && @SANDBOX @MC_AOT ./mach awsy-test $AWSY_QUICK --binary @BIN_AOT --results \"$D\" 1>&2 ; $SIDECAR_STOP ; $EMIT"

@@ -31,17 +31,22 @@ PRIMARY_CHECKPOINTS = ("TabsOpen", "TabsOpenSettled", "TabsOpenForceGC",
 # Variant contract. Each variant asserts a binary path fragment, mozconfig
 # fragment, and env flag expectations.
 CONTRACT = {
-    "awsy-tp6-stock":          {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False},
-    "awsy-tp6-aot":            {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False},
-    "awsy-tp6-aot-only":       {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True},
-    "awsy-tp6-stock-quick":    {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False},
-    "awsy-tp6-aot-quick":      {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False},
-    "awsy-tp6-aot-only-quick": {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True},
+    "awsy-tp6-stock":                {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False},
+    "awsy-tp6-stock-baseline":       {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": True},
+    "awsy-tp6-aot":                  {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False, "no_ion": False},
+    "awsy-tp6-aot-only":             {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": False},
+    "awsy-tp6-stock-quick":          {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False},
+    "awsy-tp6-stock-baseline-quick": {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": True},
+    "awsy-tp6-aot-quick":            {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False, "no_ion": False},
+    "awsy-tp6-aot-only-quick":       {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": False},
 }
 
 
 def kind_of(variant):
-    """Reduce a variant name to a JIT-config kind: stock, aot, or aot-only."""
+    """Reduce a variant name to a JIT-config kind."""
+    # Match stock-baseline before stock so the more specific prefix wins.
+    if variant.startswith("awsy-tp6-stock-baseline"):
+        return "stock-baseline"
     if variant.startswith("awsy-tp6-stock"):
         return "stock"
     if variant.startswith("awsy-tp6-aot-only"):
@@ -66,6 +71,11 @@ def validate_manifest(m):
         manifest.fail(PREFIX, f"{variant}: JIT_OPTION_aotOnly=1 not present")
     if not c["aot_only"] and has_aot_only:
         manifest.fail(PREFIX, f"{variant}: forbidden JIT_OPTION_aotOnly=1 present")
+    has_no_ion = "JIT_OPTION_ion=0" in command
+    if c["no_ion"] and not has_no_ion:
+        manifest.fail(PREFIX, f"{variant}: JIT_OPTION_ion=0 not present")
+    if not c["no_ion"] and has_no_ion:
+        manifest.fail(PREFIX, f"{variant}: forbidden JIT_OPTION_ion=0 present")
     return variant
 
 
