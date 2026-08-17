@@ -1,4 +1,4 @@
-name = "0-0-static-tables"
+name = "static-tables"
 description = "Hand-authored taxonomy tables. Source JSON in source/<table>.json is emitted verbatim, so non-experimental tables travel through the same fossil pipeline as measured ones."
 default_iterations = 1
 allow_failure = false

@@ -1,4 +1,4 @@
-name = "3-3-inter-workload"
+name = "inter-workload"
 description = "Inter-workload overlap across the first eight alphabetical TP6 sites: content-process Baseline functions and IC bodies, static Jaccard, directional function-entry and stub-entry coverage."
 default_iterations = 1
 allow_failure = false

@@ -1,4 +1,4 @@
-name = "7-4-indirection-overhead"
+name = "indirection-overhead-raptor"
 description = "AOT indirection cost on JetStream 3 and Speedometer 3: runtime baseline codegen vs AOT-loaded baseline with pinned-register indirection. Requires an oracle corpus so --aot-only misses do not contaminate the measurement."
 default_iterations = 1
 allow_failure = false

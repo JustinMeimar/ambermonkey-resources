@@ -1,4 +1,4 @@
-name = "3-1-jit-memory"
+name = "jit-memory"
 description = "Stock JIT allocation census on AWSY tp6: live instruction bytes, executable pools, smaps residency, engine-owned machinery."
 default_iterations = 5
 allow_failure = true
@@ -9,7 +9,7 @@ allocation = "analyses/allocation.py"
 [variables]
 # JS_INSTR_DIR = AWSY results dir so every content proc writes into one tree.
 INIT            = "D=$(mktemp -d /tmp/amber-3-1.XXXXXX) && export JS_INSTR=lifecycle,snapshot JS_INSTR_DIR=$D JS_INSTR_MODE=structural JS_INSTR_RUN_ID=$(basename $D)"
-EMIT            = "python3 /home/justin/spidermonkey/ambermonkey/fossils/3-1-jit-memory/scripts/emit_allocation_summary.py \"$D\" && rm -rf \"$D\""
+EMIT            = "python3 /home/justin/spidermonkey/ambermonkey/fossils/retired-3-1-jit-memory/scripts/emit_allocation_summary.py \"$D\" && rm -rf \"$D\""
 AWSY_ARGS       = "--iterations 1"
 AWSY_ARGS_QUICK = "--entities 3 --iterations 1 --per-tab-pause 3 --settle-wait-time 3"
 

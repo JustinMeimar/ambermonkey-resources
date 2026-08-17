@@ -1,5 +1,5 @@
-name = "7-11-sp3-memory"
-description = "Per-content-process PSS/USS census on Speedometer 3 across stock/stock-baseline/aot/aot-only, using the same libxul-vs-anon bucketing as 7-10. Speedometer does not emit AWSY-style checkpoint files, so the sidecar samples smaps on a fixed interval; the analysis reports Peak (max engine PSS) and Final (last sample)."
+name = "cross-process-memory-sharing"
+description = "Per-content-process PSS/USS census on Speedometer 3 across stock/stock-baseline/aot/aot-only, bucketed by libxul-vs-anon executable pages. Speedometer does not emit AWSY-style checkpoint files, so the sidecar samples smaps on a fixed interval; the analysis reports Peak (max engine PSS) and Final (last sample)."
 default_iterations = 1
 allow_failure = true
 
@@ -15,15 +15,15 @@ analysis = "memory"
 script   = "figures/composition_bars.py"
 
 [variables]
-INIT               = "D=$(mktemp -d /tmp/amber-7-11.XXXXXX)"
-SIDECAR_BIN        = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-11-sp3-memory/scripts/smaps_sidecar.py"
+INIT               = "D=$(mktemp -d /tmp/amber-7-5.XXXXXX)"
+SIDECAR_BIN        = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-5-cross-process-memory-sharing/scripts/smaps_sidecar.py"
 SIDECAR_TAIL       = ">\"$D/sidecar.log\" 2>&1 & echo $! > \"$D/sidecar.pid\""
 # 2000 ms interval keeps overhead modest while still catching Peak across
 # Speedometer's ~1 min run. Content sandbox off so smaps is readable.
 SIDECAR_START_REL  = "$SIDECAR_BIN --dir \"$D\" --parent-exe @BIN_RELEASE --poll-ms 50 --interval-ms 2000 $SIDECAR_TAIL"
 SIDECAR_START_AOT  = "$SIDECAR_BIN --dir \"$D\" --parent-exe @BIN_AOT     --poll-ms 50 --interval-ms 2000 $SIDECAR_TAIL"
 SIDECAR_STOP       = "kill -TERM $(cat \"$D/sidecar.pid\") 2>/dev/null; sleep 1; true"
-EMIT               = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-11-sp3-memory/scripts/emit_summary.py \"$D\" && rm -rf \"$D\""
+EMIT               = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-5-cross-process-memory-sharing/scripts/emit_summary.py \"$D\" && rm -rf \"$D\""
 
 # Strip ambient JIT env so --setenv is authoritative.
 CLEAN = "env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_baselineJit -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage"
@@ -34,10 +34,13 @@ ION_OFF   = "--setpref javascript.options.ion=false"
 AOT_SETENV = "--setenv JIT_OPTION_useAOTImage=true --setenv JIT_OPTION_aotOnly=true"
 # stock-baseline: matches aot-only's tier profile (no Ion) without any AOT.
 NO_ION_SETENV = "--setenv JIT_OPTION_ion=0"
+# interp-only: no JIT backend at all; content procs execute bytecode only.
+INTERP_SETENV = "--setenv JIT_OPTION_disableJitBackend=true"
 
 [variants]
-# Variant names mirror 7-3-ambermonkey-perf so figure colors and paper
+# Variant names mirror 7-2-restricted-execution so figure colors and paper
 # prose can carry across the two Speedometer 3 evaluations without rename.
+interp-only    = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $INTERP_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
 default        = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE 1>&2 ; $SIDECAR_STOP ; $EMIT"
 default-no-ion = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $NO_ION_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
 aot            = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && $CLEAN @SANDBOX @MC_AOT     $MACH_BASE --binary @BIN_AOT     --setenv JIT_OPTION_useAOTImage=true 1>&2 ; $SIDECAR_STOP ; $EMIT"

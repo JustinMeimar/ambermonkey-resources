@@ -1,4 +1,4 @@
-name = "7-3-ambermonkey-perf"
+name = "restricted-execution"
 description = "Speedometer 3 strict-AOT tier ladder: interpreter only, AOT corpus, default without Ion, default."
 default_iterations = 3
 allow_failure = false

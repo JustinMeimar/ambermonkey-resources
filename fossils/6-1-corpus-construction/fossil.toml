@@ -1,4 +1,4 @@
-name = "7-1-aot-corpus-collector"
+name = "corpus-construction"
 description = "Record the AOT artifact corpus one tp6 site at a time, plus the self-hosted baseline set. train.txt and test.txt freeze the 24/8 partition."
 default_iterations = 1
 allow_failure = false

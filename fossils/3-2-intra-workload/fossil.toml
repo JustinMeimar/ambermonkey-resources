@@ -1,4 +1,4 @@
-name = "3-2-intra-workload"
+name = "intra-workload"
 description = "Intra-workload IC concentration across the first eight alphabetical desktop TP6 sites. Content-process IC bodies ranked by stub-entry counts over three cold page loads."
 default_iterations = 1
 allow_failure = false

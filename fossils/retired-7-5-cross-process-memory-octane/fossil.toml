@@ -1,4 +1,4 @@
-name = "7-5-cross-process-memory"
+name = "cross-process-memory-octane"
 description = "Per-process peak RSS and private-anonymous RSS of jsshell running one Octane sub-benchmark. Five configs: interp, baseline, stock, aot, aot-only."
 default_iterations = 3
 allow_failure = false
@@ -23,7 +23,7 @@ analysis = "memory"
 script   = "figures/memory_table.py"
 
 [variables]
-MEASURE  = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-5-cross-process-memory/scripts/measure_memory.py"
+MEASURE  = "python3 /home/justin/spidermonkey/ambermonkey/fossils/retired-7-5-cross-process-memory-octane/scripts/measure_memory.py"
 INTERP   = "--no-jit-backend"
 BASELINE = "--no-ion"
 STOCK    = ""

@@ -1,4 +1,4 @@
-name = "7-9-binary-size"
+name = "binary-size"
 description = "On-disk binary-size cost for matched release builds: libxul.so + AOT image (engine view), and firefox launcher + full dist/bin (whole-browser view)."
 default_iterations = 1
 allow_failure = false

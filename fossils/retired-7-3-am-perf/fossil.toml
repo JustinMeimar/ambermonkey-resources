@@ -1,4 +1,4 @@
-name = "9-3-retired-perf"
+name = "am-perf"
 description = "AmberMonkey held-out performance on Speedometer 3 and JetStream 3: strict AOT vs interpreter-only vs default, under matched Wasm/native-regexp controls."
 default_iterations = 1
 allow_failure = false

@@ -1,4 +1,4 @@
-name = "9-1-retired-startup"
+name = "jetstream3-startup"
 description = "JetStream 3 startup: 2x2 of {runtime, AOT} x {lazy, eager} baseline activation. Startup-Geometric first-iteration score."
 default_iterations = 3
 allow_failure = false

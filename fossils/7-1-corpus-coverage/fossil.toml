@@ -1,5 +1,5 @@
-name = "7-2-aot-corpus-coverage"
-description = "AOT corpus coverage on held-out workloads: tp6_test (frozen in 7-1's test.txt), Speedometer 3.1, and JetStream 3.0."
+name = "corpus-coverage"
+description = "AOT corpus coverage on held-out workloads: tp6_test (frozen in 6-1's test.txt), Speedometer 3.1, and JetStream 3.0."
 default_iterations = 3
 allow_failure = false
 
@@ -20,10 +20,10 @@ script   = "figures/ic_table.py"
 
 [variables]
 # One scratch dir per iteration; AOTCoverage dumps one file per JSRuntime at shutdown.
-INIT   = "D=$(mktemp -d /tmp/amber-7-2.XXXXXX)"
+INIT   = "D=$(mktemp -d /tmp/amber-7-1.XXXXXX)"
 # --setenv values must reach content procs; fossil vars are single-pass so keep this flat.
 RAPTOR = "cd @FIREFOX && @MC_AOT ./mach raptor --binary @BIN_AOT --page-cycles 1 --browser-cycles 1 --setenv JIT_OPTION_useAOTImage=true --setenv JS_AOT_COVERAGE_OUT=$D/cov --setenv MOZ_DISABLE_CONTENT_SANDBOX=1 --setenv MOZ_HEADLESS=1 --post-startup-delay 1000"
-REDUCE = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-2-aot-corpus-coverage/scripts/reduce_coverage.py $D && rm -rf $D"
+REDUCE = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-1-corpus-coverage/scripts/reduce_coverage.py $D && rm -rf $D"
 
 [variants]
 jetstream3   = "$INIT && $RAPTOR -t jetstream3   1>&2 && $REDUCE"

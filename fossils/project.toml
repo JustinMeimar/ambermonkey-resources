@@ -17,10 +17,10 @@ TESTS_DIR = "/home/justin/spidermonkey/tests"
 OCTANE_DIR = "$FIREFOX/js/src/octane"
 
 # Canonical variant colors. Names match the fossil variants used in
-# 7-3-ambermonkey-perf and 7-11-sp3-memory so a single palette drives
-# every Speedometer 3 figure in the paper. Python figure scripts read
-# these via figure_style.load_variant_colors(); bash commands can also
-# expand them as @VARIANT_COLOR_* if needed for tooling.
+# 7-2-restricted-execution and 7-5-cross-process-memory-sharing so a
+# single palette drives every Speedometer 3 figure in the paper. Python
+# figure scripts read these via figure_style.load_variant_colors(); bash
+# commands can also expand them as @VARIANT_COLOR_* if needed for tooling.
 VARIANT_COLOR_INTERP_ONLY    = "#7A7A7A"
 VARIANT_COLOR_AOT_CORPUS     = "#B2182B"
 VARIANT_COLOR_AOT            = "#E08214"

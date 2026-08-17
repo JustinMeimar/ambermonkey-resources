@@ -1,4 +1,4 @@
-name = "7-6-shell-memory-scaling"
+name = "shell-memory-scaling"
 description = "Per-runtime private JIT memory of the jsshell with N in-process worker JSRuntimes. Four configs at each N: stock-base (--no-ion), stock-full (default), aot-restricted (--aot --aot-only --no-ion), aot-full (--aot)."
 default_iterations = 3
 allow_failure = false
@@ -24,7 +24,7 @@ STOCK_BASE     = "--no-ion"
 STOCK_FULL     = ""
 AOT_RESTRICTED = "--aot --aot-only --no-ion"
 AOT_FULL       = "--aot"
-TIME           = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-6-shell-memory-scaling/scripts/measure_peak_rss.py"
+TIME           = "python3 /home/justin/spidermonkey/ambermonkey/fossils/retired-7-6-shell-memory-scaling/scripts/measure_peak_rss.py"
 
 [variants]
 n1-stock-base       = "$TIME @JSSHELL_AOT $STOCK_BASE     -f $BENCH -- 1"

@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 RECORDS_DIR = Path(__file__).parent.parent / "records"
+COHORT_PATH = Path(__file__).parent.parent / "paper-cohort.json"
 
 BUILDS = ("default", "opt", "no-opt")
 BENCHES = (
@@ -118,51 +119,74 @@ def observation_stdout(obs):
 
 
 def collect(records_dir):
-    """Group per-variant metric samples across all records/.
+    """Read the records selected for the paper's measurement cohort.
 
     Returns (samples_by_variant, iteration_counts_by_variant,
-    empty_count, skipped_count). Each sample is a metric dict.
+    empty_count, skipped_count, source_records). Each sample is a metric dict.
     """
-    samples = {}
-    iters = {}
-    empty = 0
-    skipped = 0
-
     if not records_dir.is_dir():
-        return samples, iters, empty, skipped
+        return {}, {}, 0, 0, {}
 
-    for record in sorted(records_dir.iterdir()):
+    cohort = json.loads(COHORT_PATH.read_text())
+    selected = {}
+    for expected_variant, dirname in sorted(cohort.items()):
+        record = records_dir / dirname
         manifest_path = record / "manifest.json"
         results_path = record / "results.json"
         if not manifest_path.is_file() or not results_path.is_file():
-            continue
+            sys.exit(f"emit_cycles_table: incomplete cohort record {record}")
         try:
             manifest = json.loads(manifest_path.read_text())
             results = json.loads(results_path.read_text())
-        except (OSError, json.JSONDecodeError):
-            continue
+        except (OSError, json.JSONDecodeError) as exc:
+            sys.exit(f"emit_cycles_table: cannot read cohort record {record}: {exc}")
         variant = manifest.get("variant")
+        if variant != expected_variant:
+            sys.exit(
+                f"emit_cycles_table: cohort maps {record.name!r} to "
+                f"{expected_variant!r}, but its manifest names {variant!r}"
+            )
         bench, _ = split_variant(variant or "")
         if bench is None or bench not in ITER_COUNTS:
             continue
         iter_count = ITER_COUNTS[bench]
         iterations = manifest.get("iterations")
-        if isinstance(iterations, int):
-            iters.setdefault(variant, []).append(iterations)
+        record_samples = []
+        record_empty = 0
+        record_skipped = 0
         for obs in results.get("observations", []):
             if int(obs.get("exit_code", 1)) != 0:
-                skipped += 1
+                record_skipped += 1
                 continue
             text = observation_stdout(obs)
             if not text.strip():
-                empty += 1
+                record_empty += 1
                 continue
             metrics = observation_metrics(text, iter_count)
             if metrics is None:
-                skipped += 1
+                record_skipped += 1
                 continue
-            samples.setdefault(variant, []).append(metrics)
-    return samples, iters, empty, skipped
+            record_samples.append(metrics)
+
+        if record_samples:
+            selected[variant] = {
+                "samples": record_samples,
+                "iterations": iterations,
+                "empty": record_empty,
+                "skipped": record_skipped,
+                "source": record.name,
+            }
+
+    samples = {variant: entry["samples"] for variant, entry in selected.items()}
+    iters = {
+        variant: [entry["iterations"]]
+        for variant, entry in selected.items()
+        if isinstance(entry["iterations"], int)
+    }
+    empty = sum(entry["empty"] for entry in selected.values())
+    skipped = sum(entry["skipped"] for entry in selected.values())
+    sources = {variant: entry["source"] for variant, entry in selected.items()}
+    return samples, iters, empty, skipped, sources
 
 
 def mean(values):
@@ -224,7 +248,7 @@ def build_columns(present_builds, present_derived, insns_present, ipc_present, i
 
 def main():
     out_path = sys.argv[1] if len(sys.argv) > 1 else None
-    samples, iters, empty, skipped = collect(RECORDS_DIR)
+    samples, iters, empty, skipped, sources = collect(RECORDS_DIR)
     means = variant_means(samples)
     if not means:
         sys.exit("emit_cycles_table: no usable observations in records/")
@@ -321,6 +345,7 @@ def main():
         "counter_events": list(REQUIRED_EVENTS),
         "aggregate": "geometric mean of per-benchmark AOT/runtime ratios",
         "samples_per_variant": {v: means[v]["n"] for v in sorted(means)},
+        "source_records": sources,
         "empty_observations": empty,
         "skipped_observations": skipped,
     }
