@@ -1,0 +1,26 @@
+name = "7-4-indirection-overhead"
+description = "AOT indirection cost on JetStream 3 and Speedometer 3: runtime baseline codegen vs AOT-loaded baseline with pinned-register indirection. Requires an oracle corpus so --aot-only misses do not contaminate the measurement."
+default_iterations = 1
+allow_failure = false
+
+[analyze]
+overhead = "analyses/parse_overhead.py"
+
+[figures.overhead-bars]
+analysis = "overhead"
+script = "figures/overhead_bars.py"
+
+[variables]
+MACH   = "cd @FIREFOX && @MC_AOT ./mach raptor --binary @BIN_AOT --app firefox --browser-cycles 1"
+PREFS  = "--setpref javascript.options.ion=false --setpref javascript.options.native_regexp=false --setpref javascript.options.wasm=false"
+ENV    = "--setenv MOZ_DISABLE_CONTENT_SANDBOX=1 --setenv MOZ_HEADLESS=0"
+AOT    = "--setenv JIT_OPTION_aotOnly=true"
+JS3    = "-t jetstream3 --page-cycles 1"
+SP3    = "-t speedometer3 --page-cycles 1"
+RESULT = "cat testing/mozharness/build/raptor.json"
+
+[variants]
+jetstream3-baseline     = "$MACH $PREFS $ENV      $JS3 1>&2 && $RESULT"
+jetstream3-aot-oracle   = "$MACH $PREFS $ENV $AOT $JS3 1>&2 && $RESULT"
+speedometer3-baseline   = "$MACH $PREFS $ENV      $SP3 1>&2 && $RESULT"
+speedometer3-aot-oracle = "$MACH $PREFS $ENV $AOT $SP3 1>&2 && $RESULT"

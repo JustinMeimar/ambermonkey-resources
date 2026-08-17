@@ -1,0 +1,4 @@
+name = "7-3-v8-jitless-comparison"
+description = "AmberMonkey AOT-only vs V8 --jitless on Speedometer 3 and JetStream 3, alongside each engine's unrestricted default for reference."
+default_iterations = 1
+allow_failure = false
