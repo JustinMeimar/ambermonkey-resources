@@ -3,8 +3,14 @@
 split into anon-exec (private, hatched) and libxul-exec (shared, solid).
 Right axis: libxul RSS/PSS sharing ratio as circle markers.
 
-Story: aot-corpus preserves the shared libxul-exec footprint while
-eliminating the private anon-exec that runtime Baseline/IC otherwise emits."""
+Story: this is a sharing-validation figure, not a memory-reduction figure.
+The `.text.aot` segment (solid) stays near-fully-shared across content procs
+(RSS/PSS approaches n_procs); the anon-exec segment (hatched) is per-proc
+private JIT memory that only exists when the runtime is emitting Baseline/IC
+code. aot-corpus is the only variant that eliminates that private segment,
+but because it also forbids fallback compilation it does not have a
+tier-profile-matched comparison group — the figure therefore reports raw
+segment sizes rather than a reduction percentage."""
 
 import os
 import statistics
@@ -28,10 +34,10 @@ from figure_style import (  # noqa: E402
 
 VARIANT_ORDER = ("default", "default-no-ion", "aot", "aot-corpus")
 DISPLAY_NAMES = {
-    "default":        "Default (Ion)",
-    "default-no-ion": "Baseline JIT",
-    "aot":            "AOT (Ion)",
-    "aot-corpus":     "AOT corpus",
+    "default":        "default",
+    "default-no-ion": "no-Ion",
+    "aot":            "aot",
+    "aot-corpus":     "aot-only",
 }
 CHECKPOINT = "Peak"
 ANON_HATCH = "////"
@@ -98,7 +104,6 @@ def main():
     ax2 = ax.twinx()
 
     highest = 0.0
-    default_engine = cells.get("default", {}).get("engine_mean")
 
     for i, v in enumerate(variants):
         c = cells.get(v)
@@ -123,21 +128,26 @@ def main():
                 xs[i], c["engine_mean"], yerr=c["engine_sd"],
                 fmt="none", ecolor="#333", elinewidth=0.7, capsize=2, zorder=4,
             )
-        # Reduction label above bars for non-baseline variants.
-        if default_engine and v != "default":
-            delta = c["engine_mean"] / default_engine - 1.0
+        # Raw MB labels on segments so readers can do their own arithmetic
+        # without leaning on a reduction% callout. Anon label goes above the
+        # bar (or is omitted when the private segment is negligible); libxul
+        # label sits inside the shared segment.
+        ax.text(
+            xs[i], c["libxul_mean"] / 2.0,
+            f"{c['libxul_mean']:.0f}",
+            ha="center", va="center",
+            fontsize=FONT_SIZES["annotation"],
+            color="white", zorder=5,
+        )
+        if c["anon_mean"] >= 3.0:
             ax.text(
-                xs[i], c["engine_mean"] + max(c["engine_sd"], 1.5),
-                f"{delta * 100:+.0f}%",
+                xs[i], c["engine_mean"] + max(c["engine_sd"], 1.2),
+                f"+{c['anon_mean']:.0f} anon",
                 ha="center", va="bottom",
                 fontsize=FONT_SIZES["annotation"],
                 color="#333", zorder=5,
             )
         highest = max(highest, c["engine_mean"] + c["engine_sd"])
-
-    # Reference rule at the default engine PSS.
-    if default_engine:
-        ax.axhline(default_engine, color="#888", linestyle="--", linewidth=0.6, zorder=1)
 
     # Right axis: sharing ratio (libxul RSS / libxul PSS).
     ratios = [cells[v]["share_ratio"] if v in cells else 0.0 for v in variants]
