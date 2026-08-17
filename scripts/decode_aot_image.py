@@ -21,38 +21,10 @@ KINDS = {
     3: "Configuration",
 }
 
-# Configuration field layouts. Field order and padding match GenerateAOTImage.py
-# lay_out() applied to the yaml schema at the tagged git revision.
-CONFIG_V1_FMT = "<BBBB III"
-CONFIG_V1_FIELDS = (
-    "disableInlining",
-    "spectreObjectMitigations",
-    "spectreStringMitigations",
-    "baselineBatching",
-    "baselineJitWarmUpThreshold",
-    "baselineQueueCapacity",
-    "trialInliningWarmUpThreshold",
-)
-assert struct.calcsize(CONFIG_V1_FMT) == 16
-
-CONFIG_V2_FMT = "<BBBBB3x III"
-CONFIG_V2_FIELDS = (
-    "disableInlining",
-    "spectreIndexMasking",
-    "spectreObjectMitigations",
-    "spectreStringMitigations",
-    "baselineBatching",
-    "baselineJitWarmUpThreshold",
-    "baselineQueueCapacity",
-    "trialInliningWarmUpThreshold",
-)
-assert struct.calcsize(CONFIG_V2_FMT) == 20
-
-# V3 keeps the 20-byte size: the two new u8 flags (baselineJit,
-# enableICFramePointers) consume two bytes of the old 3-byte trailing padding,
-# leaving one byte of padding before the u32 thresholds.
-CONFIG_V3_FMT = "<BBBBBBB1x III"
-CONFIG_V3_FIELDS = (
+# Configuration field layout. Field order and padding match GenerateAOTImage.py
+# lay_out() applied to the current yaml schema.
+CONFIG_FMT = "<BBBBBBB1x III"
+CONFIG_FIELDS = (
     "disableInlining",
     "spectreIndexMasking",
     "spectreObjectMitigations",
@@ -64,27 +36,14 @@ CONFIG_V3_FIELDS = (
     "baselineQueueCapacity",
     "trialInliningWarmUpThreshold",
 )
-assert struct.calcsize(CONFIG_V3_FMT) == 20
-
-
-def is_v3_layout(fields_bytes):
-    # V2 and V3 share the 20-byte size. Disambiguate by peeking at the two
-    # bytes that were padding in V2 (offsets 5 and 6). Any non-zero there means
-    # the recorder wrote V3 fields; V2 leaves the whole span as zero padding.
-    return fields_bytes[5] != 0 or fields_bytes[6] != 0
+CONFIG_SIZE = struct.calcsize(CONFIG_FMT)
+assert CONFIG_SIZE == 20
 
 
 def decode_config_fields(size, fields_bytes):
-    if size == 16:
-        fmt, names, tag = CONFIG_V1_FMT, CONFIG_V1_FIELDS, "pre-indexMasking"
-    elif size == 20:
-        if is_v3_layout(fields_bytes):
-            fmt, names, tag = CONFIG_V3_FMT, CONFIG_V3_FIELDS, "with baselineJit"
-        else:
-            fmt, names, tag = CONFIG_V2_FMT, CONFIG_V2_FIELDS, "with indexMasking"
-    else:
+    if size != CONFIG_SIZE:
         return None
-    return tag, dict(zip(names, struct.unpack(fmt, fields_bytes)))
+    return dict(zip(CONFIG_FIELDS, struct.unpack(CONFIG_FMT, fields_bytes)))
 
 
 def decode(path):
@@ -111,12 +70,11 @@ def decode(path):
 
     fields = data[BLOB_FILE_HEADER_SIZE:BLOB_FILE_HEADER_SIZE + fields_size]
     if kind == 3:
-        result = decode_config_fields(fields_size, fields)
-        if result is None:
-            print(f"  fields        (unknown Configuration layout, size {fields_size})")
+        values = decode_config_fields(fields_size, fields)
+        if values is None:
+            print(f"  fields        (unexpected Configuration size {fields_size}, expected {CONFIG_SIZE})")
         else:
-            tag, values = result
-            print(f"  fields        Configuration [{tag}]")
+            print(f"  fields        Configuration")
             for name, value in values.items():
                 print(f"    {name:32}= {value}")
     elif fields_size:

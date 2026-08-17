@@ -1,6 +1,6 @@
 name = "ambermonkey"
 description = "AmberMonkey: AOT Baseline JIT sharing"
-paper_dir = "/home/justin/my-papers/phase-5/lib/json"
+paper_dir = "/home/justin/spidermonkey/ambermonkey/paper/lib/json"
 
 [constants]
 FIREFOX = "/home/justin/spidermonkey/firefox"
