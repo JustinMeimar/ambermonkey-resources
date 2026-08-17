@@ -1,1 +1,1 @@
-/home/justin/spidermonkey/ambermonkey/fossils/7-10-cross-process-jit-memory/scripts/smaps_sidecar.py
+/home/justin/spidermonkey/ambermonkey/fossils/retired-7-10-cross-process-jit-memory-awsy/scripts/smaps_sidecar.py

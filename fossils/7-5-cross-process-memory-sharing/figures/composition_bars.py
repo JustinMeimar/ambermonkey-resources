@@ -32,8 +32,9 @@ from figure_style import (  # noqa: E402
 )
 
 
-VARIANT_ORDER = ("default", "default-no-ion", "aot", "aot-corpus")
+VARIANT_ORDER = ("interp-only", "default", "default-no-ion", "aot", "aot-corpus")
 DISPLAY_NAMES = {
+    "interp-only":    "interp-only",
     "default":        "default",
     "default-no-ion": "no-Ion",
     "aot":            "aot",

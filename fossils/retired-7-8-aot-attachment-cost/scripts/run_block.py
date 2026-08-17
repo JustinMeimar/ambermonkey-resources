@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Run the cpstartup Talos block across runtime/AOT clean/timed cells and emit their payload."""
+"""Run cpstartup twice per block — once without an AOT image and once with —
+with JS_AOT_TIMING on so both cells emit per-artifact phase timings."""
 
 import argparse
 import hashlib
@@ -16,10 +17,8 @@ from pathlib import Path
 TIMING_RE = re.compile(r"AOT_TIMING\s+(\{.*\})")
 PERFHERDER_MARKER = "PERFHERDER_DATA:"
 CELLS = (
-    ("runtime_clean", False, False),
-    ("aot_clean", True, False),
-    ("runtime_timed", False, True),
-    ("aot_timed", True, True),
+    ("runtime", False),
+    ("aot", True),
 )
 
 
@@ -59,13 +58,12 @@ def timing_records(lines):
     return records
 
 
-def run_cell(args, name, use_aot, timing):
+def run_cell(args, name, use_aot):
     env = clean_environment()
     env["MOZCONFIG"] = str(args.mozconfig)
+    env["JS_AOT_TIMING"] = "1"
     if use_aot:
         env["JIT_OPTION_useAOTImage"] = "true"
-    if timing:
-        env["JS_AOT_TIMING"] = "1"
 
     command = ["./mach", "talos-test", "-a", "cpstartup"]
     process = subprocess.Popen(
@@ -87,21 +85,12 @@ def run_cell(args, name, use_aot, timing):
     if return_code != 0:
         raise RuntimeError(f"{name}: Talos exited with status {return_code}")
 
-    records = timing_records(lines)
-    content_records = [record for record in records if record.get("process_type") == "content"]
-    if timing and not content_records:
+    records = [r for r in timing_records(lines) if r.get("process_type") == "content"]
+    if not records:
         raise RuntimeError(f"{name}: no content-process AOT_TIMING records")
-    if not timing and records:
-        raise RuntimeError(f"{name}: clean cell unexpectedly emitted AOT_TIMING records")
-    if use_aot and timing and not any(
-        record.get("counters", {}).get("interpreter_wrappers", 0) > 0
-        for record in content_records
-    ):
-        raise RuntimeError(f"{name}: AOT interpreter attachment was not observed")
 
     return {
         "use_aot_image": use_aot,
-        "timing_enabled": timing,
         "perfherder": find_perfherder(lines),
         "timing_records": records,
     }
@@ -127,8 +116,8 @@ def main():
     order = list(CELLS)
     random.Random(seed).shuffle(order)
     cells = {}
-    for name, use_aot, timing in order:
-        cells[name] = run_cell(args, name, use_aot, timing)
+    for name, use_aot in order:
+        cells[name] = run_cell(args, name, use_aot)
 
     commit = subprocess.run(
         ["git", "rev-parse", "HEAD"],

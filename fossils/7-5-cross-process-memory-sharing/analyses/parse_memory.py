@@ -21,22 +21,17 @@ BUCKETS = (
 PRIMARY_CHECKPOINTS = ("Peak", "Final")
 
 CONTRACT = {
-    "default":        {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False},
-    "default-no-ion": {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": True},
-    "aot":            {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False, "no_ion": False},
-    "aot-corpus":     {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": False},
+    "interp-only":    {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False, "no_backend": True},
+    "default":        {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False, "no_backend": False},
+    "default-no-ion": {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": True,  "no_backend": False},
+    "aot":            {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False, "no_ion": False, "no_backend": False},
+    "aot-corpus":     {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": False, "no_backend": False},
 }
 
 
 def kind_of(variant):
-    if variant == "default-no-ion":
-        return "default-no-ion"
-    if variant == "default":
-        return "default"
-    if variant == "aot-corpus":
-        return "aot-corpus"
-    if variant == "aot":
-        return "aot"
+    if variant in CONTRACT:
+        return variant
     manifest.fail(PREFIX, f"unclassified variant {variant!r}")
 
 
@@ -60,6 +55,11 @@ def validate_manifest(m):
         manifest.fail(PREFIX, f"{variant}: no-Ion flag not present")
     if not c["no_ion"] and has_no_ion:
         manifest.fail(PREFIX, f"{variant}: forbidden no-Ion flag present")
+    has_no_backend = "JIT_OPTION_disableJitBackend=1" in command or "JIT_OPTION_disableJitBackend=true" in command
+    if c["no_backend"] and not has_no_backend:
+        manifest.fail(PREFIX, f"{variant}: disableJitBackend flag not present")
+    if not c["no_backend"] and has_no_backend:
+        manifest.fail(PREFIX, f"{variant}: forbidden disableJitBackend flag present")
     return variant
 
 

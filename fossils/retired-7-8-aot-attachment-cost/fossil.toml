@@ -1,15 +1,15 @@
 name = "aot-attachment-cost"
-description = "Blocked cpstartup measurement of AOT image attachment, metadata reconstruction, residual compilation, and end-to-end content-process startup."
+description = "Paired cpstartup runs (runtime codegen vs AOT-installed) comparing per-artifact install cost against runtime compile cost across the three AOT artifact classes: baseline interpreter, baseline scripts, IC stubs."
 default_iterations = 10
 allow_failure = false
 workdir = "."
 
 [analyze]
-startup-cost = "analyses/parse_startup_cost.py"
+installs = "analyses/parse_installs.py"
 
-[figures.cost-tables]
-analysis = "startup-cost"
-script = "figures/cost_tables.py"
+[figures.install-table]
+analysis = "installs"
+script = "figures/install_table.py"
 
 [variables]
 MOZCONFIG = "/home/justin/spidermonkey/ambermonkey/mozconfigs/browser-release-aot.mozconfig"

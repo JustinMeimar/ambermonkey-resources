@@ -16,7 +16,7 @@ from pathlib import Path
 from fossil_figures import load_stdin, write_typst_table
 
 
-VARIANT_ORDER = ("default", "default-no-ion", "aot", "aot-corpus")
+VARIANT_ORDER = ("interp-only", "default", "default-no-ion", "aot", "aot-corpus")
 CHECKPOINT = "Peak"
 
 
