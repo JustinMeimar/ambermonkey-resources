@@ -38,6 +38,7 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | 7-4 | indirection microbenchmarks (perf cycles)      | VII.D indirection overhead  |
 | 7-5 | Speedometer 3 content-process memory (smaps)   | VII.E cross-process memory  |
 | 7-6 | on-disk binary size                            | VII.F binary size           |
+| 7-8 | AOT attachment cost (cpstartup)                | VII.G attachment cost       |
 
 ### Retired
 
@@ -49,7 +50,6 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | retired-7-4-jetstream3-startup         | JetStream 3 startup 2x2                        |
 | retired-7-5-cross-process-memory-octane| per-process peak memory on Octane              |
 | retired-7-6-shell-memory-scaling       | per-runtime memory scaling in jsshell          |
-| retired-7-8-aot-attachment-cost        | AOT attachment cost (cpstartup)                |
 | retired-7-10-cross-process-jit-memory-awsy | cross-process JIT memory on AWSY tp6       |
 
 ## Running

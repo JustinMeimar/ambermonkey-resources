@@ -1,0 +1,19 @@
+name = "aot-attachment-cost"
+description = "Per-artifact AOT install cost vs runtime codegen cost during cpstartup, from JS_AOT_TIMING content-process shutdown records."
+default_iterations = 5
+allow_failure = false
+
+[analyze]
+timing = "analyses/parse_timing.py"
+
+[tables.attachment]
+analysis = "timing"
+script = "figures/attachment_table.py"
+
+[variables]
+PRE       = "cd @FIREFOX && @MC_AOT JS_AOT_TIMING=1"
+CPSTARTUP = "./mach talos-test -a cpstartup"
+
+[variants]
+runtime = "$PRE                              $CPSTARTUP 2>&1"
+aot     = "$PRE JIT_OPTION_useAOTImage=true  $CPSTARTUP 2>&1"
