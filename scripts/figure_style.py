@@ -33,56 +33,52 @@ FONT_SIZES = {
     "note": 7.0 * FONT_SCALE,
 }
 
-# Canonical deep endpoints from RdBu_r, also used by the 3-3 inter-workload
-# coverage figure. The `default` / `aot-corpus` / etc. mappings below reuse
-# these plus one PuOr orange for the AOT-with-full-tiering variant.
+# Palette constants used for non-variant marks (whiskers, panel accents, etc.).
+# All per-configuration colors live in fossils/configurations.toml; access
+# them via load_configurations() instead of these constants.
 AMBER_BLUE = "#2166AC"
 AMBER_RED = "#B2182B"
+AMBER_RED_MID = "#D6604D"
 AMBER_PURPLE = "#762A83"
 AMBER_ORANGE = "#E08214"
 AMBER_GREY = "#7A7A7A"
 
 
-def load_variant_colors():
-    """Return {variant_name: hex_color} from the project's project.toml.
+def load_configurations():
+    """Load the execution-configuration registry.
 
-    Falls back to hardcoded defaults if the file or the individual keys are
-    missing so a figure script cannot silently render with wrong colors —
-    if a variant is unknown, its lookup raises KeyError at draw time.
+    Returns dict[slug] -> {"long", "short", "prose", "color", "order"}.
+    Reads from $FOSSIL_PROJECT_DIR/configurations.toml (the fossil-home copy)
+    or falls back to the repo-local path. Missing entries raise KeyError at
+    lookup time so a figure cannot silently render an unknown variant.
     """
-    project_toml = _find_project_toml()
-    values = {}
-    if project_toml is not None:
-        try:
-            data = tomllib.loads(project_toml.read_text())
-            values = data.get("constants", {})
-        except (OSError, tomllib.TOMLDecodeError):
-            values = {}
-
-    # Variant name -> project.toml key. Keep in sync with fossil variants
-    # in 7-3-ambermonkey-perf and 7-11-sp3-memory.
-    mapping = {
-        "interp-only":    "VARIANT_COLOR_INTERP_ONLY",
-        "aot-corpus":     "VARIANT_COLOR_AOT_CORPUS",
-        "aot":            "VARIANT_COLOR_AOT",
-        "default-no-ion": "VARIANT_COLOR_DEFAULT_NO_ION",
-        "default":        "VARIANT_COLOR_DEFAULT",
-    }
-    defaults = {
-        "interp-only":    AMBER_GREY,
-        "aot-corpus":     AMBER_RED,
-        "aot":            AMBER_ORANGE,
-        "default-no-ion": AMBER_BLUE,
-        "default":        AMBER_PURPLE,
-    }
-    return {v: values.get(key, defaults[v]) for v, key in mapping.items()}
+    registry_path = _find_registry()
+    if registry_path is None:
+        raise FileNotFoundError(
+            "configurations.toml not found; set FOSSIL_PROJECT_DIR or run "
+            "from a checkout of ambermonkey"
+        )
+    with registry_path.open("rb") as f:
+        return tomllib.load(f)
 
 
-def _find_project_toml():
-    """Locate the ambermonkey project.toml under $FOSSIL_HOME (or ~/.fossil)."""
+def load_variant_colors():
+    """Deprecated: use load_configurations()[slug]['color']."""
+    return {slug: cfg["color"] for slug, cfg in load_configurations().items()}
+
+
+def _find_registry():
+    project_dir = os.environ.get("FOSSIL_PROJECT_DIR")
+    if project_dir:
+        candidate = Path(project_dir) / "configurations.toml"
+        if candidate.exists():
+            return candidate
     home = Path(os.environ.get("FOSSIL_HOME", str(Path.home() / ".fossil")))
-    candidate = home / "projects" / "ambermonkey" / "project.toml"
-    return candidate if candidate.exists() else None
+    candidate = home / "projects" / "ambermonkey" / "configurations.toml"
+    if candidate.exists():
+        return candidate
+    repo = Path(__file__).resolve().parents[1] / "fossils" / "configurations.toml"
+    return repo if repo.exists() else None
 
 
 def apply_amber_style(column: str) -> None:

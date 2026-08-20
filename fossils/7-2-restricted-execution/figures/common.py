@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -74,7 +76,11 @@ def validate_data(data: FigureData, baseline: str = "interp-only") -> None:
             raise ValueError(f"{variant}: workload set differs from other variants")
 
     if len(commits) != 1 or "" in commits:
-        raise ValueError(f"records do not share one valid source commit: {commits}")
+        message = f"records do not share one valid source commit: {commits}"
+        if os.environ.get("FOSSIL_FORCE") == "1":
+            print(f"warning: {message} (FOSSIL_FORCE=1)", file=sys.stderr)
+        else:
+            raise ValueError(message)
 
 
 def save_png_and_pdf(fig, output_path: str) -> None:

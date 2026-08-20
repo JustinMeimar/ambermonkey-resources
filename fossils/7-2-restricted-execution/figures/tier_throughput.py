@@ -18,6 +18,7 @@ from figure_style import (  # noqa: E402
     FONT_SIZES,
     apply_amber_style,
     figure_size,
+    load_configurations,
 )
 
 from common import (
@@ -29,12 +30,7 @@ from common import (
 
 
 NORMALIZE_TO = "interp-only"
-DISPLAY_NAMES = {
-    "interp-only": "IO",
-    "aot-corpus": "AM",
-    "default-no-ion": "BL",
-    "default": "DEF",
-}
+CONFIGS = load_configurations()
 
 
 def tick_step(x_max):
@@ -89,7 +85,7 @@ bar_ax.barh(
 )
 bar_ax.axvline(1.0, color="black", linewidth=0.8, linestyle="--")
 bar_ax.set_yticks(y_positions)
-bar_ax.set_yticklabels([DISPLAY_NAMES.get(variant, variant) for variant in variants])
+bar_ax.set_yticklabels([CONFIGS[variant]["short"] for variant in variants])
 bar_ax.invert_yaxis()
 step = tick_step(max(ratios))
 x_max = math.ceil(max(ratios) / step) * step

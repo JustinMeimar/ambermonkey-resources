@@ -11,8 +11,8 @@ from pathlib import Path
 from fossil_figures import load_stdin, write_typst_table
 
 ROWS = (
-    ("interpreter",      "baseline interpreter"),
-    ("baseline_scripts", "baseline scripts"),
+    ("interpreter",      "interpreter"),
+    ("baseline_scripts", "self-hosted"),
     ("ic_stubs",         "IC stubs"),
 )
 
@@ -40,7 +40,6 @@ def main():
         compile_us  = scalar(runtime, "artifacts", key, "compile_us_per_call")
         installs    = scalar(aot,     "artifacts", key, "installs_per_proc")
         compiles    = scalar(runtime, "artifacts", key, "compiles_per_proc")
-        image_bytes = scalar(aot,     "artifacts", key, "image_bytes_per_proc")
         speedup = (compile_us / install_us) if install_us > 0 else 0.0
         rows.append([
             label,
@@ -49,19 +48,17 @@ def main():
             round(install_us, 2),
             round(compile_us, 2),
             round(speedup, 2),
-            round(image_bytes / 1024.0, 2),
         ])
 
     write_typst_table(
         Path(sys.argv[1]),
         columns=[
-            {"key": "artifact",          "label": "artifact",                "align": "left",  "format": "str"},
-            {"key": "installs_per_proc", "label": "AOT installs / proc",     "align": "right", "format": "float"},
-            {"key": "compiles_per_proc", "label": "runtime compiles / proc", "align": "right", "format": "float"},
-            {"key": "install_us",        "label": "install (us / call)",     "align": "right", "format": "float"},
-            {"key": "compile_us",        "label": "compile (us / call)",     "align": "right", "format": "float"},
-            {"key": "speedup",           "label": "compile / install",       "align": "right", "format": "float"},
-            {"key": "image_kb_per_proc", "label": "image (KB / proc)",       "align": "right", "format": "float"},
+            {"key": "artifact",          "label": "artifact",     "align": "left",  "format": "str"},
+            {"key": "installs_per_proc", "label": "installs/proc", "align": "right", "format": "float"},
+            {"key": "compiles_per_proc", "label": "compiles/proc", "align": "right", "format": "float"},
+            {"key": "install_us",        "label": "µs/install",    "align": "right", "format": "float"},
+            {"key": "compile_us",        "label": "µs/compile",    "align": "right", "format": "float"},
+            {"key": "speedup",           "label": "ratio",         "align": "right", "format": "float"},
         ],
         rows=rows,
     )

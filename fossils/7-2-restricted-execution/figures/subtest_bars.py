@@ -15,12 +15,10 @@ from fossil_figures import load_stdin
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import (  # noqa: E402
-    AMBER_BLUE,
-    AMBER_PURPLE,
-    AMBER_RED,
     FONT_SIZES,
     apply_amber_style,
     figure_size,
+    load_configurations,
 )
 
 from common import (
@@ -32,22 +30,8 @@ from common import (
 
 
 NORMALIZE_TO = "interp-only"
-VARIANT_ORDER = ["interp-only", "aot-corpus", "default-no-ion", "default"]
-DISPLAY_NAMES = {
-    "interp-only": "Interp only",
-    "aot-corpus": "AOT corpus",
-    "default-no-ion": "Baseline JIT",
-    "default": "Default (Ion)",
-}
-# Palette: grey for the baseline, then the paper's established
-# AMBER_RED / AMBER_BLUE / AMBER_PURPLE (ColorBrewer RdBu_r + PuOr endpoints).
-# All four map to distinct greyscale luminances for print/photocopy.
-VARIANT_COLORS = {
-    "interp-only": "#7A7A7A",
-    "aot-corpus": AMBER_RED,
-    "default-no-ion": AMBER_BLUE,
-    "default": AMBER_PURPLE,
-}
+CONFIGS = load_configurations()
+VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 GROUP_WIDTH = 0.82
 
 WORKLOAD_LABELS = {
@@ -83,9 +67,8 @@ data = load_stdin()
 validate_data(data, baseline=NORMALIZE_TO)
 
 variants = [v for v in VARIANT_ORDER if v in data.column_names]
-missing = [v for v in VARIANT_ORDER if v not in data.column_names]
-if missing:
-    raise ValueError(f"missing expected variants: {missing}")
+# The registry can list configurations not measured by this fossil; only
+# error on data-side variants that the registry doesn't know about.
 extras = [v for v in data.column_names if v not in VARIANT_ORDER]
 if extras:
     raise ValueError(f"unexpected variants present: {extras}")
@@ -114,7 +97,7 @@ for variant in variants:
 group_labels = [WORKLOAD_LABELS.get(w, w) for w in workloads] + ["Geomean"]
 n_groups = len(group_labels)
 n_variants = len(variants)
-colors = [VARIANT_COLORS[v] for v in variants]
+colors = [CONFIGS[v]["color"] for v in variants]
 bar_width = GROUP_WIDTH / n_variants
 x = np.arange(n_groups)
 
@@ -138,7 +121,7 @@ for i, variant in enumerate(variants):
         edgecolor="white",
         linewidth=0.25,
         error_kw={"elinewidth": 0.5, "capthick": 0.5, "capsize": 1.2, "ecolor": "#444"},
-        label=DISPLAY_NAMES.get(variant, variant),
+        label=CONFIGS[variant]["long"],
         zorder=3,
     )
     y_max = max(y_max, max(v + e for v, e in zip(values, err)))
@@ -154,7 +137,7 @@ ax.set_xticklabels(
     rotation_mode="anchor",
     fontsize=FONT_SIZES["tick"],
 )
-ax.set_ylabel(f"Speedup over {DISPLAY_NAMES[NORMALIZE_TO].lower()}")
+ax.set_ylabel(f"Speedup over {CONFIGS[NORMALIZE_TO]['prose']}")
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.58, n_groups - 0.42)
 ax.set_ylim(0, y_max * 1.10 if y_max else 1)

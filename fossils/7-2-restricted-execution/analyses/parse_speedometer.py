@@ -22,6 +22,9 @@ def validate_manifest(m):
     page_cycles = manifest.page_cycles_from(command, PREFIX)
     use_aot_image = manifest.command_flag(command, "JIT_OPTION_useAOTImage")
     aot_only = manifest.command_flag(command, "JIT_OPTION_aotOnly")
+    aot_skip_baseline_fn = manifest.command_flag(
+        command, "JIT_OPTION_aotSkipBaselineFn"
+    )
     jit_backend_disabled = manifest.command_flag(
         command, "JIT_OPTION_disableJitBackend"
     )
@@ -36,6 +39,8 @@ def validate_manifest(m):
         manifest.fail(PREFIX, f"{variant}: aotOnly requires JIT_OPTION_useAOTImage=true")
     if variant == "interp-only" and not jit_backend_disabled:
         manifest.fail(PREFIX, "interp-only: JIT backend was not disabled")
+    if variant == "aot-corpus-ic" and not aot_skip_baseline_fn:
+        manifest.fail(PREFIX, "aot-corpus-ic: JIT_OPTION_aotSkipBaselineFn was not set")
 
     if aot_only:
         aot_policy = "aot-only"
@@ -47,6 +52,7 @@ def validate_manifest(m):
     execution = {
         "aot_image": "enabled" if use_aot_image else "disabled",
         "aot_policy": aot_policy,
+        "aot_baseline_functions": "disabled" if aot_skip_baseline_fn else "enabled",
         "ion": (
             "unavailable"
             if jit_backend_disabled

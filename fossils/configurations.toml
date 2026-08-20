@@ -1,0 +1,56 @@
+# Source of truth for every execution configuration used across the AmberMonkey
+# paper. Each TOML section key is the canonical slug — the same slug that
+# appears in fossil.toml [variants] blocks and as JSON table row labels. All
+# figure scripts, typst constants, and prose in draft.typ read from here.
+#
+# Fields:
+#   long   – full display name used in figure legends and table headers
+#   short  – compact label for tight axes (tier_throughput, etc.)
+#   prose  – how the config is referred to inline in draft prose / captions
+#   color  – hex; ColorBrewer RdBu_r + PuOr, distinct greyscale luminances
+#   order  – performance-monotonic ordering (low = most restricted)
+#
+# Adding a new configuration is a single new section here plus a variant entry
+# in the relevant fossil.toml. Everything else picks it up automatically.
+
+[interp-only]
+long  = "Interpreter only"
+short = "IO"
+prose = "interpreter-only"
+color = "#7A7A7A"
+order = 1
+
+[aot-corpus-ic]
+long  = "AmberMonkey-IC"
+short = "AM-IC"
+prose = "AmberMonkey-IC"
+color = "#D6604D"
+order = 2
+
+[aot-corpus]
+long  = "AmberMonkey"
+short = "AM"
+prose = "AmberMonkey"
+color = "#B2182B"
+order = 3
+
+[aot]
+long  = "AmberMonkey+Ion"
+short = "AM+I"
+prose = "AmberMonkey with Ion"
+color = "#E08214"
+order = 4
+
+[default-no-ion]
+long  = "Baseline JIT"
+short = "BL"
+prose = "Baseline JIT"
+color = "#2166AC"
+order = 5
+
+[default]
+long  = "Default (Ion)"
+short = "DEF"
+prose = "Default (Ion)"
+color = "#762A83"
+order = 6

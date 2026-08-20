@@ -27,19 +27,15 @@ from figure_style import (  # noqa: E402
     FONT_SIZES,
     apply_amber_style,
     figure_size,
-    load_variant_colors,
+    load_configurations,
     save_at_declared_size,
 )
 
 
+CONFIGS = load_configurations()
+# Memory-focused ordering, not performance. Registry defines canonical
+# performance order; this figure groups variants by memory story instead.
 VARIANT_ORDER = ("interp-only", "default", "default-no-ion", "aot", "aot-corpus")
-DISPLAY_NAMES = {
-    "interp-only":    "interp-only",
-    "default":        "default",
-    "default-no-ion": "no-Ion",
-    "aot":            "aot",
-    "aot-corpus":     "aot-only",
-}
 CHECKPOINT = "Peak"
 ANON_HATCH = "////"
 
@@ -58,7 +54,7 @@ def scalar(metric, *path):
 def main():
     apply_amber_style("single")
     data = load_stdin()
-    colors = load_variant_colors()
+    colors = {slug: cfg["color"] for slug, cfg in CONFIGS.items()}
 
     variants = [v for v in VARIANT_ORDER if v in data.columns]
     if not variants:
@@ -168,7 +164,7 @@ def main():
 
     ax.set_xticks(xs)
     ax.set_xticklabels(
-        [DISPLAY_NAMES.get(v, v) for v in variants],
+        [CONFIGS[v]["long"] for v in variants],
         rotation=0, ha="center",
         fontsize=FONT_SIZES["tick"],
     )

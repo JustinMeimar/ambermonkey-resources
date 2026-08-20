@@ -12,10 +12,17 @@ from fossil_figures import load_stdin, write_typst_table
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import child, run_values, validate_data
 
+PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(PROJECT_DIR / "scripts"))
+from figure_style import load_configurations  # noqa: E402
+
 
 BASELINE = "interp-only"
 DEFAULT = "default"
-VARIANT_ORDER = ("interp-only", "aot-corpus", "default-no-ion", "default")
+CONFIGS = load_configurations()
+VARIANT_ORDER = tuple(
+    slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])
+)
 
 
 def main():
@@ -56,6 +63,7 @@ def main():
     ]
 
     aot = means.get("aot-corpus")
+    aot_ic = means.get("aot-corpus-ic")
     interp = means.get(BASELINE)
     default = means.get(DEFAULT)
     runs_per_variant = min(len(scores[v]) for v in variants)
@@ -73,6 +81,19 @@ def main():
         payload["aot_over_interp_speedup"] = aot / interp - 1.0
     if aot is not None and default is not None:
         payload["aot_over_default_ratio"] = aot / default
+    if aot_ic is not None and interp is not None:
+        payload["aot_ic_over_interp_ratio"] = aot_ic / interp
+        payload["aot_ic_over_interp_speedup"] = aot_ic / interp - 1.0
+    if aot is not None and aot_ic is not None:
+        # Fraction of AmberMonkey's speedup over interp attributable to
+        # AOT Baseline functions (rest is the IC corpus + AOT interpreter).
+        aot_speedup = aot / interp - 1.0 if interp else 0.0
+        ic_speedup = aot_ic / interp - 1.0 if interp else 0.0
+        if aot_speedup > 0:
+            payload["baseline_fn_share_of_aot_speedup"] = (
+                (aot_speedup - ic_speedup) / aot_speedup
+            )
+            payload["ic_share_of_aot_speedup"] = ic_speedup / aot_speedup
     payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-3-ambermonkey-perf")
     payload["workload"] = "speedometer3"
     payload["runs_per_variant"] = runs_per_variant

@@ -1,5 +1,5 @@
 name = "restricted-execution"
-description = "Speedometer 3 strict-AOT tier ladder: interpreter only, AOT corpus, default without Ion, default."
+description = "Speedometer 3 strict-AOT tier ladder: interpreter only, AmberMonkey-IC (blinterp + IC corpus), AmberMonkey (adds AOT Baseline functions), default without Ion, default."
 default_iterations = 3
 allow_failure = false
 
@@ -25,16 +25,18 @@ script   = "figures/speedometer_table.py"
 [variables]
 # Strip ambient JIT env; --setenv is then the whole policy. Extra env vars
 # (INTERP/AOT) are injected between CLEAN and ./mach so they reach mach.
-PRE     = "cd @FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage @SANDBOX @MC_AOT"
+PRE     = "cd @FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage @SANDBOX @MC_AOT"
 MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT"
 ION_OFF = "--setpref javascript.options.ion=false"
 RESULT  = "cat testing/mozharness/build/raptor.json"
 
 INTERP  = "JIT_OPTION_disableJitBackend=true"
 AOT     = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+IC_ONLY = "JIT_OPTION_aotSkipBaselineFn=true"
 
 [variants]
-interp-only    = "$PRE $INTERP $MACH          1>&2 && $RESULT"
-aot-corpus     = "$PRE $AOT    $MACH $ION_OFF 1>&2 && $RESULT"
-default-no-ion = "$PRE         $MACH $ION_OFF 1>&2 && $RESULT"
-default        = "$PRE         $MACH          1>&2 && $RESULT"
+interp-only    = "$PRE $INTERP          $MACH          1>&2 && $RESULT"
+aot-corpus-ic  = "$PRE $AOT    $IC_ONLY $MACH $ION_OFF 1>&2 && $RESULT"
+aot-corpus     = "$PRE $AOT             $MACH $ION_OFF 1>&2 && $RESULT"
+default-no-ion = "$PRE                  $MACH $ION_OFF 1>&2 && $RESULT"
+default        = "$PRE                  $MACH          1>&2 && $RESULT"
