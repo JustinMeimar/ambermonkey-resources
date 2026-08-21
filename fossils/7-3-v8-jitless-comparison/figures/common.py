@@ -70,13 +70,28 @@ def load_v8() -> dict:
     return json.loads(V8_JSON.read_text())
 
 
-def summarize(samples: list[float], fallback_score: float) -> tuple[float, float, int]:
-    """Return (mean, stdev, n). Falls back to fallback_score when samples is empty."""
+def summarize(
+    samples: list[float],
+    fallback_score: float,
+    fallback_stdev: float = 0.0,
+    fallback_n: int = 0,
+) -> tuple[float, float, int]:
+    """Return (mean, stdev, n). Uses fallback fields when samples is empty."""
     if samples:
         mean = statistics.fmean(samples)
         stdev = statistics.stdev(samples) if len(samples) > 1 else 0.0
         return mean, stdev, len(samples)
-    return float(fallback_score), 0.0, 0
+    return float(fallback_score), float(fallback_stdev), int(fallback_n)
+
+
+def summarize_column(column: dict) -> tuple[float, float, int]:
+    """Summarize a v8 column dict, threading its stdev/iterations fallbacks."""
+    return summarize(
+        column.get("samples", []),
+        column.get("score", 0.0),
+        column.get("stdev", 0.0),
+        column.get("iterations", 0),
+    )
 
 
 def save_png_and_pdf(fig, output_path: str) -> None:

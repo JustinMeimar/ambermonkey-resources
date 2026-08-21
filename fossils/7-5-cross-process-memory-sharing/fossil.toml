@@ -14,6 +14,10 @@ script   = "figures/aggregate_table.py"
 analysis = "memory"
 script   = "figures/composition_bars.py"
 
+[figures.per-proc-pss-lines]
+analysis = "memory"
+script   = "figures/per_proc_pss_lines.py"
+
 [variables]
 INIT               = "D=$(mktemp -d /tmp/amber-7-5.XXXXXX)"
 SIDECAR_BIN        = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-5-cross-process-memory-sharing/scripts/smaps_sidecar.py"

@@ -1,26 +1,28 @@
 {
-  "_todo": "Fill in scores from a manual Chrome run: `google-chrome --js-flags=\"--jitless\"` and a matching default run. Match the SpiderMonkey machine setup (pinned core, governor, boost off) as closely as possible.",
+  "_note": "Chrome numbers for Speedometer 3, matching the SpiderMonkey machine setup. Per-run samples were not preserved from the earlier `7-4-jitless-comparison` run; mean/stdev/iterations were copied from `paper/lib/json/7-4-jitless-comparison.json`.",
   "meta": {
     "workload": "speedometer3",
-    "sp3_version": "TODO (e.g. 3.1)",
+    "sp3_version": "3.1",
     "chrome_version": "TODO",
-    "hardware": "TODO (should mirror the AmberMonkey runs: pinned core, performance governor, boost off)",
+    "hardware": "pinned core, performance governor (as in the AmberMonkey runs)",
     "invocation_default": "google-chrome",
     "invocation_jitless": "google-chrome --js-flags=\"--jitless\"",
     "date": "TODO (YYYY-MM-DD)"
   },
   "columns": {
     "v8-default": {
-      "score": 0.0,
+      "score": 28.4,
+      "stdev": 0.6,
       "samples": [],
-      "iterations": 0,
-      "note": "TODO: paste per-run Speedometer 3 scores from Chrome (no flags)."
+      "iterations": 3,
+      "note": "Score is the mean of 3 browser runs; samples not preserved."
     },
     "v8-jitless": {
-      "score": 0.0,
+      "score": 18.8,
+      "stdev": 0.4,
       "samples": [],
-      "iterations": 0,
-      "note": "TODO: paste per-run Speedometer 3 scores from Chrome with --js-flags=\"--jitless\"."
+      "iterations": 3,
+      "note": "Score is the mean of 3 browser runs; samples not preserved."
     }
   }
 }

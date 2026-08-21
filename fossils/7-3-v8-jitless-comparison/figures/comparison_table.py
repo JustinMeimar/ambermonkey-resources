@@ -9,7 +9,7 @@ from pathlib import Path
 from fossil_figures import load_stdin, write_typst_table
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import load_v8, run_scores, summarize, validate_sm
+from common import load_v8, run_scores, summarize, summarize_column, validate_sm
 
 
 SM_DEFAULT = "default"
@@ -33,10 +33,7 @@ def main():
     sm_default = sm_summary[SM_DEFAULT][0]
 
     v8_summary = {
-        slug: summarize(
-            v8["columns"][slug].get("samples", []),
-            v8["columns"][slug].get("score", 0.0),
-        )
+        slug: summarize_column(v8["columns"][slug])
         for slug in (V8_DEFAULT, V8_JITLESS)
     }
     v8_default = v8_summary[V8_DEFAULT][0]
