@@ -20,7 +20,7 @@ def main():
         columns.append({"key": key, "label": COLUMN_LABELS[key],
                         "align": "right", "format": "str"})
 
-    corpus_row = ["Corpus size"] + ["1"] * len(COLUMN_ORDER)
+    corpus_row = ["#Interpreters"] + ["1"] * len(COLUMN_ORDER)
 
     loaded_row = ["Processes loaded"]
     for key in COLUMN_ORDER:

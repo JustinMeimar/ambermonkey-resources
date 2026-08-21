@@ -4,7 +4,7 @@
 from _common import emit_aggregate
 
 ROWS = [
-    ("Corpus size",    "utilization.ic_stubs.total",    "count"),
+    ("#ICs",           "utilization.ic_stubs.total",    "count"),
     ("Attached",       "utilization.ic_stubs.used",     "count"),
     ("Utilization",    "utilization.ic_stubs.pct",      "percent"),
     ("Total attaches", "requests.ic_stubs.total",       "count"),
