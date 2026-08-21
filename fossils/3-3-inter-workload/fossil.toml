@@ -10,9 +10,16 @@ artifact-sets = "analyses/ic_set.py"
 analysis = "artifact-sets"
 script   = "figures/ic_jaccard.py"
 
-# Reads records/ directly; asserts the 8-site set enumerated in scripts/emit_summary_json.py.
+# All three table emitters read records/ directly and pool per site;
+# they share pairwise-intersection helpers in scripts/pairwise.py.
 [tables.coverage]
 script = "scripts/emit_summary_json.py"
+
+[tables.baseline-static]
+script = "scripts/emit_baseline_static_table.py"
+
+[tables.baseline-dynamic]
+script = "scripts/emit_baseline_dynamic_table.py"
 
 [variables]
 INIT   = "D=$(mktemp -d /tmp/amber-3-3.XXXXXX)"
