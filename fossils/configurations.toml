@@ -54,3 +54,17 @@ short = "DEF"
 prose = "Default (Ion)"
 color = "#762A83"
 order = 6
+
+[v8-jitless]
+long  = "V8 --jitless"
+short = "V8-JL"
+prose = "V8 --jitless"
+color = "#1B7837"
+order = 7
+
+[v8-default]
+long  = "V8 default"
+short = "V8"
+prose = "V8 default"
+color = "#5AAE61"
+order = 8

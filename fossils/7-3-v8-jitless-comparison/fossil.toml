@@ -1,4 +1,32 @@
 name = "v8-jitless-comparison"
-description = "AmberMonkey AOT-only vs V8 --jitless on Speedometer 3 and JetStream 3, alongside each engine's unrestricted default for reference."
-default_iterations = 1
+description = "Speedometer 3 headroom recovered by AmberMonkey against SpiderMonkey default, alongside V8 --jitless against V8 default from a manually-maintained JSON."
+default_iterations = 3
 allow_failure = false
+
+# V8 numbers are hand-entered in v8_jitless_sp3_perf.json; only the SpiderMonkey
+# columns come from `fossil bury`.
+
+[analyze]
+speedometer-detail = "analyses/parse_speedometer.py"
+
+[figures.jitless-bars]
+analysis = "speedometer-detail"
+script   = "figures/jitless_bars.py"
+
+[tables.jitless-comparison]
+analysis = "speedometer-detail"
+script   = "figures/comparison_table.py"
+
+[variables]
+PRE     = "cd @FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage @SANDBOX @MC_AOT"
+MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT"
+ION_OFF = "--setpref javascript.options.ion=false"
+RESULT  = "cat testing/mozharness/build/raptor.json"
+
+INTERP  = "JIT_OPTION_disableJitBackend=true"
+AOT     = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+
+[variants]
+interp-only = "$PRE $INTERP $MACH          1>&2 && $RESULT"
+aot-corpus  = "$PRE $AOT    $MACH $ION_OFF 1>&2 && $RESULT"
+default     = "$PRE         $MACH          1>&2 && $RESULT"
