@@ -66,7 +66,7 @@ apply_amber_style("double")
 data = load_stdin()
 validate_data(data, baseline=NORMALIZE_TO)
 
-variants = [v for v in VARIANT_ORDER if v in data.column_names]
+variants = [v for v in VARIANT_ORDER if v in data.column_names and v != NORMALIZE_TO]
 # The registry can list configurations not measured by this fossil; only
 # error on data-side variants that the registry doesn't know about.
 extras = [v for v in data.column_names if v not in VARIANT_ORDER]
