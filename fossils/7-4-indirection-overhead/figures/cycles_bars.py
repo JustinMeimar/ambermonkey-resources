@@ -14,12 +14,10 @@ from fossil_figures import load_stdin
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import (  # noqa: E402
-    AMBER_BLUE,
-    AMBER_PURPLE,
-    AMBER_RED,
     FONT_SIZES,
     apply_amber_style,
     figure_size,
+    load_configurations,
     save_at_declared_size,
 )
 
@@ -37,25 +35,31 @@ BENCHES = (
     "array-load",
 )
 LABELS = {
-    "interrupt-check": "interrupt",
-    "stack-check": "stack",
-    "prebarrier": "pre-barrier",
+    "interrupt-check": "Interrupt",
+    "stack-check": "Stack",
+    "prebarrier": "Pre-barrier",
     "vm-call": "VM call",
     "abi-call": "ABI call",
-    "arith": "arithmetic",
-    "prop-load": "property",
-    "array-load": "array",
+    "arith": "Arithmetic",
+    "prop-load": "Property",
+    "array-load": "Array",
+}
+# `default` runs the stock shell with `--blinterp-eager --no-ion` (Baseline
+# JIT); `opt` runs the AOT shell. Colors come from the shared configuration
+# registry so this figure stays aligned with every other Baseline/AmberMonkey
+# comparison in the paper.
+CONFIG_FOR_BUILD = {
+    "default": "default-no-ion",
+    "opt": "aot-corpus",
 }
 LEGEND_LABELS = {
-    "default": "Runtime",
-    "opt": "AOT",
-    "no-opt": "AOT, no opts",
+    "default": "SpiderMonkey",
+    "opt": "AmberMonkey",
+    "no-opt": "AmberMonkey, no opts",
 }
-COLORS = {
-    "default": AMBER_BLUE,
-    "opt": AMBER_RED,
-    "no-opt": AMBER_PURPLE,
-}
+CONFIGS = load_configurations()
+COLORS = {build: CONFIGS[slug]["color"] for build, slug in CONFIG_FOR_BUILD.items()}
+COLORS["no-opt"] = CONFIGS["aot-corpus-ic"]["color"]
 METRIC = "cycles_per_iter"
 GROUP_WIDTH = 0.78
 

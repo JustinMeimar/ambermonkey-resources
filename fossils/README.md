@@ -31,6 +31,7 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | 0-0 | hand-authored taxonomy tables                  | design tables               |
 | 3-2 | intra-workload IC concentration (tp6, 8 sites) | (background)                |
 | 3-3 | inter-workload overlap (tp6, 8 sites)          | III.D cross-workload reuse  |
+| 3-4 | SM CacheIR vs V8 Sparkplug ic-microbench       | III.C preliminary IC perf   |
 | 6-1 | AOT corpus recorder over tp6 + self-hosted     | VI.B corpus construction    |
 | 7-1 | corpus coverage on held-out workloads          | VII.A corpus coverage       |
 | 7-2 | Speedometer 3 tier ladder                      | VII.B restricted execution  |

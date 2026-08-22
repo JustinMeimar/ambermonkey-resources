@@ -1,0 +1,20 @@
+name = "sm-v8-ics-micro-bench"
+description = "Per-operation loop-adjusted ns/op for SpiderMonkey (CacheIR on/off) and V8 Sparkplug on the ic-microbench kernels, seeded from an adjacent JSON snapshot."
+default_iterations = 1
+allow_failure = false
+
+# The seed variant does not run any engine. It re-emits the adjacent
+# results_seed.json so the fossil pipeline has a record to analyse and figure
+# from until an on-device runner is added.
+[analyze]
+op-speedup = "analyses/op_speedup.py"
+
+[figures.op-speedup]
+analysis = "op-speedup"
+script   = "figures/op_speedup.py"
+
+[variables]
+SEED = "cat /home/justin/spidermonkey/ambermonkey/fossils/3-4-sm-v8-ics-micro-bench/results_seed.json"
+
+[variants]
+seed = "$SEED"
