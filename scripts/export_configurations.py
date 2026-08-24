@@ -23,7 +23,7 @@ FOSSILS_DIR = ROOT / "fossils"
 # the registry). Other fossils use workload names, A/B axes, or per-benchmark
 # labels for their variants and are exempt from the check.
 EXEC_CONFIG_FOSSILS = (
-    "7-2-restricted-execution",
+    "7-2-ambermonkey-perf",
     "7-5-cross-process-memory-sharing",
 )
 

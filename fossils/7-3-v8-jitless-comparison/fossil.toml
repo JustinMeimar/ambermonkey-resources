@@ -18,8 +18,7 @@ analysis = "speedometer-detail"
 script   = "figures/comparison_table.py"
 
 [variables]
-PRE     = "cd @FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage @SANDBOX @MC_AOT"
-MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT"
+MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT --setenv MOZ_HEADLESS=1"
 ION_OFF = "--setpref javascript.options.ion=false"
 RESULT  = "cat testing/mozharness/build/raptor.json"
 
@@ -27,6 +26,6 @@ INTERP  = "JIT_OPTION_disableJitBackend=true"
 AOT     = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
 
 [variants]
-interp-only = "$PRE $INTERP $MACH          1>&2 && $RESULT"
-aot-corpus  = "$PRE $AOT    $MACH $ION_OFF 1>&2 && $RESULT"
-default     = "$PRE         $MACH          1>&2 && $RESULT"
+interp-only = "@CLEAN_AOT $INTERP $MACH          1>&2 && $RESULT"
+aot-corpus  = "@CLEAN_AOT $AOT    $MACH $ION_OFF 1>&2 && $RESULT"
+default     = "@CLEAN_AOT         $MACH          1>&2 && $RESULT"

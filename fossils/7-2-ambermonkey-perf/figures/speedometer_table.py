@@ -94,7 +94,7 @@ def main():
                 (aot_speedup - ic_speedup) / aot_speedup
             )
             payload["ic_share_of_aot_speedup"] = ic_speedup / aot_speedup
-    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-3-ambermonkey-perf")
+    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-2-ambermonkey-perf")
     payload["workload"] = "speedometer3"
     payload["runs_per_variant"] = runs_per_variant
     payload["page_cycles_per_run"] = page_cycles
