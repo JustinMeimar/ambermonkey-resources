@@ -18,6 +18,9 @@ except ImportError:
 FOSSIL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 RECORDS_DIR = os.path.join(FOSSIL_DIR, "records")
 FOSSIL_TOML = os.path.join(FOSSIL_DIR, "fossil.toml")
+SPLIT_DIR = os.path.abspath(os.path.join(FOSSIL_DIR, "..", "6-1-corpus-construction"))
+TRAIN_FILE = os.path.join(SPLIT_DIR, "train.txt")
+TEST_FILE = os.path.join(SPLIT_DIR, "test.txt")
 
 # Display-name overrides for site slugs whose default title-casing is wrong.
 _LABEL_OVERRIDES = {
@@ -50,11 +53,42 @@ def declared_variants(fossil_toml=FOSSIL_TOML):
         return tuple((tomllib.load(fh).get("variants") or {}).keys())
 
 
-def discover_sites(records_dir=RECORDS_DIR, fossil_toml=FOSSIL_TOML):
-    """Sites are the alphabetically-sorted intersection of declared variants
-    and site slugs found in records/. Stale runs from earlier variant sets
-    are ignored so the tables and figures always reflect the current fossil."""
+def read_sites_file(path):
+    sites = []
+    with open(path) as fh:
+        for raw in fh:
+            site = raw.split("#", 1)[0].strip()
+            if site:
+                sites.append(site)
+    if not sites:
+        sys.exit(f"{path}: no sites listed")
+    if len(sites) != len(set(sites)):
+        sys.exit(f"{path}: duplicate site")
+    return tuple(sites)
+
+
+def split_sites(fossil_toml=FOSSIL_TOML):
+    """Return the frozen tp6 train/test split in corpus-construction order."""
     declared = set(declared_variants(fossil_toml))
+    train = read_sites_file(TRAIN_FILE)
+    test = read_sites_file(TEST_FILE)
+    missing = [site for site in train + test if site not in declared]
+    if missing:
+        sys.exit(f"split sites missing from variants: {missing}")
+    overlap = set(train) & set(test)
+    if overlap:
+        sys.exit(f"train/test split overlaps: {sorted(overlap)}")
+    return train, test
+
+
+def discover_sites(records_dir=RECORDS_DIR, fossil_toml=FOSSIL_TOML):
+    """Training sites in frozen corpus order that have matching records.
+
+    Stale runs from earlier variant sets and held-out test records are ignored
+    so the pairwise tables continue to describe tp6-Train only.
+    """
+    train, _ = split_sites(fossil_toml)
+    declared = set(train)
     seen = set()
     for entry in os.listdir(records_dir):
         parts = entry.split("_")

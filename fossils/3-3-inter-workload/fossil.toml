@@ -1,16 +1,21 @@
 name = "inter-workload"
-description = "Inter-workload overlap across the TP6-Train sites: content-process Baseline functions and IC bodies, static Jaccard, directional function-entry and stub-entry coverage."
+description = "Static and dynamic intersection from cumulative tp6-Train prefixes to held-out tp6-Test for content-process Baseline functions and IC bodies."
 default_iterations = 1
 allow_failure = false
 
 [analyze]
 artifact-sets = "analyses/ic_set.py"
+corpus-growth-sets = "analyses/corpus_growth_set.py"
 
 [figures.artifact-overlap]
 analysis = "artifact-sets"
 script   = "figures/ic_jaccard.py"
 
-# All three table emitters read records/ directly and pool per site;
+[figures.corpus-growth]
+analysis = "corpus-growth-sets"
+script   = "figures/corpus_growth.py"
+
+# All four table emitters read records/ directly and pool per site;
 # they share pairwise-intersection helpers in scripts/pairwise.py.
 [tables.coverage]
 script = "scripts/emit_summary_json.py"
@@ -20,6 +25,9 @@ script = "scripts/emit_baseline_static_table.py"
 
 [tables.baseline-dynamic]
 script = "scripts/emit_baseline_dynamic_table.py"
+
+[tables.corpus-growth]
+script = "scripts/emit_corpus_growth.py"
 
 [variables]
 INIT   = "D=$(mktemp -d /tmp/amber-3-3.XXXXXX)"
@@ -52,3 +60,11 @@ office         = "SITE=office;         $INIT && $RAPTOR 1>&2 && $EMIT"
 outlook        = "SITE=outlook;        $INIT && $RAPTOR 1>&2 && $EMIT"
 paypal         = "SITE=paypal;         $INIT && $RAPTOR 1>&2 && $EMIT"
 pinterest      = "SITE=pinterest;      $INIT && $RAPTOR 1>&2 && $EMIT"
+reddit         = "SITE=reddit;         $INIT && $RAPTOR 1>&2 && $EMIT"
+tumblr         = "SITE=tumblr;         $INIT && $RAPTOR 1>&2 && $EMIT"
+twitch         = "SITE=twitch;         $INIT && $RAPTOR 1>&2 && $EMIT"
+twitter        = "SITE=twitter;        $INIT && $RAPTOR 1>&2 && $EMIT"
+wikia          = "SITE=wikia;          $INIT && $RAPTOR 1>&2 && $EMIT"
+wikipedia      = "SITE=wikipedia;      $INIT && $RAPTOR 1>&2 && $EMIT"
+yahoo-mail     = "SITE=yahoo-mail;     $INIT && $RAPTOR 1>&2 && $EMIT"
+youtube        = "SITE=youtube;        $INIT && $RAPTOR 1>&2 && $EMIT"
