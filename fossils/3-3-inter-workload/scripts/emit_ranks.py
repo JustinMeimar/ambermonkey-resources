@@ -172,7 +172,7 @@ def merge_state(destination, source):
 
 
 def main(root):
-    per_proc = {"content": new_proc_state(), "parent": new_proc_state()}
+    per_proc = {"content": new_proc_state()}
 
     file_count = 0
     for filename in sorted(os.listdir(root)):
@@ -196,7 +196,7 @@ def main(root):
         merge_state(per_proc[process], file_state)
 
     if file_count == 0:
-        die(f"no content/parent .jsonl files in {root}")
+        die(f"no content .jsonl files in {root}")
     content = per_proc["content"]
     if not content["attaches_ic"]:
         die("no guest content-process IC attachment identities")

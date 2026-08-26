@@ -1,10 +1,15 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Speedometer 3 headroom recovered from each engine's default: horizontal bars.
+"""Speedometer 3 and JetStream 3 headroom recovered from each engine's default.
 
-Each bar is that configuration's score as a percentage of its own engine's
-default (which by definition is 100%, so we omit the reference bars). The two
-SpiderMonkey bars touch to visually bind them as one family; V8 --jitless
-sits above with a gap.
+Each workload occupies two horizontal bars stacked vertically:
+
+    [V8 --jitless               ]                    | 100%  (green)
+    [ interp \\\\\\  |  AmberMonkey #########]       | 100%  (amber)
+
+The SpiderMonkey bar is a single amber bar composed of two segments so both
+the interpreter-only baseline and AmberMonkey's headroom over default appear
+in one row. This lets one small figure carry both S3 and JS3 comparisons
+without doubling the plotted area over the earlier three-bar version.
 """
 
 import os
@@ -13,8 +18,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
+from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
-import numpy as np
 from fossil_figures import load_stdin
 
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
@@ -27,11 +32,13 @@ from figure_style import (  # noqa: E402
 )
 
 from common import (
+    load_sm_jetstream,
     load_v8,
     run_scores,
     save_png_and_pdf,
     summarize,
     summarize_column,
+    v8_columns,
     validate_sm,
 )
 
@@ -43,123 +50,192 @@ V8_DEFAULT = "v8-default"
 V8_JITLESS = "v8-jitless"
 CONFIGS = load_configurations()
 
+# Per-segment styling — amber base for SM, green for V8.
+SM_AMBER = CONFIGS[SM_AM]["color"]      # AmberMonkey red
+V8_GREEN = CONFIGS[V8_JITLESS]["color"]
+# Two-colour palette: green for V8, amber for the SM family. Three textures
+# carry the configuration: crosshatch for V8, backslashes for SM interpreter,
+# forward slashes for the AmberMonkey increment. Both SM segments share one
+# alpha so only the hatch — not shading — distinguishes interp from AM. Alpha
+# stays low (~0.3) so the hatch strokes read cleanly through the fill; some
+# PDF viewers wash out dense hatches above ~0.4 alpha.
+SM_ALPHA = 0.30
+V8_ALPHA = 0.35
+HATCH_INTERP = "\\\\"
+HATCH_AM = "////"
+HATCH_V8 = "xxx"
 
-def sm_bar(data, variant, default_score):
-    scores = run_scores(data.columns[variant])
-    mean, stdev, n = summarize(scores, fallback_score=0.0)
-    ratio = mean / default_score if default_score else 0.0
-    ratio_err = stdev / default_score if default_score else 0.0
-    return {"slug": variant, "ratio": ratio, "ratio_err": ratio_err, "n": n}
+
+def sm_stack(sm_default: float, sm_interp: float, sm_am: float, sm_err_interp: float, sm_am_err: float):
+    """Return (interp_ratio, am_ratio, interp_err, am_err) all as fractions of default."""
+    if not sm_default:
+        return (0.0, 0.0, 0.0, 0.0)
+    return (
+        sm_interp / sm_default,
+        sm_am / sm_default,
+        sm_err_interp / sm_default,
+        sm_am_err / sm_default,
+    )
 
 
-def v8_bar(v8, slug, default_score):
-    mean, stdev, n = summarize_column(v8["columns"][slug])
-    ratio = mean / default_score if default_score else 0.0
-    ratio_err = stdev / default_score if default_score else 0.0
-    return {"slug": slug, "ratio": ratio, "ratio_err": ratio_err, "n": n}
-
-
-def label_for(slug):
-    long = CONFIGS[slug]["long"]
-    if slug in (SM_INTERP, SM_AM) and not long.lower().startswith("spidermonkey"):
-        return f"SM {long}"
-    return long
+def v8_row(v8_default: float, v8_jitless: float, v8_jitless_stdev: float):
+    if not v8_default or not v8_jitless:
+        return (0.0, 0.0)
+    return (v8_jitless / v8_default, v8_jitless_stdev / v8_default)
 
 
 apply_amber_style("single")
+plt.rcParams["hatch.linewidth"] = 1.6
 
 data = load_stdin()
 validate_sm(data, (SM_INTERP, SM_AM, SM_DEFAULT))
 v8 = load_v8()
 
-sm_default = summarize(run_scores(data.columns[SM_DEFAULT]), fallback_score=0.0)[0]
-v8_default = summarize_column(v8["columns"][V8_DEFAULT])[0]
+# --- Speedometer 3 --------------------------------------------------------
+sp3_sm = {v: summarize(run_scores(data.columns[v]), 0.0) for v in (SM_INTERP, SM_AM, SM_DEFAULT)}
+sp3_v8_cols = v8_columns(v8, "speedometer3")
+sp3_v8 = {slug: summarize_column(sp3_v8_cols[slug]) for slug in (V8_DEFAULT, V8_JITLESS)}
 
-# Top-to-bottom: V8 --jitless (separated), then the two SM bars touching.
-bars = [
-    v8_bar(v8, V8_JITLESS, v8_default),
-    sm_bar(data, SM_INTERP, sm_default),
-    sm_bar(data, SM_AM, sm_default),
-]
-
-BAR_HEIGHT = 0.55
-GROUP_GAP = 0.80         # extra space between the V8 slot and the SM pair
-TOP_PAD = 0.38
-BOTTOM_PAD = 0.38
-
-# Softer fills + engine-level hatch. Colors still identify each variant; the
-# hatch distinguishes V8 from the SM family at a glance even in grayscale.
-FILL_ALPHA = 0.45
-HATCH_BY_ENGINE = {V8_JITLESS: "//"}
-
-# Layout, top-to-bottom (larger y is drawn higher):
-#   [V8 --jitless bar]
-#   ---- GROUP_GAP ----
-#   [SM Interpreter only bar]   <-- touches next bar
-#   [SM AmberMonkey bar]
-y_am_bar = 0.0
-y_interp_bar = y_am_bar + BAR_HEIGHT                           # touches AM bar top
-y_v8_bar = y_interp_bar + BAR_HEIGHT + GROUP_GAP
-
-bar_bottoms = [y_v8_bar, y_interp_bar, y_am_bar]               # order matches `bars`
-positions_for_bars = [b + BAR_HEIGHT / 2 for b in bar_bottoms]
-top_y = y_v8_bar + BAR_HEIGHT
-
-ratios = [b["ratio"] for b in bars]
-errs = [b["ratio_err"] for b in bars]
-colors = [CONFIGS[b["slug"]]["color"] for b in bars]
-labels = [label_for(b["slug"]) for b in bars]
-
-height = 1.60
-fig, ax = plt.subplots(figsize=figure_size("single", height))
-
-# Hatch lines need to survive Typst's scale-down of the embedded PDF; a
-# thinner stroke rounds to sub-pixel and disappears at print resolution.
-plt.rcParams["hatch.linewidth"] = 1.4
-face_colors = [to_rgba(c, FILL_ALPHA) for c in colors]
-
-bar_handles = ax.barh(
-    positions_for_bars, ratios, height=BAR_HEIGHT, color=face_colors,
-    edgecolor=colors, linewidth=0.9,
-    xerr=errs, error_kw={"ecolor": "#333333", "elinewidth": 0.8, "capsize": 2.0},
-    label=None,
+sp3_interp_ratio, sp3_am_ratio, sp3_interp_err, sp3_am_err = sm_stack(
+    sp3_sm[SM_DEFAULT][0], sp3_sm[SM_INTERP][0], sp3_sm[SM_AM][0],
+    sp3_sm[SM_INTERP][1], sp3_sm[SM_AM][1],
 )
-# Give each bar its own legend entry (matplotlib groups a single `barh` call)
-# and apply the per-engine hatch. Hatch inherits the patch edge color.
-for patch, label, bar in zip(bar_handles.patches, labels, bars):
-    patch.set_label(label)
-    hatch = HATCH_BY_ENGINE.get(bar["slug"])
-    if hatch:
-        patch.set_hatch(hatch)
+sp3_v8_ratio, sp3_v8_err = v8_row(sp3_v8[V8_DEFAULT][0], sp3_v8[V8_JITLESS][0], sp3_v8[V8_JITLESS][1])
 
-ax.axvline(1.0, color="black", linewidth=0.8, linestyle="--")
+# --- JetStream 3 (may be TODO) -------------------------------------------
+js3_sm_samples = load_sm_jetstream()
+js3_sm_default = summarize(js3_sm_samples.get(SM_DEFAULT, []), 0.0)[0]
+js3_sm_interp_mean, js3_sm_interp_stdev, _ = summarize(js3_sm_samples.get(SM_INTERP, []), 0.0)
+js3_sm_am_mean, js3_sm_am_stdev, _ = summarize(js3_sm_samples.get(SM_AM, []), 0.0)
 
-ax.set_yticks([])
+js3_v8_cols = v8_columns(v8, "jetstream3")
+js3_v8 = {slug: summarize_column(js3_v8_cols[slug]) for slug in (V8_DEFAULT, V8_JITLESS)}
+
+js3_interp_ratio, js3_am_ratio, js3_interp_err, js3_am_err = sm_stack(
+    js3_sm_default, js3_sm_interp_mean, js3_sm_am_mean,
+    js3_sm_interp_stdev, js3_sm_am_stdev,
+)
+js3_v8_ratio, js3_v8_err = v8_row(js3_v8[V8_DEFAULT][0], js3_v8[V8_JITLESS][0], js3_v8[V8_JITLESS][1])
+
+# --- Layout ---------------------------------------------------------------
+# Bar order, top-to-bottom (matplotlib y grows upward):
+#   sp3_v8, sp3_sm, [gap], js3_v8, js3_sm
+BAR_HEIGHT = 0.44
+INNER_GAP = 0.02   # V8 and SM touch within a workload group
+GROUP_GAP = 0.55
+TOP_PAD = 0.30
+BOTTOM_PAD = 0.30
+
+y_js3_sm = 0.0
+y_js3_v8 = y_js3_sm + BAR_HEIGHT + INNER_GAP
+y_sp3_sm = y_js3_v8 + BAR_HEIGHT + GROUP_GAP
+y_sp3_v8 = y_sp3_sm + BAR_HEIGHT + INNER_GAP
+top_y = y_sp3_v8 + BAR_HEIGHT
+
+def _center(bottom):
+    return bottom + BAR_HEIGHT / 2
+
+# The two workloads' bars are drawn independently so JS3 can degrade to a
+# TODO placeholder without breaking the SP3 rendering.
+fig, ax = plt.subplots(figsize=figure_size("single", 1.90))
+
+def draw_v8(y_bottom, ratio, err):
+    if ratio <= 0:
+        ax.text(0.01, _center(y_bottom), "TODO — record V8 --jitless",
+                ha="left", va="center", fontsize=FONT_SIZES["annotation"],
+                style="italic", color="#666")
+        return
+    ax.barh(
+        _center(y_bottom), ratio, height=BAR_HEIGHT,
+        color=to_rgba(V8_GREEN, V8_ALPHA), edgecolor=V8_GREEN, linewidth=0.9,
+        hatch=HATCH_V8,
+        xerr=err, error_kw={"ecolor": "#333", "elinewidth": 0.8, "capsize": 2.0},
+    )
+    ax.text(
+        ratio + err + 0.012, _center(y_bottom), f"{ratio * 100:.1f}%",
+        ha="left", va="center", fontsize=FONT_SIZES["annotation"],
+    )
+
+
+def draw_sm_stack(y_bottom, interp_ratio, am_ratio, interp_err, am_err):
+    if am_ratio <= 0:
+        ax.text(0.01, _center(y_bottom), "TODO — bury 7-2-ambermonkey-perf-jetstream",
+                ha="left", va="center", fontsize=FONT_SIZES["annotation"],
+                style="italic", color="#666")
+        return
+    # Backslash segment: 0 → interp_ratio (the interpreter-only fraction).
+    ax.barh(
+        _center(y_bottom), interp_ratio, height=BAR_HEIGHT, left=0,
+        color=to_rgba(SM_AMBER, SM_ALPHA), edgecolor=SM_AMBER, linewidth=0.9,
+        hatch=HATCH_INTERP,
+    )
+    # Forward-slash segment: interp_ratio → am_ratio (AmberMonkey's headroom).
+    increment = max(0.0, am_ratio - interp_ratio)
+    ax.barh(
+        _center(y_bottom), increment, height=BAR_HEIGHT, left=interp_ratio,
+        color=to_rgba(SM_AMBER, SM_ALPHA), edgecolor=SM_AMBER, linewidth=0.9,
+        hatch=HATCH_AM,
+        xerr=am_err, error_kw={"ecolor": "#333", "elinewidth": 0.8, "capsize": 2.0},
+    )
+    # Interp % annotation inside the backslash segment (or just outside if
+    # the segment is too narrow to hold the label).
+    interp_label = f"{interp_ratio * 100:.1f}%"
+    if interp_ratio >= 0.18:
+        ax.text(interp_ratio - 0.008, _center(y_bottom), interp_label,
+                ha="right", va="center", fontsize=FONT_SIZES["annotation"],
+                color="#222")
+    else:
+        ax.text(interp_ratio + 0.008, _center(y_bottom), interp_label,
+                ha="left", va="center", fontsize=FONT_SIZES["annotation"],
+                color="#222")
+    # AM total annotation at the right end of the whole bar.
+    ax.text(
+        am_ratio + am_err + 0.012, _center(y_bottom), f"{am_ratio * 100:.1f}%",
+        ha="left", va="center", fontsize=FONT_SIZES["annotation"],
+        fontweight="bold",
+    )
+
+
+draw_v8(y_sp3_v8, sp3_v8_ratio, sp3_v8_err)
+draw_sm_stack(y_sp3_sm, sp3_interp_ratio, sp3_am_ratio, sp3_interp_err, sp3_am_err)
+draw_v8(y_js3_v8, js3_v8_ratio, js3_v8_err)
+draw_sm_stack(y_js3_sm, js3_interp_ratio, js3_am_ratio, js3_interp_err, js3_am_err)
+
+ax.axvline(1.0, color="black", linewidth=0.8, linestyle="--", zorder=1)
+
+# Workload group labels sit on the y-axis in the vertical middle of the
+# corresponding pair of bars.
+sp3_center = (y_sp3_sm + y_sp3_v8 + BAR_HEIGHT) / 2
+js3_center = (y_js3_sm + y_js3_v8 + BAR_HEIGHT) / 2
+ax.set_yticks([js3_center, sp3_center])
+ax.set_yticklabels(["JS3", "SP3"], fontsize=FONT_SIZES["tick"])
+ax.tick_params(axis="y", length=0, pad=4)
+
 ax.set_ylim(-BOTTOM_PAD, top_y + TOP_PAD)
 
-x_max = 1.10
+x_max = 1.12
 ax.set_xlim(0.0, x_max)
 ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v * 100:.0f}%"))
 ax.set_xlabel("Score as % of engine's default")
 ax.grid(axis="x", visible=True, linestyle=":", color="#BBBBBB", linewidth=0.6)
 ax.set_axisbelow(True)
 
-# Score annotations sit at the right end of each bar.
-score_pad = x_max * 0.012
-for yi, bar in zip(positions_for_bars, bars):
-    text = "TODO" if bar["ratio"] == 0.0 else f"{bar['ratio'] * 100:.1f}%"
-    ax.text(
-        bar["ratio"] + bar["ratio_err"] + score_pad, yi, text,
-        ha="left", va="center",
-        fontsize=FONT_SIZES["annotation"],
-    )
-
+# Legend uses proxy patches so it reflects the segment styling exactly.
+legend_handles = [
+    Patch(facecolor=to_rgba(V8_GREEN, V8_ALPHA), edgecolor=V8_GREEN,
+          hatch=HATCH_V8, label="V8 --jitless"),
+    Patch(facecolor=to_rgba(SM_AMBER, SM_ALPHA), edgecolor=SM_AMBER,
+          hatch=HATCH_INTERP, label="SM Interpreter only"),
+    Patch(facecolor=to_rgba(SM_AMBER, SM_ALPHA), edgecolor=SM_AMBER,
+          hatch=HATCH_AM, label="SM AmberMonkey"),
+]
 ax.legend(
+    handles=legend_handles,
     loc="lower center",
     bbox_to_anchor=(0.5, 1.02),
-    ncol=len(bars),
+    ncol=3,
     frameon=False,
-    handlelength=1.1,
+    handlelength=1.4,
     handleheight=0.9,
     handletextpad=0.4,
     columnspacing=1.0,
@@ -167,5 +243,5 @@ ax.legend(
     fontsize=FONT_SIZES["legend"],
 )
 
-fig.subplots_adjust(left=0.04, right=0.98, bottom=0.24, top=0.82)
+fig.subplots_adjust(left=0.10, right=0.98, bottom=0.20, top=0.83)
 save_png_and_pdf(fig, sys.argv[1])

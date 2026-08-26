@@ -17,10 +17,17 @@ def off_diagonal(m, n):
     return [m[i][j] for i in range(n) for j in range(n) if i != j]
 
 
+def upper_triangle(m, n):
+    return [m[i][j] for i in range(n) for j in range(i + 1, n)]
+
+
 def stats(values):
+    q1, _, q3 = statistics.quantiles(values, n=4, method="inclusive")
     return {
         "median": statistics.median(values),
         "mean": statistics.mean(values),
+        "q1": q1,
+        "q3": q3,
         "min": min(values),
         "max": max(values),
     }
@@ -30,14 +37,15 @@ def main():
     sites, ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters()
     n = len(sites)
 
-    bl_static  = off_diagonal(matrix(static_intersection,  bl_sets,  bl_sets,  sites), n)
-    ic_static  = off_diagonal(matrix(static_intersection,  ic_sets,  ic_sets,  sites), n)
+    bl_static  = upper_triangle(matrix(static_intersection, bl_sets, bl_sets, sites), n)
+    ic_static  = upper_triangle(matrix(static_intersection, ic_sets, ic_sets, sites), n)
     bl_dynamic = off_diagonal(matrix(dynamic_intersection, bl_sets,  bl_freqs, sites), n)
     ic_dynamic = off_diagonal(matrix(dynamic_intersection, ic_sets,  ic_freqs, sites), n)
 
     output = {
         "sites": list(sites),
         "site_count": n,
+        "static_pair_count": len(ic_static),
         "off_diagonal_count": len(ic_dynamic),
         "ic": {
             "static":  stats(ic_static),
