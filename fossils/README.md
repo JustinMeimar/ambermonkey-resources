@@ -35,6 +35,7 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | 6-1 | AOT corpus recorder over tp6 + self-hosted     | VI.B corpus construction    |
 | 7-1 | corpus coverage on held-out workloads          | VII.A corpus coverage       |
 | 7-2 | Speedometer 3 AmberMonkey perf ladder          | VII.B restricted execution  |
+| 7-2 | JetStream 3 AmberMonkey perf ladder            | VII.B restricted execution  |
 | 7-3 | AmberMonkey AOT-only vs V8 --jitless           | VII.C V8 jitless comparison |
 | 7-4 | indirection microbenchmarks (perf cycles)      | VII.D indirection overhead  |
 | 7-5 | Speedometer 3 content-process memory (smaps)   | VII.E cross-process memory  |

@@ -1,4 +1,4 @@
-name = "ambermonkey-perf"
+name = "ambermonkey-perf-s3"
 description = "Speedometer 3 AmberMonkey performance ladder: interpreter only, AmberMonkey-IC (blinterp + IC corpus), AmberMonkey (adds AOT Baseline functions), default without Ion, default. AM variants run with the native regex JIT disabled to match AOT-only semantics."
 default_iterations = 3
 allow_failure = true

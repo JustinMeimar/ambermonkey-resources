@@ -42,7 +42,7 @@ NO_ION_SETENV = "--setenv JIT_OPTION_ion=0"
 INTERP_SETENV = "--setenv JIT_OPTION_disableJitBackend=true"
 
 [variants]
-# Variant names mirror 7-2-ambermonkey-perf so figure colors and paper
+# Variant names mirror 7-2-ambermonkey-perf-s3 so figure colors and paper
 # prose can carry across the two Speedometer 3 evaluations without rename.
 interp-only    = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $INTERP_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
 default        = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE 1>&2 ; $SIDECAR_STOP ; $EMIT"

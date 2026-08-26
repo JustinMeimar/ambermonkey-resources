@@ -1,5 +1,5 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Emit the Speedometer 3.1 tier-ladder table."""
+"""Emit the JetStream 3 tier-ladder table."""
 
 import json
 import os
@@ -31,7 +31,7 @@ def main():
 
     variants = [v for v in VARIANT_ORDER if v in data.columns]
     if not variants:
-        raise SystemExit("speedometer_table: no known variants in analysis output")
+        raise SystemExit("jetstream_table: no known variants in analysis output")
 
     scores = {v: run_values(data.columns[v], "score") for v in variants}
     means = {v: statistics.fmean(scores[v]) for v in variants}
@@ -74,7 +74,6 @@ def main():
     out_path = Path(sys.argv[1])
     write_typst_table(out_path, columns=columns, rows=rows)
 
-    # Layer headline scalars atop the table so constants.typ can json-field them.
     payload = json.loads(out_path.read_text())
     if aot is not None and interp is not None:
         payload["aot_over_interp_ratio"] = aot / interp
@@ -85,8 +84,6 @@ def main():
         payload["aot_ic_over_interp_ratio"] = aot_ic / interp
         payload["aot_ic_over_interp_speedup"] = aot_ic / interp - 1.0
     if aot is not None and aot_ic is not None:
-        # Fraction of AmberMonkey's speedup over interp attributable to
-        # AOT Baseline functions (rest is the IC corpus + AOT interpreter).
         aot_speedup = aot / interp - 1.0 if interp else 0.0
         ic_speedup = aot_ic / interp - 1.0 if interp else 0.0
         if aot_speedup > 0:
@@ -94,8 +91,8 @@ def main():
                 (aot_speedup - ic_speedup) / aot_speedup
             )
             payload["ic_share_of_aot_speedup"] = ic_speedup / aot_speedup
-    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-2-ambermonkey-perf")
-    payload["workload"] = "speedometer3"
+    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-2-ambermonkey-perf-jetstream")
+    payload["workload"] = "jetstream3"
     payload["runs_per_variant"] = runs_per_variant
     payload["page_cycles_per_run"] = page_cycles
     out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
