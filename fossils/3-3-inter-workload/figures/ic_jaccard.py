@@ -3,8 +3,9 @@
 
 Panel (a) is the symmetric static intersection; panel (b) is the directional
 dynamic intersection with A on rows (source workload) and B on columns
-(evaluated workload). Renders at roughly two-thirds of the double-column
-width so the paper can pair it with a native-typeset formula block.
+(evaluated workload). Site count is taken from whatever columns the pipeline
+delivers — the figure adapts its tick, cell-text, and font sizing to N so
+the same script renders cleanly for 8-site and 24-site subsets alike.
 """
 
 import sys
@@ -26,27 +27,21 @@ plt.rcParams["font.serif"] = [
     "Times New Roman", "TeX Gyre Termes", "STIX Two Text", "DejaVu Serif",
 ]
 plt.rcParams["mathtext.fontset"] = "stix"
-data = load_stdin()
-tp6_subset = (
-    "amazon",
-    "bing-search",
-    "buzzfeed",
-    "cnn",
-    "ebay",
-    "espn",
-    "expedia",
-    "facebook",
-)
-missing = [name for name in tp6_subset if name not in data.columns]
-if missing:
-    print(
-        "artifact-overlap: missing selected TP6 workloads: " + ", ".join(missing),
-        file=sys.stderr,
-    )
-    sys.exit(1)
 
-columns = list(tp6_subset)
+data = load_stdin()
+columns = sorted(data.columns.keys())
+if not columns:
+    print("artifact-overlap: no workload columns present", file=sys.stderr)
+    sys.exit(1)
 n = len(columns)
+
+
+def short_name(slug):
+    return (
+        slug.replace("google-", "g-")
+            .replace("yahoo-mail", "y-mail")
+            .replace("bing-search", "bing")
+    )
 
 
 def tag(metric, key):
@@ -153,9 +148,17 @@ norm = mpl.colors.FuncNorm(
     vmax=1.0,
 )
 
-display = [name.replace("google-", "g-") for name in columns]
+display = [short_name(name) for name in columns]
 
-fig = plt.figure(figsize=(5.9, 3.65))
+# Adaptive sizing: figure height grows with N; tick, cell-text, and cell-grid
+# aesthetics scale so 8-site and 24-site renders both stay legible.
+fig_height = max(3.65, 0.16 * n + 1.9)
+tick_font = 6.3 if n <= 10 else max(3.6, 6.3 - 0.15 * (n - 10))
+cell_font = 5.6 if n <= 10 else max(3.2, 5.6 - 0.15 * (n - 10))
+show_cell_text = n <= 12
+minor_grid = n <= 16
+
+fig = plt.figure(figsize=(5.9, fig_height))
 # Colorbar in the rightmost thin gridspec column; the two heatmaps take
 # the remainder. The paper places native-typeset formulas beside the PDF.
 gs = fig.add_gridspec(
@@ -176,10 +179,11 @@ for index, (axis, title, matrix) in enumerate(zip(heatmap_axes, titles, matrices
     axis.imshow(
         matrix, cmap=cmap, norm=norm, interpolation="nearest", aspect="equal"
     )
-    axis.set_xticks(np.arange(-0.5, n, 1), minor=True)
-    axis.set_yticks(np.arange(-0.5, n, 1), minor=True)
-    axis.grid(which="minor", color="white", linewidth=0.6)
-    axis.tick_params(which="minor", bottom=False, left=False)
+    if minor_grid:
+        axis.set_xticks(np.arange(-0.5, n, 1), minor=True)
+        axis.set_yticks(np.arange(-0.5, n, 1), minor=True)
+        axis.grid(which="minor", color="white", linewidth=0.6)
+        axis.tick_params(which="minor", bottom=False, left=False)
     axis.grid(False, which="major")
     axis.set_title(title, fontsize=8.6, pad=5)
     axis.set_xlim(-0.5, n - 0.5)
@@ -191,11 +195,11 @@ for index, (axis, title, matrix) in enumerate(zip(heatmap_axes, titles, matrices
         rotation_mode="anchor",
         ha="right",
         va="top",
-        fontsize=6.3,
+        fontsize=tick_font,
     )
     axis.tick_params(axis="x", length=0, pad=1)
     axis.set_yticks(range(n))
-    axis.set_yticklabels(display, fontsize=6.3)
+    axis.set_yticklabels(display, fontsize=tick_font)
     axis.tick_params(axis="y", length=0, pad=1)
     for spine in axis.spines.values():
         spine.set_visible(False)
@@ -210,26 +214,25 @@ for index, (axis, title, matrix) in enumerate(zip(heatmap_axes, titles, matrices
                         1,
                         1,
                         facecolor=cmap(norm(value)),
-                        edgecolor="white",
+                        edgecolor="white" if minor_grid else "none",
                         linewidth=0.6,
                     )
                 )
-                color = text_color(cmap, norm, value)
-                weight = "bold"
-            else:
+                if show_cell_text:
+                    color = text_color(cmap, norm, value)
+                    axis.text(
+                        j, i, floor_2(value),
+                        ha="center", va="center",
+                        fontsize=cell_font, fontweight="bold", color=color,
+                    )
+            elif show_cell_text:
                 value = matrix[i, j]
                 color = text_color(cmap, norm, value)
-                weight = "normal"
-            axis.text(
-                j,
-                i,
-                floor_2(value),
-                ha="center",
-                va="center",
-                fontsize=5.6,
-                fontweight=weight,
-                color=color,
-            )
+                axis.text(
+                    j, i, floor_2(value),
+                    ha="center", va="center",
+                    fontsize=cell_font, fontweight="normal", color=color,
+                )
 
 ax_static.set_ylabel("Workload", fontsize=7.4, labelpad=3)
 ax_dynamic.set_xlabel("Evaluated workload $B$", fontsize=7.4, labelpad=3)
@@ -238,7 +241,9 @@ ax_dynamic.set_xlabel("Evaluated workload $B$", fontsize=7.4, labelpad=3)
 ax_dynamic.set_ylabel("Source workload $A$", fontsize=7.4, labelpad=8)
 ax_dynamic.yaxis.set_label_position("right")
 
-fig.subplots_adjust(left=0.04, right=0.98, bottom=0.20, top=0.905)
+# Larger label rotations at big N need more bottom margin so ticks don't clip.
+bottom_margin = 0.20 if n <= 10 else min(0.34, 0.20 + 0.008 * (n - 10))
+fig.subplots_adjust(left=0.04, right=0.98, bottom=bottom_margin, top=0.905)
 # Colorbar is shorter than the axes box so its ends line up with the
 # square matrix area rather than the tick labels and title.
 _cax_pos = cax.get_position()

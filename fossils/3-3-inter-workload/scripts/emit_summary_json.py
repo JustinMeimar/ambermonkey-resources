@@ -6,7 +6,6 @@ import statistics
 import sys
 
 from pairwise import (
-    SITES,
     dynamic_intersection,
     load_counters,
     matrix,
@@ -14,8 +13,7 @@ from pairwise import (
 )
 
 
-def off_diagonal(m):
-    n = len(SITES)
+def off_diagonal(m, n):
     return [m[i][j] for i in range(n) for j in range(n) if i != j]
 
 
@@ -29,16 +27,17 @@ def stats(values):
 
 
 def main():
-    ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters()
+    sites, ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters()
+    n = len(sites)
 
-    bl_static  = off_diagonal(matrix(static_intersection,  bl_sets,  bl_sets))
-    ic_static  = off_diagonal(matrix(static_intersection,  ic_sets,  ic_sets))
-    bl_dynamic = off_diagonal(matrix(dynamic_intersection, bl_sets,  bl_freqs))
-    ic_dynamic = off_diagonal(matrix(dynamic_intersection, ic_sets,  ic_freqs))
+    bl_static  = off_diagonal(matrix(static_intersection,  bl_sets,  bl_sets,  sites), n)
+    ic_static  = off_diagonal(matrix(static_intersection,  ic_sets,  ic_sets,  sites), n)
+    bl_dynamic = off_diagonal(matrix(dynamic_intersection, bl_sets,  bl_freqs, sites), n)
+    ic_dynamic = off_diagonal(matrix(dynamic_intersection, ic_sets,  ic_freqs, sites), n)
 
     output = {
-        "sites": list(SITES),
-        "site_count": len(SITES),
+        "sites": list(sites),
+        "site_count": n,
         "off_diagonal_count": len(ic_dynamic),
         "ic": {
             "static":  stats(ic_static),
