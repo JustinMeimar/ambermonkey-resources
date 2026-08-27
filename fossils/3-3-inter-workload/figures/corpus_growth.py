@@ -88,7 +88,7 @@ growth = coverage_curve(
 points = growth["points"]
 x = [point["corpus_size"] for point in points]
 
-fig, axis = plt.subplots(figsize=(3.35, 2.35))
+fig, axis = plt.subplots(figsize=(3.35, 2.0))
 series = (
     ("ic_dynamic", "IC dynamic", "#0072B2", "-"),
     ("ic_static", "IC static", "#0072B2", "--"),
@@ -127,7 +127,7 @@ axis.legend(
 for spine in ("top", "right"):
     axis.spines[spine].set_visible(False)
 
-fig.subplots_adjust(left=0.16, right=0.985, bottom=0.18, top=0.82)
+fig.subplots_adjust(left=0.16, right=0.985, bottom=0.21, top=0.79)
 output = Path(sys.argv[1])
 fig.savefig(output, dpi=300)
 with output.with_suffix(".json").open("w") as fh:
