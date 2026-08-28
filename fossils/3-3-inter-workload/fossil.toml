@@ -1,5 +1,5 @@
 name = "inter-workload"
-description = "Static and dynamic intersection from cumulative tp6-Train prefixes to held-out tp6-Test for content-process Baseline functions and IC bodies."
+description = "Static and dynamic coverage from cumulative tp6-Train prefixes to held-out tp6-Test for content-process Baseline functions and IC bodies."
 default_iterations = 1
 allow_failure = false
 

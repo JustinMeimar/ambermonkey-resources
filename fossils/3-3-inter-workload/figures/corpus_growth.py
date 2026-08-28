@@ -14,9 +14,8 @@ SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from corpus_growth import (  # noqa: E402
-    STANDALONE_IC_DYNAMIC_ORDER,
+    ALPHABETICAL_TRAIN_ORDER,
     coverage_curve,
-    rank_by_standalone_ic_dynamic,
 )
 from pairwise import split_sites  # noqa: E402
 
@@ -48,6 +47,7 @@ plt.rcParams["ps.fonttype"] = 42
 
 data = load_stdin()
 train_sites, test_sites = split_sites()
+train_sites = tuple(sorted(train_sites))
 all_sites = train_sites + test_sites
 missing = [site for site in all_sites if site not in data.columns]
 if missing:
@@ -73,9 +73,6 @@ for site in all_sites:
     ):
         sys.exit(f"corpus-growth: incomplete metrics for {site}")
 
-train_sites = rank_by_standalone_ic_dynamic(
-    train_sites, test_sites, ic_sets, ic_frequencies
-)
 growth = coverage_curve(
     train_sites,
     test_sites,
@@ -83,7 +80,7 @@ growth = coverage_curve(
     ic_frequencies,
     baseline_sets,
     baseline_frequencies,
-    order_policy=STANDALONE_IC_DYNAMIC_ORDER,
+    order_policy=ALPHABETICAL_TRAIN_ORDER,
 )
 points = growth["points"]
 x = [point["corpus_size"] for point in points]
@@ -106,12 +103,12 @@ for key, label, color, linestyle in series:
     )
 
 axis.set_xlim(1, len(train_sites))
-axis.set_ylim(0, 100)
+axis.set_ylim(-2, 102)
 axis.set_xlabel("tp6-Train workloads in corpus")
-axis.set_ylabel("Intersection with tp6-Test")
+axis.set_ylabel("Coverage of tp6-Test")
 axis.xaxis.set_major_locator(MultipleLocator(4))
 axis.xaxis.set_minor_locator(MultipleLocator(1))
-axis.yaxis.set_major_locator(MultipleLocator(20))
+axis.set_yticks(range(0, 101, 20))
 axis.yaxis.set_major_formatter(PercentFormatter(xmax=100, decimals=0))
 axis.grid(axis="y", color="#d8d8d8", linewidth=0.55)
 axis.grid(False, axis="x")

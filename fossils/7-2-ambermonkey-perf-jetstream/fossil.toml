@@ -25,7 +25,9 @@ script   = "figures/jetstream_table.py"
 # aggregates repetitions across fossil iterations rather than page-cycles.
 # Selecting JetStream's `js` tag prevents every future record from running
 # workloads tagged `wasm`.
-MACH    = "./mach raptor -t jetstream3 --app firefox --browser-cycles 1 --page-cycles 1 --binary @BIN_AOT --setenv MOZ_HEADLESS=1 --test-url-params tag=js"
+# Three internal samples retain First/Worst/Average scores without making the
+# interpreter configuration run the suite's default 120 samples per workload.
+MACH    = "./mach raptor -t jetstream3 --app firefox --browser-cycles 1 --page-cycles 1 --binary @BIN_AOT --setenv MOZ_HEADLESS=1 --test-url-params 'tag=js&iterationCount=3&worstCaseCount=1'"
 ION_OFF = "--setpref javascript.options.ion=false"
 RESULT  = "cat testing/mozharness/build/raptor.json"
 

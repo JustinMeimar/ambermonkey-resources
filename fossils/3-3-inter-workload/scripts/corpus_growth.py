@@ -2,10 +2,7 @@
 
 from collections import Counter
 
-STANDALONE_IC_DYNAMIC_ORDER = (
-    "ascending standalone IC dynamic coverage of pooled tp6-Test; "
-    "site-name tie-breaker"
-)
+ALPHABETICAL_TRAIN_ORDER = "alphabetical tp6-Train site order"
 
 
 def pooled_set(sets_by_site, sites):
@@ -19,9 +16,8 @@ def pooled_counter(counters_by_site, sites):
     return total
 
 
-def static_intersection(source, target):
-    union = source | target
-    return len(source & target) / len(union) if union else 0.0
+def static_coverage(source, target):
+    return len(source & target) / len(target) if target else 0.0
 
 
 def dynamic_coverage(source, target_frequencies):
@@ -32,27 +28,6 @@ def dynamic_coverage(source, target_frequencies):
         count for identity, count in target_frequencies.items() if identity in source
     )
     return covered / total
-
-
-def rank_by_standalone_ic_dynamic(
-    train_sites, test_sites, ic_sets, ic_frequencies
-):
-    """Put the least-generalizing individual IC corpora first.
-
-    The key is measured once per workload against the complete pooled test
-    oracle. It does not depend on which workloads precede it in the curve.
-    Site name provides a deterministic tie-breaker.
-    """
-    test_ic_frequencies = pooled_counter(ic_frequencies, test_sites)
-    return tuple(
-        sorted(
-            train_sites,
-            key=lambda site: (
-                dynamic_coverage(ic_sets[site], test_ic_frequencies),
-                site,
-            ),
-        )
-    )
 
 
 def coverage_curve(
@@ -92,11 +67,11 @@ def coverage_curve(
                 "added_site_ic_dynamic": dynamic_coverage(
                     ic_sets[site], test_ic_frequencies
                 ),
-                "ic_static": static_intersection(cumulative_ic, test_ic_set),
+                "ic_static": static_coverage(cumulative_ic, test_ic_set),
                 "ic_dynamic": dynamic_coverage(
                     cumulative_ic, test_ic_frequencies
                 ),
-                "baseline_static": static_intersection(
+                "baseline_static": static_coverage(
                     cumulative_baseline, test_baseline_set
                 ),
                 "baseline_dynamic": dynamic_coverage(

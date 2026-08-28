@@ -5,20 +5,17 @@ import json
 import sys
 
 from corpus_growth import (
-    STANDALONE_IC_DYNAMIC_ORDER,
+    ALPHABETICAL_TRAIN_ORDER,
     coverage_curve,
-    rank_by_standalone_ic_dynamic,
 )
 from pairwise import load_counters, split_sites
 
 
 def main():
     train_sites, test_sites = split_sites()
+    train_sites = tuple(sorted(train_sites))
     all_sites = train_sites + test_sites
     _, ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters(sites=all_sites)
-    train_sites = rank_by_standalone_ic_dynamic(
-        train_sites, test_sites, ic_sets, ic_freqs
-    )
     output = coverage_curve(
         train_sites,
         test_sites,
@@ -26,7 +23,7 @@ def main():
         ic_freqs,
         bl_sets,
         bl_freqs,
-        order_policy=STANDALONE_IC_DYNAMIC_ORDER,
+        order_policy=ALPHABETICAL_TRAIN_ORDER,
     )
 
     destination = sys.argv[1] if len(sys.argv) > 1 else None
