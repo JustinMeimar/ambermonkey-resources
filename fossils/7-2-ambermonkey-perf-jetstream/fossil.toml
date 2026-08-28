@@ -31,12 +31,13 @@ RESULT  = "cat testing/mozharness/build/raptor.json"
 
 INTERP   = "JIT_OPTION_disableJitBackend=true"
 INTERP_TIMEOUT = "--page-timeout 7200000"
+INTERP_MOZHARNESS = "EXTRA_MOZHARNESS_CONFIG='{\"raptor_output_timeout\":9000}'"
 AOT      = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
 IC_ONLY  = "JIT_OPTION_aotSkipBaselineFn=true"
 NO_REGEX = "JIT_OPTION_nativeRegExp=false"
 
 [variants]
-interp-only    = "@CLEAN_AOT $INTERP                    $MACH $INTERP_TIMEOUT 1>&2 && $RESULT"
+interp-only    = "@CLEAN_AOT $INTERP $INTERP_MOZHARNESS $MACH $INTERP_TIMEOUT 1>&2 && $RESULT"
 aot-corpus-ic  = "@CLEAN_AOT $AOT    $IC_ONLY $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
 aot-corpus     = "@CLEAN_AOT $AOT             $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
 default-no-ion = "@CLEAN_AOT                            $MACH $ION_OFF 1>&2 && $RESULT"
