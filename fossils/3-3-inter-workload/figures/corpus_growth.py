@@ -1,5 +1,5 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Four cumulative tp6-Test coverage curves over tp6-Train prefixes."""
+"""Four cumulative tp6-Test intersection curves over tp6-Train prefixes."""
 
 import json
 import sys
@@ -14,8 +14,8 @@ SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from corpus_growth import (  # noqa: E402
-    ALPHABETICAL_TRAIN_ORDER,
-    coverage_curve,
+    ASCENDING_IC_SIZE_TRAIN_ORDER,
+    intersection_curve,
 )
 from pairwise import split_sites  # noqa: E402
 
@@ -47,8 +47,7 @@ plt.rcParams["ps.fonttype"] = 42
 
 data = load_stdin()
 train_sites, test_sites = split_sites()
-train_sites = tuple(sorted(train_sites))
-all_sites = train_sites + test_sites
+all_sites = tuple(sorted(train_sites)) + test_sites
 missing = [site for site in all_sites if site not in data.columns]
 if missing:
     sys.exit(f"corpus-growth: missing workload records: {', '.join(missing)}")
@@ -73,14 +72,18 @@ for site in all_sites:
     ):
         sys.exit(f"corpus-growth: incomplete metrics for {site}")
 
-growth = coverage_curve(
+# Order training sites by ascending IC-body count; break ties on
+# alphabetical slug so the curve is deterministic.
+train_sites = tuple(sorted(train_sites, key=lambda s: (len(ic_sets[s]), s)))
+
+growth = intersection_curve(
     train_sites,
     test_sites,
     ic_sets,
     ic_frequencies,
     baseline_sets,
     baseline_frequencies,
-    order_policy=ALPHABETICAL_TRAIN_ORDER,
+    order_policy=ASCENDING_IC_SIZE_TRAIN_ORDER,
 )
 points = growth["points"]
 x = [point["corpus_size"] for point in points]
@@ -105,7 +108,7 @@ for key, label, color, linestyle in series:
 axis.set_xlim(1, len(train_sites))
 axis.set_ylim(-2, 102)
 axis.set_xlabel("tp6-Train workloads in corpus")
-axis.set_ylabel("Coverage of tp6-Test")
+axis.set_ylabel("Intersection with tp6-Test")
 axis.xaxis.set_major_locator(MultipleLocator(4))
 axis.xaxis.set_minor_locator(MultipleLocator(1))
 axis.set_yticks(range(0, 101, 20))

@@ -1,11 +1,13 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Two-panel heatmap of IC-body overlap.
+"""Two-panel heatmap of IC-body intersection.
 
-Panel (a) is the symmetric static intersection; panel (b) is the directional
-dynamic intersection with A on rows (source workload) and B on columns
-(evaluated workload). Site count is taken from whatever columns the pipeline
-delivers — the figure adapts its tick, cell-text, and font sizing to N so
-the same script renders cleanly for 8-site and 24-site subsets alike.
+Both panels are directional with A on rows (source workload) and B on
+columns (evaluated workload / held-out target):
+  (a) static  = |A ∩ B| / |B|
+  (b) dynamic = sum_{x in A ∩ B} exec_B(x) / sum exec_B
+Site count is taken from whatever columns the pipeline delivers — the
+figure adapts its tick, cell-text, and font sizing to N so the same
+script renders cleanly for 8-site and 24-site subsets alike.
 """
 
 import sys
@@ -80,10 +82,9 @@ def text_color(cmap, norm, value):
 
 def static_matrix(sets):
     matrix = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            union = sets[i] | sets[j]
-            matrix[i, j] = len(sets[i] & sets[j]) / len(union) if union else 0.0
+    for i, source in enumerate(sets):
+        for j, target in enumerate(sets):
+            matrix[i, j] = len(source & target) / len(target) if target else 0.0
     return matrix
 
 
@@ -259,6 +260,6 @@ colorbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=cax)
 colorbar.set_ticks(scale_ticks)
 colorbar.set_ticklabels([".55", ".65", ".75", ".85", ".9", ".95", "1"])
 colorbar.ax.tick_params(labelsize=5.2, length=2)
-colorbar.set_label("IC-body overlap", fontsize=6.6, labelpad=2)
+colorbar.set_label("IC-body intersection", fontsize=6.6, labelpad=2)
 
 fig.savefig(sys.argv[1], dpi=300)

@@ -1,8 +1,15 @@
-"""Cumulative held-out coverage for prefixes of the tp6-Train corpus."""
+"""Cumulative held-out intersection for prefixes of the tp6-Train corpus.
+
+Both metrics use the pooled tp6-Test set as the fixed target B:
+  static:  |A ∩ B| / |B|
+  dynamic: sum_{a in A ∩ B} exec_B(a) / sum_{a in B} exec_B(a)
+where A is the cumulative union of the training-corpus prefix.
+"""
 
 from collections import Counter
 
 ALPHABETICAL_TRAIN_ORDER = "alphabetical tp6-Train site order"
+ASCENDING_IC_SIZE_TRAIN_ORDER = "tp6-Train sites ordered by ascending IC-body count"
 
 
 def pooled_set(sets_by_site, sites):
@@ -16,11 +23,11 @@ def pooled_counter(counters_by_site, sites):
     return total
 
 
-def static_coverage(source, target):
+def static_intersection(source, target):
     return len(source & target) / len(target) if target else 0.0
 
 
-def dynamic_coverage(source, target_frequencies):
+def dynamic_intersection(source, target_frequencies):
     total = sum(target_frequencies.values())
     if not total:
         return 0.0
@@ -30,7 +37,7 @@ def dynamic_coverage(source, target_frequencies):
     return covered / total
 
 
-def coverage_curve(
+def intersection_curve(
     train_sites,
     test_sites,
     ic_sets,
@@ -64,17 +71,17 @@ def coverage_curve(
             {
                 "corpus_size": corpus_size,
                 "added_site": site,
-                "added_site_ic_dynamic": dynamic_coverage(
+                "added_site_ic_dynamic": dynamic_intersection(
                     ic_sets[site], test_ic_frequencies
                 ),
-                "ic_static": static_coverage(cumulative_ic, test_ic_set),
-                "ic_dynamic": dynamic_coverage(
+                "ic_static": static_intersection(cumulative_ic, test_ic_set),
+                "ic_dynamic": dynamic_intersection(
                     cumulative_ic, test_ic_frequencies
                 ),
-                "baseline_static": static_coverage(
+                "baseline_static": static_intersection(
                     cumulative_baseline, test_baseline_set
                 ),
-                "baseline_dynamic": dynamic_coverage(
+                "baseline_dynamic": dynamic_intersection(
                     cumulative_baseline, test_baseline_frequencies
                 ),
             }

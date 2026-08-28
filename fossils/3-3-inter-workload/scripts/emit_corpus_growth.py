@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Emit the tp6-Train prefix coverage curve against the tp6-Test oracle."""
+"""Emit the tp6-Train prefix intersection curve against the tp6-Test oracle."""
 
 import json
 import sys
 
 from corpus_growth import (
     ALPHABETICAL_TRAIN_ORDER,
-    coverage_curve,
+    intersection_curve,
 )
 from pairwise import load_counters, split_sites
 
@@ -16,7 +16,7 @@ def main():
     train_sites = tuple(sorted(train_sites))
     all_sites = train_sites + test_sites
     _, ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters(sites=all_sites)
-    output = coverage_curve(
+    output = intersection_curve(
         train_sites,
         test_sites,
         ic_sets,

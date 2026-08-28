@@ -152,11 +152,12 @@ def load_counters(records_dir=RECORDS_DIR, sites=None):
 
 
 def static_intersection(a, b):
-    union = a | b
-    return len(a & b) / len(union) if union else 0.0
+    """|a ∩ b| / |b|. b is the target/held-out set — asymmetric in a and b."""
+    return len(a & b) / len(b) if b else 0.0
 
 
 def dynamic_intersection(source_set, target_freq):
+    """sum_{x in source ∩ target} target_freq[x] / sum target_freq. target-weighted."""
     total = sum(target_freq.values())
     if not total:
         return 0.0

@@ -17,10 +17,6 @@ def off_diagonal(m, n):
     return [m[i][j] for i in range(n) for j in range(n) if i != j]
 
 
-def upper_triangle(m, n):
-    return [m[i][j] for i in range(n) for j in range(i + 1, n)]
-
-
 def stats(values):
     q1, _, q3 = statistics.quantiles(values, n=4, method="inclusive")
     return {
@@ -37,8 +33,10 @@ def main():
     sites, ic_sets, ic_freqs, bl_sets, bl_freqs = load_counters()
     n = len(sites)
 
-    bl_static  = upper_triangle(matrix(static_intersection, bl_sets, bl_sets, sites), n)
-    ic_static  = upper_triangle(matrix(static_intersection, ic_sets, ic_sets, sites), n)
+    # Both matrices are directional (|A ∩ B| / |B|-shaped), so both
+    # sample the full n*(n-1) off-diagonal.
+    bl_static  = off_diagonal(matrix(static_intersection, bl_sets, bl_sets, sites), n)
+    ic_static  = off_diagonal(matrix(static_intersection, ic_sets, ic_sets, sites), n)
     bl_dynamic = off_diagonal(matrix(dynamic_intersection, bl_sets,  bl_freqs, sites), n)
     ic_dynamic = off_diagonal(matrix(dynamic_intersection, ic_sets,  ic_freqs, sites), n)
 

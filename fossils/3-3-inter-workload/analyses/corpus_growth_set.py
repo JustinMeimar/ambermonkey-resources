@@ -4,7 +4,7 @@
 The fossil retains records for retired variants from earlier versions of the
 experiment. Fossil analyzes the latest record for every historical variant,
 so return an empty metric for those variants and apply the strict reducer only
-to the 32 workloads used by the cumulative-coverage figure.
+to the 32 workloads used by the cumulative-intersection figure.
 """
 
 import os
