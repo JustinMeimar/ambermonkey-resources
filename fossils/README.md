@@ -32,6 +32,7 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | 3-2 | intra-workload IC concentration (tp6, 8 sites) | (background)                |
 | 3-3 | inter-workload overlap (tp6-Train, 24 sites)   | III.D cross-workload reuse  |
 | 3-4 | SM CacheIR vs V8 Sparkplug ic-microbench       | III.C preliminary IC perf   |
+| 5-6 | Speedometer 3 + JetStream 3 oracle corpora    | oracle-corpus upper bound   |
 | 6-1 | AOT corpus recorder over tp6 + self-hosted     | VI.B corpus construction    |
 | 7-1 | corpus coverage on held-out workloads          | VII.A corpus coverage       |
 | 7-2 | Speedometer 3 AmberMonkey perf ladder          | VII.B restricted execution  |

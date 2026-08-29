@@ -126,7 +126,7 @@ def main():
         fontsize=FONT_SIZES["tick"],
     )
     ax.set_xlabel("")
-    ax.set_ylabel("PSS per Process (MB)")
+    ax.set_ylabel("PSS per process (MB)")
     ax.set_ylim(0, max(total) * 1.15)
     ax.set_xlim(-0.35, len(rows) - 1 + 0.35)
     ax.grid(axis="y", zorder=0, linewidth=0.4, color=AMBER_GREY, alpha=0.4)

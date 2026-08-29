@@ -53,7 +53,7 @@ CONFIG_FOR_BUILD = {
     "opt": "aot-corpus",
 }
 LEGEND_LABELS = {
-    "default": "SpiderMonkey",
+    "default": "Baseline JIT",
     "opt": "AmberMonkey",
     "no-opt": "AmberMonkey, no opts",
 }
@@ -164,7 +164,7 @@ ax.set_xticklabels(
     ha="right",
     rotation_mode="anchor",
 )
-ax.set_ylabel("user cycles / iteration")
+ax.set_ylabel("Cycles / iteration")
 ax.set_xlim(-0.58, len(benches) - 0.42)
 ax.set_ylim(0, highest * 1.24 if highest else 1)
 ax.grid(axis="x", visible=False)

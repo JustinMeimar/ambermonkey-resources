@@ -8,7 +8,7 @@ import statistics
 import sys
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MultipleLocator
 import numpy as np
 from fossil_figures import load_stdin
 
@@ -33,6 +33,7 @@ NORMALIZE_TO = "interp-only"
 CONFIGS = load_configurations()
 VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 GROUP_WIDTH = 0.82
+GEOMEAN_GROUP_WIDTH = 1.0  # wider bars in the geomean group to give it prominence
 
 WORKLOAD_LABELS = {
     "Charts-chartjs": "Chart.js",
@@ -99,22 +100,26 @@ n_groups = len(group_labels)
 n_variants = len(variants)
 colors = [CONFIGS[v]["color"] for v in variants]
 bar_width = GROUP_WIDTH / n_variants
+geomean_bar_width = GEOMEAN_GROUP_WIDTH / n_variants
 x = np.arange(n_groups)
+geomean_idx = n_groups - 1
 
-fig, ax = plt.subplots(figsize=figure_size("double", 2.55))
+fig, ax = plt.subplots(figsize=figure_size("double", 2.30))
 
 y_max = 0.0
 for i, variant in enumerate(variants):
-    offset = (i - (n_variants - 1) / 2) * bar_width
+    workload_offset = (i - (n_variants - 1) / 2) * bar_width
+    geomean_offset = (i - (n_variants - 1) / 2) * geomean_bar_width
     values = speedups[variant]
-    # Per-run stddev of the ratio, for the 20 workload bars only.
+    workload_values = values[:-1]
+    geomean_value = values[-1]
     err = [
         statistics.stdev(runs) if len(runs) > 1 else 0.0
         for runs in per_run_ratios[variant]
-    ] + [0.0]  # geomean has no per-run bar
+    ]
     ax.bar(
-        x + offset,
-        values,
+        x[:-1] + workload_offset,
+        workload_values,
         bar_width * 0.94,
         yerr=err,
         color=colors[i],
@@ -124,10 +129,36 @@ for i, variant in enumerate(variants):
         label=CONFIGS[variant]["long"],
         zorder=3,
     )
-    y_max = max(y_max, max(v + e for v, e in zip(values, err)))
+    ax.bar(
+        x[geomean_idx] + geomean_offset,
+        geomean_value,
+        geomean_bar_width * 0.94,
+        color=colors[i],
+        edgecolor="white",
+        linewidth=0.25,
+        zorder=3,
+    )
+    ax.text(
+        x[geomean_idx] + geomean_offset,
+        geomean_value * 1.02,
+        f"{geomean_value:.2f}×",
+        ha="center",
+        va="bottom",
+        rotation=90,
+        fontsize=FONT_SIZES["tick"] - 0.5,
+        zorder=4,
+    )
+    y_max = max(y_max, max(v + e for v, e in zip(workload_values, err)), geomean_value)
 
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
 ax.axvline(n_groups - 1.5, color="#B8B8B8", linewidth=0.7, linestyle=":", zorder=1)
+ax.text(
+    0.005, 0.955, "(a) Speedometer 3.1",
+    transform=ax.transAxes,
+    ha="left", va="top",
+    fontweight="bold", fontsize=FONT_SIZES["label"],
+    zorder=5,
+)
 
 ax.set_xticks(x)
 ax.set_xticklabels(
@@ -137,7 +168,8 @@ ax.set_xticklabels(
     rotation_mode="anchor",
     fontsize=FONT_SIZES["tick"],
 )
-ax.set_ylabel(f"Speedup over {CONFIGS[NORMALIZE_TO]['prose']}")
+ax.set_ylabel("Speedup over Interpreter")
+ax.yaxis.set_major_locator(MultipleLocator(1))
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.58, n_groups - 0.42)
 ax.set_ylim(0, y_max * 1.10 if y_max else 1)
@@ -148,8 +180,8 @@ ax.margins(x=0.005)
 
 ax.legend(
     frameon=False,
-    loc="upper left",
-    bbox_to_anchor=(0.0, 1.015),
+    loc="upper right",
+    bbox_to_anchor=(1.0, 1.015),
     borderaxespad=0,
     ncol=n_variants,
     handlelength=1.1,
@@ -157,5 +189,5 @@ ax.legend(
     columnspacing=1.4,
 )
 
-fig.subplots_adjust(left=0.055, right=0.995, top=0.92, bottom=0.27)
+fig.subplots_adjust(left=0.075, right=0.995, top=0.92, bottom=0.27)
 save_png_and_pdf(fig, sys.argv[1])

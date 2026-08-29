@@ -92,7 +92,7 @@ x_max = math.ceil(max(ratios) / step) * step
 bar_ax.set_xlim(0.0, x_max)
 bar_ax.set_xticks(np.arange(0.0, x_max + step / 2, step))
 bar_ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}×"))
-bar_ax.set_xlabel(f"Speedup over {NORMALIZE_TO}", labelpad=9)
+bar_ax.set_xlabel(f"Speedup over {CONFIGS[NORMALIZE_TO]['prose']}", labelpad=9)
 bar_ax.grid(axis="y", visible=False)
 
 for table_ax in (score_ax, delta_ax):
