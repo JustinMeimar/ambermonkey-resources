@@ -1,5 +1,5 @@
 name = "corpus-coverage"
-description = "AOT corpus coverage on held-out workloads: tp6_test (frozen in 6-1's test.txt), Speedometer 3.1, and JetStream 3.0."
+description = "AOT corpus coverage on held-out workloads: tp6_test (frozen in 6-1's test.txt), Speedometer 3.1, JetStream 3.0, and Octane 2.0."
 default_iterations = 3
 allow_failure = false
 
@@ -23,11 +23,16 @@ script   = "figures/ic_table.py"
 INIT   = "D=$(mktemp -d /tmp/amber-7-1.XXXXXX)"
 # --setenv values must reach content procs; fossil vars are single-pass so keep this flat.
 RAPTOR = "cd @FIREFOX && @MC_AOT ./mach raptor --binary @BIN_AOT --page-cycles 1 --browser-cycles 1 --setenv JIT_OPTION_useAOTImage=true --setenv JS_AOT_COVERAGE_OUT=$D/cov --setenv MOZ_DISABLE_CONTENT_SANDBOX=1 --setenv MOZ_HEADLESS=1 --post-startup-delay 1000"
+# Octane isn't a raptor workload, so run it in jsshell. --aot loads the same
+# embedded image; JS_AOT_COVERAGE_OUT arms the same instrumentation and
+# JSRuntime::destroyRuntime flushes one cov.<pid> before shutdown.
+OCTANE_SHELL = "JS_AOT_COVERAGE_OUT=$D/cov @JSSHELL_AOT --wasm-compiler=none --aot -f /home/justin/spidermonkey/ambermonkey/fossils/7-2-ambermonkey-perf-octane/scripts/run-no-zlib.js"
 REDUCE = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-1-corpus-coverage/scripts/reduce_coverage.py $D && rm -rf $D"
 
 [variants]
 jetstream3   = "$INIT && $RAPTOR -t jetstream3   1>&2 && $REDUCE"
 speedometer3 = "$INIT && $RAPTOR -t speedometer3 1>&2 && $REDUCE"
+octane2      = "$INIT && cd @OCTANE_DIR && $OCTANE_SHELL 1>&2 && $REDUCE"
 
 # Eight held-out tp6 sites pooled into one $D so counters union across the suite.
 tp6_test = "$INIT && $RAPTOR -t reddit 1>&2 && $RAPTOR -t tumblr 1>&2 && $RAPTOR -t twitch 1>&2 && $RAPTOR -t twitter 1>&2 && $RAPTOR -t wikia 1>&2 && $RAPTOR -t wikipedia 1>&2 && $RAPTOR -t yahoo-mail 1>&2 && $RAPTOR -t youtube 1>&2 && $REDUCE"

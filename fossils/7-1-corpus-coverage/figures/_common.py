@@ -5,12 +5,13 @@ import pathlib
 import sys
 
 
-COLUMN_ORDER = ("tp6_test", "speedometer3", "jetstream3")
+COLUMN_ORDER = ("tp6_test", "speedometer3", "jetstream3", "octane2")
 
 COLUMN_LABELS = {
     "tp6_test":     "tp6-Test",
     "speedometer3": "Speedometer 3.1",
     "jetstream3":   "JetStream 3.0",
+    "octane2":      "Octane 2.0",
 }
 
 
