@@ -104,7 +104,7 @@ geomean_bar_width = GEOMEAN_GROUP_WIDTH / n_variants
 x = np.arange(n_groups)
 geomean_idx = n_groups - 1
 
-fig, ax = plt.subplots(figsize=figure_size("double", 2.30))
+fig, ax = plt.subplots(figsize=figure_size("double", 1.68))
 
 y_max = 0.0
 for i, variant in enumerate(variants):
@@ -140,18 +140,18 @@ for i, variant in enumerate(variants):
     )
     ax.text(
         x[geomean_idx] + geomean_offset,
-        geomean_value * 1.02,
-        f"{geomean_value:.2f}×",
+        geomean_value * 1.05,
+        f"{geomean_value:.1f}×",
         ha="center",
         va="bottom",
         rotation=90,
-        fontsize=FONT_SIZES["tick"] - 0.5,
+        fontsize=4.5,
+        bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.3},
         zorder=4,
     )
     y_max = max(y_max, max(v + e for v, e in zip(workload_values, err)), geomean_value)
 
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
-ax.axvline(n_groups - 1.5, color="#B8B8B8", linewidth=0.7, linestyle=":", zorder=1)
 ax.text(
     0.005, 0.955, "(a) Speedometer 3.1",
     transform=ax.transAxes,
@@ -166,7 +166,7 @@ ax.set_xticklabels(
     rotation=52,
     ha="right",
     rotation_mode="anchor",
-    fontsize=FONT_SIZES["tick"],
+    fontsize=FONT_SIZES["annotation"],
 )
 ax.set_ylabel("Speedup over Interpreter")
 ax.yaxis.set_major_locator(MultipleLocator(1))
@@ -187,7 +187,8 @@ ax.legend(
     handlelength=1.1,
     handletextpad=0.4,
     columnspacing=1.4,
+    fontsize=FONT_SIZES["annotation"],
 )
 
-fig.subplots_adjust(left=0.075, right=0.995, top=0.92, bottom=0.27)
+fig.subplots_adjust(left=0.075, right=0.995, top=0.90, bottom=0.338)
 save_png_and_pdf(fig, sys.argv[1])

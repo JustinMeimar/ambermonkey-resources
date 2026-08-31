@@ -35,6 +35,7 @@ VARIANT_ORDER = [
 ]
 BAR_LABELS = {
     "interp-only": "Interpreter\nonly",
+    "blinterp-only": "AM-∅",
     "aot-corpus-ic": "AM-IC",
     "aot-corpus": "AM",
     "default-no-ion": "Baseline\nJIT",

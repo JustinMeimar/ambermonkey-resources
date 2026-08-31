@@ -20,51 +20,58 @@ prose = "interpreter-only"
 color = "#7A7A7A"
 order = 1
 
+[blinterp-only]
+long  = "AmberMonkey-Empty"
+short = "AM-∅"
+prose = "AmberMonkey-Empty"
+color = "#FEE391"
+order = 2
+
 [aot-corpus-ic]
 long  = "AmberMonkey-IC"
 short = "AM-IC"
 prose = "AmberMonkey-IC"
 color = "#D6604D"
-order = 2
+order = 3
 
 [aot-corpus]
 long  = "AmberMonkey"
 short = "AM"
 prose = "AmberMonkey"
 color = "#B2182B"
-order = 3
+order = 4
 
 [aot]
 long  = "AmberMonkey+Ion"
 short = "AM+I"
 prose = "AmberMonkey with Ion"
 color = "#E08214"
-order = 4
+order = 5
 
 [default-no-ion]
 long  = "Baseline JIT"
 short = "BL"
 prose = "Baseline JIT"
 color = "#2166AC"
-order = 5
+order = 6
 
 [default]
 long  = "Default (Ion)"
 short = "DEF"
 prose = "Default (Ion)"
 color = "#762A83"
-order = 6
+order = 7
 
 [v8-jitless]
 long  = "V8 --jitless"
 short = "V8-JL"
 prose = "V8 --jitless"
 color = "#1B7837"
-order = 7
+order = 8
 
 [v8-default]
 long  = "V8 default"
 short = "V8"
 prose = "V8 default"
 color = "#5AAE61"
-order = 8
+order = 9

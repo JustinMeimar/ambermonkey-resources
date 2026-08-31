@@ -94,7 +94,7 @@ geomean_bar_width = GEOMEAN_GROUP_WIDTH / n_variants
 x = np.arange(n_groups)
 geomean_idx = n_groups - 1
 
-fig, ax = plt.subplots(figsize=figure_size("double", 2.10))
+fig, ax = plt.subplots(figsize=figure_size("double", 1.68))
 
 y_max = 0.0
 for i, variant in enumerate(variants):
@@ -135,13 +135,13 @@ for i, variant in enumerate(variants):
         ha="center",
         va="bottom",
         rotation=90,
-        fontsize=FONT_SIZES["tick"] - 0.5,
+        fontsize=4.5,
+        bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.3},
         zorder=4,
     )
     y_max = max(y_max, max(v + e for v, e in zip(workload_values, err)), geomean_value)
 
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
-ax.axvline(n_groups - 1.5, color="#B8B8B8", linewidth=0.7, linestyle=":", zorder=1)
 ax.text(
     0.005, 0.955, "(b) Octane 2.0 (log scale)",
     transform=ax.transAxes,
@@ -156,7 +156,7 @@ ax.set_xticklabels(
     rotation=52,
     ha="right",
     rotation_mode="anchor",
-    fontsize=FONT_SIZES["tick"],
+    fontsize=FONT_SIZES["annotation"],
 )
 ax.set_ylabel("Speedup over Interpreter")
 ax.set_yscale("log")
@@ -167,7 +167,7 @@ ax.yaxis.set_major_locator(LogLocator(base=10.0, subs=(1.0, 2.0, 5.0), numticks=
 ax.yaxis.set_minor_locator(NullLocator())
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.58, n_groups - 0.42)
-y_min_pos = 0.5
+y_min_pos = 0.1
 # On a log axis, matching the linear-scale sibling's 10% headroom means
 # expanding the top by the same visual fraction of the log range, not a
 # flat 1.10× multiplier.
@@ -182,5 +182,5 @@ ax.grid(axis="y", zorder=0)
 ax.tick_params(axis="x", length=0, pad=2)
 ax.margins(x=0.005)
 
-fig.subplots_adjust(left=0.075, right=0.995, top=0.98, bottom=0.27)
+fig.subplots_adjust(left=0.075, right=0.995, top=0.975, bottom=0.338)
 save_png_and_pdf(fig, sys.argv[1])
