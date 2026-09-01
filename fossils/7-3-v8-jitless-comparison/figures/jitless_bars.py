@@ -136,7 +136,7 @@ ax.set_ylim(-BOTTOM_PAD, top_y + TOP_PAD)
 x_max = 1.10
 ax.set_xlim(0.0, x_max)
 ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v * 100:.0f}%"))
-ax.set_xlabel("Score as % of engine's default")
+ax.set_xlabel("Speedometer 3.1 score (% of engine default)")
 ax.grid(axis="x", visible=True, linestyle=":", color="#BBBBBB", linewidth=0.6)
 ax.set_axisbelow(True)
 

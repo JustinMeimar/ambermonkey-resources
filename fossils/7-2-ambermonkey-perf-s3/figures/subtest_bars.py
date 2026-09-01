@@ -156,7 +156,7 @@ ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
 ax.set_xticks(x)
 ax.set_xticklabels(
     group_labels,
-    rotation=65,
+    rotation=52,
     ha="right",
     rotation_mode="anchor",
     fontsize=FONT_SIZES["annotation"],
@@ -173,8 +173,8 @@ ax.margins(x=0.005)
 
 ax.legend(
     frameon=False,
-    loc="upper right",
-    bbox_to_anchor=(1.0, 1.015),
+    loc="upper left",
+    bbox_to_anchor=(0.0, 1.015),
     borderaxespad=0,
     ncol=n_variants,
     handlelength=1.1,
