@@ -13,7 +13,6 @@ scripts/emit_cycles_table.py.
 """
 
 import json
-import math
 import os
 import statistics
 import sys
@@ -138,12 +137,6 @@ def collect_cohort():
     return cells
 
 
-def geometric_mean(values):
-    if not values or any(v <= 0 for v in values):
-        return None
-    return math.exp(math.fsum(math.log(v) for v in values) / len(values))
-
-
 apply_amber_style("single")
 cells = collect_cohort()
 if not cells:
@@ -196,14 +189,6 @@ for i, build in enumerate(PLOT_BUILDS):
             fontsize=FONT_SIZES["annotation"],
         )
 
-ratios = []
-for bench in benches:
-    baseline = cells[bench].get("default")
-    amber = cells[bench].get("opt")
-    if baseline is not None and amber is not None and baseline[0] > 0:
-        ratios.append(amber[0] / baseline[0])
-gmean = geometric_mean(ratios)
-
 ax.set_yticks(y_group)
 ax.set_yticklabels([LABELS.get(b, b) for b in benches])
 ax.set_xlabel("User cycles / iteration")
@@ -225,19 +210,6 @@ ax.legend(
     borderaxespad=0,
     fontsize=FONT_SIZES["legend"],
 )
-
-if gmean is not None:
-    ax.text(
-        0.0,
-        1.005,
-        f"GM = {gmean:.2f}×",
-        transform=ax.transAxes,
-        ha="left",
-        va="bottom",
-        fontsize=FONT_SIZES["tick"],
-        fontweight="bold",
-        color=COLORS["opt"],
-    )
 
 fig.subplots_adjust(left=0.20, right=0.985, top=0.86, bottom=0.20)
 fig.savefig(Path(sys.argv[1]).with_suffix(".pdf"))
