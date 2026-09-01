@@ -152,13 +152,6 @@ for i, variant in enumerate(variants):
     y_max = max(y_max, max(v + e for v, e in zip(workload_values, err)), geomean_value)
 
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
-ax.text(
-    0.005, 0.955, "(a) Speedometer 3.1",
-    transform=ax.transAxes,
-    ha="left", va="top",
-    fontweight="bold", fontsize=FONT_SIZES["label"],
-    zorder=5,
-)
 
 ax.set_xticks(x)
 ax.set_xticklabels(

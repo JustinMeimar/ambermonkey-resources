@@ -4,11 +4,10 @@
 from _common import emit_aggregate
 
 ROWS = [
-    ("#ICs",           "utilization.ic_stubs.total",    "count"),
-    ("Attached",       "utilization.ic_stubs.used",     "count"),
-    ("Utilization",    "utilization.ic_stubs.pct",      "percent"),
-    ("Total attaches", "requests.ic_stubs.total",       "count"),
-    ("AOT hit rate",   "requests.ic_stubs.aot_hit_pct", "percent"),
+    ("#ICs",                 "utilization.ic_stubs.total",    "count"),
+    ("Corpus utilization",   "utilization.ic_stubs.pct",      "percent"),
+    ("Compilation requests", "requests.ic_stubs.total",       "count"),
+    ("AOT request coverage", "requests.ic_stubs.aot_hit_pct", "percent"),
 ]
 
 if __name__ == "__main__":
