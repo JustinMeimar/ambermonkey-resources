@@ -1,0 +1,23 @@
+name = "indirection-e2e-s3"
+description = "End-to-end indirection overhead: Speedometer 3.1 with a regular Baseline JIT (Ion off) vs an AmberMonkey oracle corpus. The oracle corpus achieves perfect Baseline-tier coverage, so the delta isolates AmberMonkey's runtime indirection cost. Bootstrapping and corpus selection are handled outside this fossil."
+default_iterations = 3
+allow_failure = true
+
+[analyze]
+speedometer-detail = "analyses/parse_speedometer.py"
+
+[tables.perf]
+analysis = "speedometer-detail"
+script   = "figures/perf_table.py"
+
+[variables]
+MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT --setenv MOZ_HEADLESS=1"
+ION_OFF = "--setpref javascript.options.ion=false"
+RESULT  = "cat testing/mozharness/build/raptor.json"
+
+AOT      = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+NO_REGEX = "JIT_OPTION_nativeRegExp=false"
+
+[variants]
+default-no-ion = "@CLEAN_AOT           $MACH $ION_OFF 1>&2 && $RESULT"
+aot-corpus     = "@CLEAN_AOT $AOT $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"

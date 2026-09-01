@@ -30,6 +30,12 @@ def main(root):
     ic_attaches = {}
     shapes_aot = set()
     shapes_other = set()
+    # Per-missed-shape CacheIR: shape_hash -> (cache_kind, ir_hex).  First
+    # dump to record a shape wins; identical hashes across pids observe the
+    # same bytes by construction.
+    missed_ir = {}
+    # Per-missed-shape attach-request count, summed across pids.
+    missed_attaches = {}
     req = {
         "bl_aot": 0, "bl_compiled": 0,
         "ic_aot": 0, "ic_zone": 0, "ic_compiled": 0,
@@ -65,6 +71,18 @@ def main(root):
         shapes_aot.update(d.get("ic_shapes_aot", []) or [])
         shapes_other.update(d.get("ic_shapes_other", []) or [])
 
+        for e in d.get("ic_shapes_other_ir", []) or []:
+            sh = int(e["shape_hash"])
+            if sh in missed_ir:
+                continue
+            missed_ir[sh] = (int(e.get("cache_kind", 0)), e.get("ir_hex", ""))
+
+        for e in d.get("ic_shapes_other_attaches", []) or []:
+            sh = int(e["shape_hash"])
+            missed_attaches[sh] = (
+                missed_attaches.get(sh, 0) + int(e.get("attach_count", 0))
+            )
+
     # A corpus shape normally always resolves out of the image, so the sets
     # are near-disjoint. They can overlap for requests that land before the
     # image finishes loading into the atoms zone. Served-anywhere wins, and
@@ -79,6 +97,40 @@ def main(root):
     bl_req_total = req["bl_aot"] + req["bl_compiled"]
     ic_req_total = req["ic_aot"] + req["ic_zone"] + req["ic_compiled"]
     shapes_requested = len(shapes_aot) + len(shapes_other)
+
+    # Collapse missed shapes to unique stub bodies.  Bodies are keyed by the
+    # (cache_kind, ir_hex) pair: identical opcode bytes under a different
+    # kind are semantically distinct stubs.
+    bodies = {}
+    for shape_hash, (kind, ir_hex) in missed_ir.items():
+        key = (kind, ir_hex)
+        entry = bodies.setdefault(
+            key,
+            {
+                "cache_kind": kind,
+                "ir_hex": ir_hex,
+                "shape_hashes": [],
+                "attach_count": 0,
+            },
+        )
+        entry["shape_hashes"].append(shape_hash)
+        entry["attach_count"] += missed_attaches.get(shape_hash, 0)
+    missed_bodies = [
+        {
+            "cache_kind": b["cache_kind"],
+            "ir_hex": b["ir_hex"],
+            "ir_bytes": len(b["ir_hex"]) // 2,
+            "shape_count": len(b["shape_hashes"]),
+            "attach_count": b["attach_count"],
+            "shape_hashes": sorted(b["shape_hashes"]),
+        }
+        for b in bodies.values()
+    ]
+    # Rank most-requested first; ties broken by shape count, then kind.
+    missed_bodies.sort(
+        key=lambda e: (-e["attach_count"], -e["shape_count"], e["cache_kind"], e["ir_hex"])
+    )
+    missed_attaches_total = sum(missed_attaches.values())
 
     out = {
         "utilization": {
@@ -114,6 +166,10 @@ def main(root):
         },
         "self_hosted_used_baseline": sh_used,
         "n_procs": len(files),
+        "missing_ic_stub_bodies": missed_bodies,
+        "missing_ic_body_count": len(missed_bodies),
+        "missing_ic_shape_count": len(missed_ir),
+        "missing_ic_attach_total": missed_attaches_total,
     }
     json.dump(out, sys.stdout)
     sys.stdout.write("\n")

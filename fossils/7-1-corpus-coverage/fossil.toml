@@ -18,6 +18,11 @@ script   = "figures/baseline_interpreter_table.py"
 analysis = "coverage"
 script   = "figures/ic_table.py"
 
+# Bypasses parse_coverage.py because io.py's Metric parser flattens the
+# per-body list into empty Metrics. The script walks records/ directly.
+[tables.missing-ic-stubs]
+script = "scripts/emit_missing_ic_stubs.py"
+
 [variables]
 # One scratch dir per iteration; AOTCoverage dumps one file per JSRuntime at shutdown.
 INIT   = "D=$(mktemp -d /tmp/amber-7-1.XXXXXX)"

@@ -10,6 +10,10 @@ cycles = "analyses/parse_cycles.py"
 analysis = "cycles"
 script   = "figures/cycles_bars.py"
 
+[figures.cycles-hbars]
+analysis = "cycles"
+script   = "figures/cycles_hbars.py"
+
 # Bypasses parse_cycles.py (which refuses when any observation has empty stdout)
 # so the table survives legacy records where perf produced no JSON.
 [tables.cycles]
