@@ -163,7 +163,7 @@ ax.text(
 ax.set_xticks(x)
 ax.set_xticklabels(
     group_labels,
-    rotation=52,
+    rotation=65,
     ha="right",
     rotation_mode="anchor",
     fontsize=FONT_SIZES["annotation"],
@@ -190,5 +190,5 @@ ax.legend(
     fontsize=FONT_SIZES["annotation"],
 )
 
-fig.subplots_adjust(left=0.075, right=0.995, top=0.90, bottom=0.338)
+fig.subplots_adjust(left=0.055, right=0.995, top=0.90, bottom=0.338)
 save_png_and_pdf(fig, sys.argv[1])
