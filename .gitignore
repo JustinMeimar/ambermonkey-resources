@@ -10,3 +10,6 @@ __pycache__/
 # Editor / OS junk.
 *.swp
 .DS_Store
+
+# Standalone V8 checkout and build outputs.
+v8-project/
