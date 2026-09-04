@@ -10,7 +10,14 @@ from benchmarks import manifest
 
 PREFIX = "parse_cycles"
 
-BUILDS = ("default", "opt", "no-opt")
+BUILDS = (
+    "default",
+    "rit-only",
+    "native-linker",
+    "native-linker-value-mirror",
+    "opt",     # Legacy records.
+    "no-opt",  # Legacy records.
+)
 ITER_COUNTS = {
     "interrupt-check": 10_000_000_000,
     "stack-check":     500_000_000,
