@@ -15,9 +15,14 @@ fossil_dir=/home/justin/spidermonkey/ambermonkey/fossils/7-4-indirection-overhea
 benchmarks=(
   "interrupt-check|$fossil_dir/microbenches/interrupt_check.js"
   "stack-check|$fossil_dir/microbenches/stack_check.js"
+  "stack-abi-call|$fossil_dir/microbenches/stack_abi_call.js"
   "prebarrier|$fossil_dir/microbenches/prebarrier.js"
+  "prebarrier-abi-call|$fossil_dir/microbenches/prebarrier_abi_call.js"
   "vm-call|$fossil_dir/microbenches/vm_call.js"
   "abi-call|$fossil_dir/microbenches/abi_call.js"
+  "arith|$fossil_dir/microbenches/arith.js"
+  "prop-load|$fossil_dir/microbenches/prop_load.js"
+  "array-load|$fossil_dir/microbenches/array_load.js"
 )
 
 for specification in "${benchmarks[@]}"; do

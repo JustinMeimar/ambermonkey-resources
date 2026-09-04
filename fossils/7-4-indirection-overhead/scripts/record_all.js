@@ -7,7 +7,9 @@ const benchmarks = scriptArgs.length > 0
   : [
       "interrupt_check",
       "stack_check",
+      "stack_abi_call",
       "prebarrier",
+      "prebarrier_abi_call",
       "vm_call",
       "abi_call",
       "arith",

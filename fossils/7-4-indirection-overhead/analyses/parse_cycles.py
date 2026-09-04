@@ -13,9 +13,14 @@ VARIANTS = ("baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm")
 ITER_COUNTS = {
     "interrupt-check": 250_000_000,
     "stack-check": 100_000_000,
+    "stack-abi-call": 50_000_000,
     "prebarrier": 200_000_000,
+    "prebarrier-abi-call": 50_000_000,
     "vm-call": 100_000_000,
     "abi-call": 50_000_000,
+    "arith": 150_000_000,
+    "prop-load": 150_000_000,
+    "array-load": 125_000_000,
 }
 BENCHES = tuple(ITER_COUNTS)
 REQUIRED_EVENTS = ("cycles:u", "instructions:u", "ref-cycles:u")

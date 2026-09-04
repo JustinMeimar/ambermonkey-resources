@@ -32,8 +32,10 @@ BASELINE = "baseline-jit"
 VARIANTS = ("am-rit", "am-rit-nl", "am-rit-nl-vm")
 BENCHES = (
     "stack-check",
+    "stack-abi-call",
     "vm-call",
     "abi-call",
+    "prebarrier-abi-call",
     "prebarrier",
     "interrupt-check",
 )
@@ -61,7 +63,7 @@ n_variants = len(VARIANTS)
 bar_height = GROUP_HEIGHT / n_variants
 y_group = np.arange(len(BENCHES))[::-1]
 
-fig, ax = plt.subplots(figsize=figure_size("single", 2.35))
+fig, ax = plt.subplots(figsize=figure_size("single", 2.75))
 
 leftmost = 0.0
 rightmost = 0.0

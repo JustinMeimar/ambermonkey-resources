@@ -8,7 +8,13 @@ import sys
 
 from fossil_figures import load_stdin, write_typst_table
 
-from common import BENCHES, VARIANTS, metric_cells
+from common import (
+    BENCHES,
+    CONTROL_BENCHES,
+    TARGETED_BENCHES,
+    VARIANTS,
+    metric_cells,
+)
 
 
 VARIANT_KEYS = {
@@ -165,6 +171,8 @@ def main():
     payload.update(
         {
             "benchmark_count": len(BENCHES),
+            "targeted_benchmark_count": len(TARGETED_BENCHES),
+            "control_benchmark_count": len(CONTROL_BENCHES),
             "repetitions_per_configuration": repetitions.pop(),
             "primary_metric": "user cycles per semantic loop iteration",
             "counter_events": ["cycles:u", "instructions:u", "ref-cycles:u"],

@@ -2,19 +2,28 @@ from fossil_figures import Scalar
 
 
 VARIANTS = ("baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm")
-BENCHES = (
+TARGETED_BENCHES = (
     "interrupt-check",
     "stack-check",
+    "stack-abi-call",
     "prebarrier",
+    "prebarrier-abi-call",
     "vm-call",
     "abi-call",
 )
+CONTROL_BENCHES = ("arith", "prop-load", "array-load")
+BENCHES = TARGETED_BENCHES + CONTROL_BENCHES
 BENCH_LABELS = {
     "interrupt-check": "Interrupt",
     "stack-check": "Stack",
+    "stack-abi-call": "Stack + ABI",
     "prebarrier": "Pre-barrier",
+    "prebarrier-abi-call": "Pre-barrier + ABI",
     "vm-call": "VM call",
     "abi-call": "ABI call",
+    "arith": "Arithmetic",
+    "prop-load": "Property load",
+    "array-load": "Array load",
 }
 VARIANT_LABELS = {
     "baseline-jit": "Baseline JIT",
