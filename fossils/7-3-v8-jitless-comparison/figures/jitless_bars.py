@@ -26,13 +26,10 @@ from figure_style import (  # noqa: E402
 )
 
 from common import (
-    load_v8,
     run_scores,
     save_png_and_pdf,
     summarize,
-    summarize_column,
-    v8_columns,
-    validate_sm,
+    validate_records,
 )
 
 
@@ -52,13 +49,6 @@ def sm_bar(data, variant, default_score):
     return {"slug": variant, "ratio": ratio, "ratio_err": ratio_err, "n": n}
 
 
-def v8_bar(v8, slug, default_score):
-    mean, stdev, n = summarize_column(v8[slug])
-    ratio = mean / default_score if default_score else 0.0
-    ratio_err = stdev / default_score if default_score else 0.0
-    return {"slug": slug, "ratio": ratio, "ratio_err": ratio_err, "n": n}
-
-
 def label_for(slug):
     long = CONFIGS[slug]["long"]
     if slug in (SM_INTERP, SM_AM) and not long.lower().startswith("spidermonkey"):
@@ -69,15 +59,18 @@ def label_for(slug):
 apply_amber_style("single")
 
 data = load_stdin()
-validate_sm(data, (SM_INTERP, SM_AM, SM_DEFAULT))
-v8 = v8_columns(load_v8(), "speedometer3")
+validate_records(
+    data,
+    (SM_INTERP, SM_AM, SM_DEFAULT, V8_DEFAULT, V8_JITLESS),
+    "comparison",
+)
 
 sm_default = summarize(run_scores(data.columns[SM_DEFAULT]), fallback_score=0.0)[0]
-v8_default = summarize_column(v8[V8_DEFAULT])[0]
+v8_default = summarize(run_scores(data.columns[V8_DEFAULT]), fallback_score=0.0)[0]
 
 # Top-to-bottom: V8 --jitless, SM interpreter, then AmberMonkey.
 bars = [
-    v8_bar(v8, V8_JITLESS, v8_default),
+    sm_bar(data, V8_JITLESS, v8_default),
     sm_bar(data, SM_INTERP, sm_default),
     sm_bar(data, SM_AM, sm_default),
 ]

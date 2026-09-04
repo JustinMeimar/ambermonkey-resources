@@ -6,7 +6,7 @@
 // generalizes beyond the four value-mirror / relocation opts.
 
 function bench() {
-  const INNER = 100_000_000;
+  const INNER = 125_000_000;
   const arr = [1, 1, 1, 1];
   let s = 0;
   for (let i = 0; i < INNER; i++) {
@@ -16,6 +16,6 @@ function bench() {
 }
 
 const r = bench();
-if (r !== 100_000_000) {
+if (r !== 125_000_000) {
   throw new Error("bad array_load result: " + r);
 }

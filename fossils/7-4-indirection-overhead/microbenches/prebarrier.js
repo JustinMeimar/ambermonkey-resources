@@ -8,7 +8,7 @@
 // the same GC-thing repeatedly. The pre-barrier still reads the guard.
 
 function bench() {
-  const INNER = 500_000_000;
+  const INNER = 200_000_000;
   const holder = { f: null };
   const gcThing = { x: 1 };
   for (let i = 0; i < INNER; i++) {

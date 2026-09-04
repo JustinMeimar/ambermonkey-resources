@@ -5,10 +5,10 @@
 // here, the win generalizes beyond the four targeted opts.
 //
 // Body designed for net +1 per iter so the accumulator stays under 2^31-1
-// at INNER = 1e8.
+// at INNER = 1.5e8.
 
 function bench() {
-  const INNER = 100_000_000;
+  const INNER = 150_000_000;
   let s = 0;
   for (let i = 0; i < INNER; i++) {
     s = s + 2 * 1 - 1;
@@ -17,6 +17,6 @@ function bench() {
 }
 
 const r = bench();
-if (r !== 100_000_000) {
+if (r !== 150_000_000) {
   throw new Error("bad arith result: " + r);
 }

@@ -1,10 +1,9 @@
 """Shared helpers for the V8 --jitless comparison figure and table.
 
-The Speedometer 3 SpiderMonkey data comes from this fossil's own records
-(via the analysis pipeline / load_stdin). The JetStream 3 SpiderMonkey
-data is pooled by pointing at the sibling ``7-2-ambermonkey-perf-jetstream``
-fossil so we do not double-record the same benchmark. V8 numbers for both
-workloads are manually maintained in v8_jitless_perf.json.
+The Speedometer 3 data comes from this fossil's own records (via the analysis
+pipeline / load_stdin). The JetStream 3 SpiderMonkey data is pooled from the
+sibling ``7-2-ambermonkey-perf-jetstream`` fossil. JetStream 3 V8 numbers are
+maintained in v8_jitless_perf.json.
 """
 
 from __future__ import annotations
@@ -51,11 +50,13 @@ def run_scores(column: Metric) -> list[float]:
     return out
 
 
-def validate_sm(data: FigureData, required: tuple[str, ...]) -> None:
+def validate_records(
+    data: FigureData, required: tuple[str, ...], family: str
+) -> None:
     missing = [v for v in required if v not in data.columns]
     if missing:
         raise ValueError(
-            f"missing SpiderMonkey variants {missing!r}; found "
+            f"missing {family} variants {missing!r}; found "
             f"{sorted(data.column_names)}"
         )
     commits = set()
@@ -64,7 +65,7 @@ def validate_sm(data: FigureData, required: tuple[str, ...]) -> None:
         run_scores(column)
         commits.add(tag_at(column, "meta", "commit"))
     if len(commits) != 1 or "" in commits:
-        message = f"SpiderMonkey records do not share one valid source commit: {commits}"
+        message = f"{family} records do not share one valid source commit: {commits}"
         if os.environ.get("FOSSIL_FORCE") == "1":
             print(f"warning: {message} (FOSSIL_FORCE=1)", file=sys.stderr)
         else:

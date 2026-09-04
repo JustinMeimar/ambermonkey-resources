@@ -1,10 +1,7 @@
 name = "v8-jitless-comparison"
-description = "Speedometer 3 headroom recovered by AmberMonkey against SpiderMonkey default, alongside V8 --jitless against V8 default from a manually-maintained JSON."
+description = "Speedometer 3 headroom recovered by AmberMonkey against SpiderMonkey default, alongside V8 --jitless against V8 default in a matched non-PGO Chromium build."
 default_iterations = 3
 allow_failure = false
-
-# V8 numbers are hand-entered in v8_jitless_sp3_perf.json; only the SpiderMonkey
-# columns come from `fossil bury`.
 
 [analyze]
 speedometer-detail = "analyses/parse_speedometer.py"
@@ -18,14 +15,18 @@ analysis = "speedometer-detail"
 script   = "figures/comparison_table.py"
 
 [variables]
-MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT --setenv MOZ_HEADLESS=1"
-ION_OFF = "--setpref javascript.options.ion=false"
-RESULT  = "cat testing/mozharness/build/raptor.json"
+SM_MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT --setenv MOZ_HEADLESS=1"
+V8_MACH    = "./mach raptor -t speedometer3 --app chrome --browser-cycles 1 --page-cycles 3 --binary @V8_CHROME_NOPGO --browsertime-chromedriver @V8_CHROMEDRIVER --browsertime-arg chrome.args=--headless=new"
+V8_JITLESS = "--browsertime-arg chrome.args=--js-flags=--jitless"
+ION_OFF    = "--setpref javascript.options.ion=false"
+RESULT     = "cat testing/mozharness/build/raptor.json"
 
 INTERP  = "JIT_OPTION_disableJitBackend=true"
 AOT     = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
 
 [variants]
-interp-only = "@CLEAN_AOT $INTERP $MACH          1>&2 && $RESULT"
-aot-corpus  = "@CLEAN_AOT $AOT    $MACH $ION_OFF 1>&2 && $RESULT"
-default     = "@CLEAN_AOT         $MACH          1>&2 && $RESULT"
+interp-only = "@CLEAN_AOT $INTERP $SM_MACH          1>&2 && $RESULT"
+aot-corpus  = "@CLEAN_AOT $AOT    $SM_MACH $ION_OFF 1>&2 && $RESULT"
+default     = "@CLEAN_AOT         $SM_MACH          1>&2 && $RESULT"
+v8-default  = "cd @FIREFOX && $V8_MACH             1>&2 && $RESULT"
+v8-jitless  = "cd @FIREFOX && $V8_MACH $V8_JITLESS 1>&2 && $RESULT"

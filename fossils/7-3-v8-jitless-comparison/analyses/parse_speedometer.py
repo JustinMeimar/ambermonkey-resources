@@ -10,6 +10,9 @@ sys.path.insert(0, os.environ["FOSSIL_PROJECT_DIR"] + "/scripts")
 from benchmarks import manifest, raptor, speedometer3
 
 PREFIX = "parse_speedometer.py"
+V8_DEFAULT = "v8-default"
+V8_JITLESS = "v8-jitless"
+V8_VARIANTS = {V8_DEFAULT, V8_JITLESS}
 
 
 def validate_manifest(m):
@@ -21,6 +24,29 @@ def validate_manifest(m):
         manifest.fail(PREFIX, f"{variant}: manifest command is missing")
 
     page_cycles = manifest.page_cycles_from(command, PREFIX)
+    if variant in V8_VARIANTS:
+        if not manifest.has_option(command, "--app", "chrome"):
+            manifest.fail(PREFIX, f"{variant}: Raptor app is not chrome")
+        if "run-chromium-nixos.sh" not in command:
+            manifest.fail(PREFIX, f"{variant}: non-PGO Chromium launcher is missing")
+        if "run-chromedriver-nixos.sh" not in command:
+            manifest.fail(PREFIX, f"{variant}: NixOS ChromeDriver launcher is missing")
+        if "chrome.args=--headless=new" not in command:
+            manifest.fail(PREFIX, f"{variant}: Chromium headless flag is missing")
+
+        jitless = "chrome.args=--js-flags=--jitless" in command
+        if variant == V8_JITLESS and not jitless:
+            manifest.fail(PREFIX, "v8-jitless: --js-flags=--jitless is missing")
+        if variant == V8_DEFAULT and "chrome.args=--js-flags" in command:
+            manifest.fail(PREFIX, "v8-default: V8 flags must not be set")
+
+        return variant, page_cycles, "chrome", {
+            "engine": "v8",
+            "jit": "disabled" if jitless else "enabled",
+            "jitless": "enabled" if jitless else "disabled",
+            "pgo": "disabled",
+        }
+
     use_aot_image = manifest.command_flag(command, "JIT_OPTION_useAOTImage")
     aot_only = manifest.command_flag(command, "JIT_OPTION_aotOnly")
     jit_backend_disabled = manifest.command_flag(
@@ -46,6 +72,7 @@ def validate_manifest(m):
         aot_policy = "disabled"
 
     execution = {
+        "engine": "spidermonkey",
         "aot_image": "enabled" if use_aot_image else "disabled",
         "aot_policy": aot_policy,
         "ion": (
@@ -55,13 +82,22 @@ def validate_manifest(m):
         ),
         "jit_backend": "disabled" if jit_backend_disabled else "enabled",
     }
-    return variant, page_cycles, execution
+    return variant, page_cycles, "firefox", execution
 
 
 observation = json.load(sys.stdin)
 m = manifest.load(PREFIX)
-variant, page_cycles, execution = validate_manifest(m)
+variant, page_cycles, expected_app, execution = validate_manifest(m)
 r = raptor.load(observation, PREFIX)
+application = r.get("application") or {}
+if application.get("name") != expected_app:
+    manifest.fail(
+        PREFIX,
+        f"{variant}: expected application {expected_app!r}, "
+        f"found {application.get('name')!r}",
+    )
+if not isinstance(application.get("version"), str) or not application["version"]:
+    manifest.fail(PREFIX, f"{variant}: application version is missing")
 suite = raptor.single_suite(r, speedometer3.SUITE_NAME, PREFIX)
 metrics = speedometer3.parse(suite, PREFIX)
 
@@ -82,6 +118,7 @@ output = {
         "commit": m.get("git", {}).get("commit", ""),
         "iterations": m.get("iterations"),
         "page_cycles": page_cycles,
+        "application": application,
         "execution": execution,
     },
 }

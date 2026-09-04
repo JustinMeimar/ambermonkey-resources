@@ -11,7 +11,7 @@ function leaf() {
 }
 
 function bench() {
-  const INNER = 100_000_000;
+  const INNER = 20_000_000;
   const OUTER = 5;
   let outer_s = 0;
   for (let o = 0; o < OUTER; o++) {

@@ -15,8 +15,8 @@ from common import (
     run_scores,
     summarize,
     summarize_column,
+    validate_records,
     v8_columns,
-    validate_sm,
 )
 
 
@@ -63,11 +63,18 @@ def workload_rows(workload, sm_scores, v8_cols):
 
 def main():
     data = load_stdin()
-    validate_sm(data, (SM_INTERP, SM_AM, SM_DEFAULT))
+    validate_records(
+        data,
+        (SM_INTERP, SM_AM, SM_DEFAULT, V8_DEFAULT, V8_JITLESS),
+        "comparison",
+    )
     v8 = load_v8()
 
     sp3_sm_scores = {v: run_scores(data.columns[v]) for v in (SM_INTERP, SM_AM, SM_DEFAULT)}
-    sp3_v8_cols = v8_columns(v8, "speedometer3")
+    sp3_v8_cols = {
+        variant: {"samples": run_scores(data.columns[variant])}
+        for variant in (V8_DEFAULT, V8_JITLESS)
+    }
 
     js3_sm_scores = load_sm_jetstream()
     js3_v8_cols = v8_columns(v8, "jetstream3")
@@ -95,7 +102,10 @@ def main():
         if all(js3_sm_scores.get(v) for v in (SM_INTERP, SM_AM, SM_DEFAULT))
         else 0
     )
-    payload["v8_source"] = "manual: v8_jitless_perf.json"
+    payload["v8_source"] = {
+        "speedometer3": "fossil records",
+        "jetstream3": "manual: v8_jitless_perf.json",
+    }
 
     # Headline scalars — SP3 stays back-compatible with the prior single-workload
     # keys, JS3 additions get a js3_ prefix so downstream consumers stay explicit.

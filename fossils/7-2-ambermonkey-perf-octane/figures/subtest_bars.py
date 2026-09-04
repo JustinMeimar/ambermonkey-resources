@@ -96,7 +96,6 @@ geomean_idx = n_groups - 1
 
 fig, ax = plt.subplots(figsize=figure_size("double", 1.68))
 
-y_max = 0.0
 for i, variant in enumerate(variants):
     workload_offset = (i - (n_variants - 1) / 2) * bar_width
     geomean_offset = (i - (n_variants - 1) / 2) * geomean_bar_width
@@ -139,8 +138,6 @@ for i, variant in enumerate(variants):
         bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.3},
         zorder=4,
     )
-    y_max = max(y_max, max(v + e for v, e in zip(workload_values, err)), geomean_value)
-
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
 
 ax.set_xticks(x)
@@ -161,15 +158,7 @@ ax.yaxis.set_minor_locator(NullLocator())
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.58, n_groups - 0.42)
 y_min_pos = 0.1
-# On a log axis, matching the linear-scale sibling's 10% headroom means
-# expanding the top by the same visual fraction of the log range, not a
-# flat 1.10× multiplier.
-if y_max:
-    log_range = math.log10(y_max / y_min_pos)
-    y_max_pos = y_min_pos * 10 ** (log_range * 1.18)
-else:
-    y_max_pos = 2.0
-ax.set_ylim(y_min_pos, y_max_pos)
+ax.set_ylim(y_min_pos, 100.0)
 ax.grid(axis="x", visible=False)
 ax.grid(axis="y", zorder=0)
 ax.tick_params(axis="x", length=0, pad=2)

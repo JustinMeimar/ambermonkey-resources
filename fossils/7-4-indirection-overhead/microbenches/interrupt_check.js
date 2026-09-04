@@ -8,7 +8,7 @@
 // transition in the interpreter mid-run and pollutes the per-iter cost.
 
 function bench() {
-  const INNER = 2_000_000_000;
+  const INNER = 50_000_000;
   const OUTER = 5;
   let outer_s = 0;
   for (let o = 0; o < OUTER; o++) {
