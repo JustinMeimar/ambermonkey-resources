@@ -1,6 +1,6 @@
 name = "cross-process-memory-sharing"
-description = "Per-content-process PSS/USS census on Speedometer 3 across stock/stock-baseline/aot/aot-only, bucketed by libxul-vs-anon executable pages. Speedometer does not emit AWSY-style checkpoint files, so the sidecar samples smaps on a fixed interval; the analysis reports Peak (max engine PSS) and Final (last sample)."
-default_iterations = 1
+description = "Per-content-process PSS/USS census on Speedometer 3 across interpreter-only, stock, stock-baseline, and AOT-only execution, bucketed by libxul-vs-anon executable pages. Speedometer does not emit AWSY-style checkpoint files, so the sidecar samples smaps on a fixed interval; the analysis reports Peak (max engine PSS) and Final (last sample)."
+default_iterations = 3
 allow_failure = true
 
 [analyze]
@@ -37,7 +37,8 @@ ION_OFF   = "--setpref javascript.options.ion=false"
 # aot-only: guest-code JIT disabled, AOT corpus supplies Baseline/IC.
 AOT_SETENV = "--setenv JIT_OPTION_useAOTImage=true --setenv JIT_OPTION_aotOnly=true"
 # stock-baseline: matches aot-only's tier profile (no Ion) without any AOT.
-NO_ION_SETENV = "--setenv JIT_OPTION_ion=0"
+# Use the browser preference: SpiderMonkey's Boolean environment-option parser
+# accepts "false"/"no", but not the previously used value "0".
 # interp-only: no JIT backend at all; content procs execute bytecode only.
 INTERP_SETENV = "--setenv JIT_OPTION_disableJitBackend=true"
 
@@ -46,6 +47,5 @@ INTERP_SETENV = "--setenv JIT_OPTION_disableJitBackend=true"
 # prose can carry across the two Speedometer 3 evaluations without rename.
 interp-only    = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $INTERP_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
 default        = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE 1>&2 ; $SIDECAR_STOP ; $EMIT"
-default-no-ion = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $NO_ION_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
-aot            = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && $CLEAN @SANDBOX @MC_AOT     $MACH_BASE --binary @BIN_AOT     --setenv JIT_OPTION_useAOTImage=true 1>&2 ; $SIDECAR_STOP ; $EMIT"
-aot-corpus     = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && $CLEAN @SANDBOX @MC_AOT     $MACH_BASE --binary @BIN_AOT     $AOT_SETENV 1>&2 ; $SIDECAR_STOP ; $EMIT"
+default-no-ion = "$INIT ; $SIDECAR_START_REL ; cd @FIREFOX && $CLEAN @SANDBOX @MC_BROWSER $MACH_BASE --binary @BIN_RELEASE $ION_OFF 1>&2 ; $SIDECAR_STOP ; $EMIT"
+aot-corpus     = "$INIT ; $SIDECAR_START_AOT ; cd @FIREFOX && $CLEAN @SANDBOX @MC_AOT     $MACH_BASE --binary @BIN_AOT     $AOT_SETENV $ION_OFF 1>&2 ; $SIDECAR_STOP ; $EMIT"

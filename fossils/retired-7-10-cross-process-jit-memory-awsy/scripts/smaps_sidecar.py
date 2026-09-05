@@ -90,10 +90,10 @@ def classify(cmd):
     if not cmd or "firefox" not in cmd:
         return None
     if "-contentproc" in cmd:
-        return "content"
-    if "-parentBuildID" in cmd:
-        # Content procs also carry -parentBuildID but that branch is above.
-        return "content"
+        # Gecko launches socket, RDD, utility, and forkserver processes with
+        # -contentproc too. Only browser-content (tab) processes host the web
+        # JavaScript runtimes measured by this fossil.
+        return "content" if "-isForBrowser" in cmd else "other"
     return "parent"
 
 

@@ -35,7 +35,7 @@ from figure_style import (  # noqa: E402
 CONFIGS = load_configurations()
 # Memory-focused ordering, not performance. Registry defines canonical
 # performance order; this figure groups variants by memory story instead.
-VARIANT_ORDER = ("interp-only", "default", "default-no-ion", "aot", "aot-corpus")
+VARIANT_ORDER = ("default", "default-no-ion", "aot-corpus", "interp-only")
 CHECKPOINT = "Peak"
 ANON_HATCH = "////"
 

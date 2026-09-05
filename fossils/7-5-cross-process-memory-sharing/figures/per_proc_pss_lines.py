@@ -2,10 +2,10 @@
 """Per-content-process engine PSS across configurations, decomposed into
 its shared (.text.aot) and private (anon-exec) components.
 
-Single MB axis, three lines. The story reads left-to-right: as the tier
-ladder moves from stock JIT emission (Default / Baseline) into AmberMonkey,
-the private anon-exec line collapses toward zero while the shared line
-stays roughly flat, so total per-proc engine PSS drops.
+Single MB axis, three lines. The story reads left-to-right from the default
+optimizing JIT through Baseline, AmberMonkey, and interpretation. This places
+the execution configurations in the same order as the memory/performance
+tradeoff discussed in the text.
 
 Complement to composition_bars.py (that figure shows Σ-across-procs on a
 dual axis and is useful when the reader cares about aggregate footprint;
@@ -33,7 +33,7 @@ from figure_style import (  # noqa: E402
 
 
 CONFIGS = load_configurations()
-VARIANT_ORDER = ("interp-only", "default", "default-no-ion", "aot", "aot-corpus")
+VARIANT_ORDER = ("default", "default-no-ion", "aot-corpus", "interp-only")
 CHECKPOINT = "Peak"
 
 

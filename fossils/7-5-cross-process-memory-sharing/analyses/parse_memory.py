@@ -24,8 +24,10 @@ CONTRACT = {
     "interp-only":    {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False, "no_backend": True},
     "default":        {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": False, "no_backend": False},
     "default-no-ion": {"binary": "build-browser-release/dist/bin/firefox",     "mc": "browser-release.mozconfig",     "aot_only": False, "no_ion": True,  "no_backend": False},
+    # Historical AmberMonkey+Ion records remain valid, but this variant is no
+    # longer offered by fossil.toml or included in the presentation outputs.
     "aot":            {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": False, "no_ion": False, "no_backend": False},
-    "aot-corpus":     {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": False, "no_backend": False},
+    "aot-corpus":     {"binary": "build-browser-release-aot/dist/bin/firefox", "mc": "browser-release-aot.mozconfig", "aot_only": True,  "no_ion": True,  "no_backend": False},
 }
 
 
@@ -50,7 +52,17 @@ def validate_manifest(m):
         manifest.fail(PREFIX, f"{variant}: JIT_OPTION_aotOnly not present")
     if not c["aot_only"] and has_aot_only:
         manifest.fail(PREFIX, f"{variant}: forbidden JIT_OPTION_aotOnly present")
-    has_no_ion = "JIT_OPTION_ion=0" in command or "javascript.options.ion=false" in command
+    if "JIT_OPTION_ion=0" in command:
+        manifest.fail(
+            PREFIX,
+            f"{variant}: JIT_OPTION_ion=0 does not disable Ion; use "
+            "javascript.options.ion=false or JIT_OPTION_ion=false",
+        )
+    has_no_ion = (
+        "JIT_OPTION_ion=false" in command
+        or "JIT_OPTION_ion=no" in command
+        or "javascript.options.ion=false" in command
+    )
     if c["no_ion"] and not has_no_ion:
         manifest.fail(PREFIX, f"{variant}: no-Ion flag not present")
     if not c["no_ion"] and has_no_ion:
@@ -104,9 +116,23 @@ def sum_buckets(buckets_list):
     return out
 
 
+def is_browser_content_process(proc):
+    """Select Gecko browser-content processes, excluding other child types.
+
+    Older records classified every ``-contentproc`` child (including socket,
+    RDD, utility, and forkserver processes) as content. Their preserved command
+    lines let us apply the correct definition during analysis as well as in new
+    samples.
+    """
+    return (
+        proc.get("kind") == "content"
+        and "-isForBrowser" in proc.get("cmd_hint", "")
+    )
+
+
 def reduce_checkpoint(cp):
     procs = cp.get("procs", [])
-    content = [p for p in procs if p.get("kind") == "content"]
+    content = [p for p in procs if is_browser_content_process(p)]
 
     per_proc = {}
     for p in content:
