@@ -2,6 +2,7 @@
 """Parse perf NDJSON for every indirection microbenchmark in one observation."""
 
 import json
+import math
 import os
 import sys
 
@@ -23,10 +24,10 @@ ITER_COUNTS = {
     "array-load": 125_000_000,
 }
 BENCHES = tuple(ITER_COUNTS)
+TARGETED_BENCHES = BENCHES[:7]
 REQUIRED_EVENTS = ("cycles:u", "instructions:u", "ref-cycles:u")
 BENCHMARK_MARKER = "# benchmark="
 MIN_RUNNING = 99.5
-BEST_OBSERVATIONS = 30
 
 
 def split_benchmark_output(text):
@@ -114,38 +115,6 @@ def benchmark_groups(obs):
     return groups
 
 
-def excluded_iterations_by_benchmark():
-    run_dir = os.environ.get("FOSSIL_RUN_DIR")
-    if not run_dir:
-        manifest.fail(PREFIX, "FOSSIL_RUN_DIR is required for trimmed analysis")
-    with open(os.path.join(run_dir, "results.json")) as results_file:
-        observations = json.load(results_file).get("observations", [])
-    if len(observations) < BEST_OBSERVATIONS:
-        manifest.fail(
-            PREFIX,
-            f"need at least {BEST_OBSERVATIONS} observations for selection",
-        )
-
-    ranked = {bench: [] for bench in BENCHES}
-    for observation in observations:
-        iteration = observation.get("iteration")
-        if not isinstance(iteration, int):
-            manifest.fail(PREFIX, "observation is missing an integer iteration")
-        groups = benchmark_groups(observation)
-        for bench in BENCHES:
-            cycles = metrics_for(bench, groups[bench])["cycles_user"]
-            ranked[bench].append((cycles, iteration))
-
-    excluded = {}
-    for bench, observations_for_bench in ranked.items():
-        observations_for_bench.sort()
-        excluded[bench] = {
-            iteration
-            for _, iteration in observations_for_bench[BEST_OBSERVATIONS:]
-        }
-    return excluded
-
-
 def main():
     obs = json.load(sys.stdin)
     m = manifest.load(PREFIX)
@@ -154,21 +123,28 @@ def main():
         manifest.fail(PREFIX, f"unrecognized variant {variant!r}")
 
     groups = benchmark_groups(obs)
-    excluded = excluded_iterations_by_benchmark()
     benchmarks = {
-        bench: metrics_for(bench, groups[bench])
-        for bench in BENCHES
-        if obs.get("iteration") not in excluded[bench]
+        bench: metrics_for(bench, groups[bench]) for bench in BENCHES
     }
+    targeted_insns_geomean = math.exp(
+        math.fsum(
+            math.log(benchmarks[bench]["insns_per_iter"])
+            for bench in TARGETED_BENCHES
+        )
+        / len(TARGETED_BENCHES)
+    )
 
     out = {
         "benchmarks": benchmarks,
+        "aggregates": {
+            "targeted_insns_per_iter_geomean": targeted_insns_geomean,
+        },
         "meta": {
             "variant": variant,
             "commit": m.get("git", {}).get("commit", ""),
             "iterations": m.get("iterations"),
-            "retained_observations_per_benchmark": BEST_OBSERVATIONS,
-            "selection": "30 lowest-cycle observations retained independently per benchmark",
+            "retained_observations_per_benchmark": m.get("iterations"),
+            "selection": "all observations",
         },
     }
 
