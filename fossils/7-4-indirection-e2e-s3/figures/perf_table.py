@@ -13,7 +13,14 @@ import statistics
 import sys
 from pathlib import Path
 
+import numpy as np
 from fossil_figures import FigureData, Metric, load_stdin, write_typst_table
+
+PROJECT_DIR = Path(
+    os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3])
+)
+sys.path.insert(0, str(PROJECT_DIR / "scripts"))
+from benchmark_stats import bootstrap_ratio_ci  # noqa: E402
 
 
 BASELINE = "default-no-ion"
@@ -124,6 +131,18 @@ def main():
     if ratio is not None:
         payload["am_over_baseline_ratio"] = ratio
         payload["am_over_baseline_slowdown"] = 1.0 - ratio
+        if ns[BASELINE] >= 2 and ns[CANDIDATE] >= 2:
+            _, lower_error, upper_error = bootstrap_ratio_ci(
+                scores[CANDIDATE],
+                scores[BASELINE],
+                np.random.default_rng(0),
+            )
+            ratio_low = ratio - lower_error
+            ratio_high = ratio + upper_error
+            payload["am_over_baseline_ratio_ci95_low"] = ratio_low
+            payload["am_over_baseline_ratio_ci95_high"] = ratio_high
+            payload["am_over_baseline_slowdown_ci95_low"] = 1.0 - ratio_high
+            payload["am_over_baseline_slowdown_ci95_high"] = 1.0 - ratio_low
     payload["runs_per_variant"] = min(ns.values())
     page_cycles = child(child(data.columns[present[0]], "meta"), "page_cycles").scalar
     if page_cycles is not None:

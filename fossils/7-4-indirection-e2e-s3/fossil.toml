@@ -1,7 +1,7 @@
 name = "indirection-e2e-s3"
-description = "End-to-end indirection overhead: Speedometer 3.1 with a regular Baseline JIT (Ion off) vs an AmberMonkey oracle corpus. The oracle corpus achieves perfect Baseline-tier coverage, so the delta isolates AmberMonkey's runtime indirection cost. Bootstrapping and corpus selection are handled outside this fossil."
-default_iterations = 3
-allow_failure = true
+description = "End-to-end Speedometer 3.1 performance of the Baseline JIT and AmberMonkey with Ion and the native RegExp JIT disabled in both configurations. AmberMonkey uses the Speedometer 3 oracle corpus with aotOnly fallback for occasional lookup misses."
+default_iterations = 10
+allow_failure = false
 
 [analyze]
 speedometer-detail = "analyses/parse_speedometer.py"
@@ -19,5 +19,5 @@ AOT      = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
 NO_REGEX = "JIT_OPTION_nativeRegExp=false"
 
 [variants]
-default-no-ion = "@CLEAN_AOT           $MACH $ION_OFF 1>&2 && $RESULT"
+default-no-ion = "@CLEAN_AOT      $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
 aot-corpus     = "@CLEAN_AOT $AOT $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"

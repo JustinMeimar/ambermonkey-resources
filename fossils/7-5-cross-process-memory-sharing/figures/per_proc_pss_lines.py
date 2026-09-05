@@ -125,7 +125,7 @@ def main():
         rotation=20, ha="right", rotation_mode="anchor",
         fontsize=FONT_SIZES["tick"],
     )
-    ax.set_xlabel("")
+    ax.set_xlabel("Higher Speedometer throughput  $\\longleftarrow$")
     ax.set_ylabel("PSS per process (MB)")
     ax.set_ylim(0, max(total) * 1.15)
     ax.set_xlim(-0.35, len(rows) - 1 + 0.35)
@@ -146,7 +146,7 @@ def main():
         fontsize=FONT_SIZES["legend"],
     )
 
-    fig.subplots_adjust(left=0.16, right=0.98, top=0.84, bottom=0.20)
+    fig.subplots_adjust(left=0.16, right=0.98, top=0.84, bottom=0.27)
     save_at_declared_size(fig, sys.argv[1])
 
 
