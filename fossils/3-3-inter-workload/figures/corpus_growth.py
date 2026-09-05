@@ -88,7 +88,7 @@ growth = intersection_curve(
 points = growth["points"]
 x = [point["corpus_size"] for point in points]
 
-fig, axis = plt.subplots(figsize=(3.35, 2.0))
+fig, axis = plt.subplots(figsize=(3.35, 1.8))
 series = (
     ("ic_dynamic", "IC dynamic", "#0072B2", "-"),
     ("ic_static", "IC static", "#0072B2", "--"),

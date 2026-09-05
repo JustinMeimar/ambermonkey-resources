@@ -92,7 +92,7 @@ def main():
     shared_color = "#2166AC"
     private_color = "#B2182B"
 
-    fig, ax = plt.subplots(figsize=figure_size("single", 1.95))
+    fig, ax = plt.subplots(figsize=figure_size("single", 1.85))
 
     ax.plot(xs, total, color=total_color, linewidth=1.6, marker="o",
             markersize=4.5, markerfacecolor=total_color, zorder=5,
@@ -146,7 +146,7 @@ def main():
         fontsize=FONT_SIZES["legend"],
     )
 
-    fig.subplots_adjust(left=0.16, right=0.98, top=0.84, bottom=0.30)
+    fig.subplots_adjust(left=0.16, right=0.98, top=0.84, bottom=0.20)
     save_at_declared_size(fig, sys.argv[1])
 
 

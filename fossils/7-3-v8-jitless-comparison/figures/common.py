@@ -17,10 +17,10 @@ from pathlib import Path
 import matplotlib as mpl
 from fossil_figures import FigureData, Metric
 
-
 FOSSIL_DIR = Path(__file__).resolve().parents[1]
 V8_JSON = FOSSIL_DIR / "v8_jitless_perf.json"
 JS3_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-jetstream" / "records"
+ORACLE_SIBLING = FOSSIL_DIR.parent / "5-6-oracle-corpus" / "records"
 
 
 def child(metric: Metric, key: str) -> Metric:
@@ -70,6 +70,48 @@ def validate_records(
             print(f"warning: {message} (FOSSIL_FORCE=1)", file=sys.stderr)
         else:
             raise ValueError(message)
+
+
+def load_oracle_speedometer(
+    sibling_records: Path = ORACLE_SIBLING,
+) -> dict[str, list[float]]:
+    """Return the newest commit-matched Speedometer oracle/default samples."""
+    from benchmarks import speedometer3
+
+    variants = ("speedometer3-default", "speedometer3-aot-only")
+    by_commit: dict[str, dict[str, tuple[str, list[float]]]] = {}
+
+    for entry in sorted(sibling_records.iterdir()):
+        manifest_path = entry / "manifest.json"
+        results_path = entry / "results.json"
+        if not manifest_path.exists() or not results_path.exists():
+            continue
+        manifest = json.loads(manifest_path.read_text())
+        variant = manifest.get("variant")
+        commit = (manifest.get("git") or {}).get("commit")
+        if variant not in variants or not commit:
+            continue
+
+        results = json.loads(results_path.read_text())
+        scores = [
+            speedometer3.parse_observation(observation, "oracle-speedometer")[
+                "score"
+            ]
+            for observation in results.get("observations", [])
+        ]
+        if scores:
+            by_commit.setdefault(commit, {})[variant] = (entry.name, scores)
+
+    complete = [
+        (max(record[variant][0] for variant in variants), record)
+        for record in by_commit.values()
+        if all(variant in record for variant in variants)
+    ]
+    if not complete:
+        raise ValueError("no commit-matched Speedometer oracle/default records")
+
+    _, newest = max(complete, key=lambda item: item[0])
+    return {variant: newest[variant][1] for variant in variants}
 
 
 def load_v8() -> dict:

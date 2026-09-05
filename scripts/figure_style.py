@@ -13,6 +13,7 @@ import tomllib
 from pathlib import Path
 
 import matplotlib as mpl
+from matplotlib.colors import to_hex, to_rgb
 
 from fossil_figures import apply_style
 
@@ -42,6 +43,30 @@ AMBER_RED_MID = "#D6604D"
 AMBER_PURPLE = "#762A83"
 AMBER_ORANGE = "#E08214"
 AMBER_GREY = "#7A7A7A"
+
+# Shared grouped-bar treatment. Adjacent variants touch; Geo Mean groups are
+# wider and use the same quiet background band in every applicable figure.
+BAR_GROUP_WIDTH = 0.90
+GEOMEAN_GROUP_WIDTH = 1.10
+GEOMEAN_GROUP_GAP = 1.0 - BAR_GROUP_WIDTH
+BAR_EDGE_WIDTH = 0.65
+GEOMEAN_SHADE = "#F3F3F3"
+
+
+def darken_color(color: str, factor: float = 0.70) -> str:
+    """Return a darker, fully opaque outline color for a bar fill."""
+    return to_hex(tuple(channel * factor for channel in to_rgb(color)))
+
+
+def shade_geomean(ax, center: float) -> None:
+    """Draw the shared Geo Mean summary band behind a grouped bar chart."""
+    half_width = GEOMEAN_GROUP_WIDTH / 2
+    ax.axvspan(
+        center - half_width,
+        center + half_width,
+        color=GEOMEAN_SHADE,
+        zorder=0,
+    )
 
 
 def load_configurations():
