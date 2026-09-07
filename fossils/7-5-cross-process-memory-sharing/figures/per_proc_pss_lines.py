@@ -125,7 +125,6 @@ def main():
         rotation=20, ha="right", rotation_mode="anchor",
         fontsize=FONT_SIZES["tick"],
     )
-    ax.set_xlabel("Higher Speedometer throughput  $\\longleftarrow$")
     ax.set_ylabel("PSS per process (MB)")
     ax.set_ylim(0, max(total) * 1.15)
     ax.set_xlim(-0.35, len(rows) - 1 + 0.35)

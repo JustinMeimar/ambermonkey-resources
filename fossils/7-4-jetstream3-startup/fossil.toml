@@ -1,0 +1,31 @@
+name = "jetstream3-startup"
+description = "First-iteration latency for JetStream 3's JavaScript-only mobx-startup workload across SpiderMonkey execution modes, with WebAssembly disabled."
+default_iterations = 1
+allow_failure = false
+
+[analyze]
+startup = "analyses/parse_startup.py"
+
+[figures.startup-bars]
+analysis = "startup"
+script = "figures/startup_bars.py"
+
+[tables.startup]
+analysis = "startup"
+script = "figures/startup_table.py"
+
+[variables]
+MACH = "./mach raptor -t jetstream3 --app firefox --browser-cycles 1 --page-cycles 1 --page-timeout 600000 --post-startup-delay 1000 --binary @BIN_AOT --setenv MOZ_HEADLESS=1 --setpref javascript.options.wasm=false --test-url-params 'test=mobx-startup&iterationCount=2&worstCaseCount=1'"
+ION_OFF = "--setpref javascript.options.ion=false"
+RESULT = "cat testing/mozharness/build/raptor.json"
+INTERP = "JIT_OPTION_disableJitBackend=true"
+AOT_ONLY = "JIT_OPTION_aotOnly=true"
+AOT_IC = "JIT_OPTION_useAOTIC=true"
+AOT_BL = "JIT_OPTION_useAOTBaseline=true"
+NO_REGEX = "JIT_OPTION_nativeRegExp=false"
+
+[variants]
+interp-only   = "@CLEAN_AOT $INTERP                         $MACH          1>&2 && $RESULT"
+aot-corpus-ic = "@CLEAN_AOT $AOT_ONLY $AOT_IC         $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
+aot-corpus    = "@CLEAN_AOT $AOT_ONLY $AOT_IC $AOT_BL $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
+default       = "@CLEAN_AOT                                 $MACH          1>&2 && $RESULT"

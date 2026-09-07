@@ -38,6 +38,7 @@ keep a `retired-<orig-N-M>-<slug>` name so provenance stays legible.
 | 7-2 | Speedometer 3 AmberMonkey perf ladder          | VII.B restricted execution  |
 | 7-2 | JetStream 3 AmberMonkey perf ladder            | VII.B restricted execution  |
 | 7-3 | AmberMonkey AOT-only vs V8 --jitless           | VII.C V8 jitless comparison |
+| 7-4 | JetStream 3 mobx-startup first iteration      | VII.D cold-start performance |
 | 7-4 | indirection microbenchmarks (perf cycles)      | VII.D indirection overhead  |
 | 7-5 | Speedometer 3 content-process memory (smaps)   | VII.E cross-process memory  |
 | 7-6 | on-disk binary size                            | VII.F binary size           |

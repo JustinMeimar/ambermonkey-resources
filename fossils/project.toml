@@ -14,7 +14,7 @@ MC_BROWSER = "MOZCONFIG=/home/justin/spidermonkey/ambermonkey/mozconfigs/browser
 MC_AOT = "MOZCONFIG=/home/justin/spidermonkey/ambermonkey/mozconfigs/browser-release-aot.mozconfig"
 SANDBOX = "MOZ_DISABLE_CONTENT_SANDBOX=1"
 # cd into firefox, strip ambient JIT env so --setenv is authoritative, apply @SANDBOX + @MC_AOT.
-CLEAN_AOT = "cd $FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableCacheIR -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTImage -u JIT_OPTION_nativeRegExp $SANDBOX $MC_AOT"
+CLEAN_AOT = "cd $FIREFOX && env -u MOZ_HEADLESS -u IONFLAGS -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotOnly -u JIT_OPTION_aotRecordDir -u JIT_OPTION_aotSelfHostedBaselineOnly -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_baselineInterpreterWarmUpThreshold -u JIT_OPTION_baselineJit -u JIT_OPTION_disableCacheIR -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_useAOTBaseline -u JIT_OPTION_useAOTIC -u JIT_OPTION_useAOTImage -u JIT_OPTION_nativeRegExp $SANDBOX $MC_AOT"
 CORPUS = "/tmp/amber-aot-corpus"
 SELFHOSTED = "/tmp/amber-aot-selfhosted"
 TESTS_DIR = "/home/justin/spidermonkey/tests"
