@@ -90,9 +90,9 @@ x = [point["corpus_size"] for point in points]
 
 fig, axis = plt.subplots(figsize=(3.35, 1.8))
 series = (
-    ("ic_dynamic", "IC dynamic", "#0072B2", "-"),
+    ("ic_dynamic", "Weighted IC", "#0072B2", "-"),
     ("ic_static", "IC static", "#0072B2", "--"),
-    ("baseline_dynamic", "Baseline dynamic", "#D55E00", "-"),
+    ("baseline_dynamic", "Weighted Baseline", "#D55E00", "-"),
     ("baseline_static", "Baseline static", "#D55E00", "--"),
 )
 for key, label, color, linestyle in series:
