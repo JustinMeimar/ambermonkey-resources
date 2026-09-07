@@ -12,7 +12,8 @@ from benchmarks import manifest, raptor, speedometer3
 PREFIX = "parse_speedometer.py"
 V8_DEFAULT = "v8-default"
 V8_JITLESS = "v8-jitless"
-V8_VARIANTS = {V8_DEFAULT, V8_JITLESS}
+V8_JITLESS_NO_IC = "v8-jitless-no-ic"
+V8_VARIANTS = {V8_DEFAULT, V8_JITLESS, V8_JITLESS_NO_IC}
 
 
 def validate_manifest(m):
@@ -34,9 +35,15 @@ def validate_manifest(m):
         if "chrome.args=--headless=new" not in command:
             manifest.fail(PREFIX, f"{variant}: Chromium headless flag is missing")
 
-        jitless = "chrome.args=--js-flags=--jitless" in command
+        jitless = "--jitless" in command
+        no_ic = "--no-use-ic" in command
         if variant == V8_JITLESS and not jitless:
-            manifest.fail(PREFIX, "v8-jitless: --js-flags=--jitless is missing")
+            manifest.fail(PREFIX, "v8-jitless: --jitless is missing")
+        if variant == V8_JITLESS_NO_IC and (not jitless or not no_ic):
+            manifest.fail(
+                PREFIX,
+                "v8-jitless-no-ic: --jitless and --no-use-ic are required",
+            )
         if variant == V8_DEFAULT and "chrome.args=--js-flags" in command:
             manifest.fail(PREFIX, "v8-default: V8 flags must not be set")
 
@@ -44,6 +51,7 @@ def validate_manifest(m):
             "engine": "v8",
             "jit": "disabled" if jitless else "enabled",
             "jitless": "enabled" if jitless else "disabled",
+            "inline_caches": "disabled" if no_ic else "enabled",
             "pgo": "disabled",
         }
 

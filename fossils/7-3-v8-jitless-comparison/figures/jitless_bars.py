@@ -45,9 +45,13 @@ CONFIGS = load_configurations()
 
 def sm_bar(data, variant, default_scores, rng):
     scores = run_scores(data.columns[variant])
-    ratio, lower_error, upper_error = bootstrap_ratio_ci(
-        scores, default_scores, rng
-    )
+    if len(scores) >= 2 and len(default_scores) >= 2:
+        ratio, lower_error, upper_error = bootstrap_ratio_ci(
+            scores, default_scores, rng
+        )
+    else:
+        ratio = np.mean(scores) / np.mean(default_scores)
+        lower_error = upper_error = 0.0
     return {
         "slug": variant,
         "ratio": ratio,
@@ -97,7 +101,7 @@ sm_default = run_scores(data.columns[SM_DEFAULT])
 v8_default = run_scores(data.columns[V8_DEFAULT])
 rng = np.random.default_rng(0)
 
-# Top-to-bottom: V8 --jitless, the oracle corpus, AmberMonkey, then interpreter.
+# Top-to-bottom: V8 Jitless, the oracle corpus, AmberMonkey, interpreter.
 bars = [
     sm_bar(data, V8_JITLESS, v8_default, rng),
     oracle_bar(rng),
@@ -121,16 +125,17 @@ top_y = bar_bottoms[0] + BAR_HEIGHT
 ratios = [b["ratio"] for b in bars]
 lower_errors = [b["lower_error"] for b in bars]
 upper_errors = [b["upper_error"] for b in bars]
-# Use an engine-blue / AmberMonkey-burgundy / neutral-grey palette. The
-# AmberMonkey color remains identical to every other evaluation figure.
+# Amber tones identify the SpiderMonkey configurations; hatched blues identify
+# the V8 configurations.
 bar_colors = {
-    V8_JITLESS: "#2166AC",
-    SM_ORACLE: "#E08214",
-    SM_AM: CONFIGS[SM_AM]["color"],
-    SM_INTERP: "#B3B3B3",
+    V8_JITLESS: "#4393C3",
+    SM_ORACLE: "#B35806",
+    SM_AM: "#E08214",
+    SM_INTERP: "#FDD49E",
 }
 colors = [bar_colors[b["slug"]] for b in bars]
 labels = [label_for(b["slug"]) for b in bars]
+hatches = ["///" if b["slug"] == V8_JITLESS else "" for b in bars]
 
 height = 1.38
 fig, ax = plt.subplots(figsize=figure_size("single", height))
@@ -147,8 +152,9 @@ bar_handles = ax.barh(
     label=None,
 )
 # Give each bar its own legend entry (matplotlib groups a single `barh` call).
-for patch, label in zip(bar_handles.patches, labels):
+for patch, label, hatch in zip(bar_handles.patches, labels, hatches):
     patch.set_label(label)
+    patch.set_hatch(hatch)
 
 ax.axvline(1.0, color="black", linewidth=0.8, linestyle="--")
 

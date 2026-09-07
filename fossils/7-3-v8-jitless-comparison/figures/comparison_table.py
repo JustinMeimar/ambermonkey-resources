@@ -46,28 +46,29 @@ def sm_summary(scores_by_variant):
 def workload_rows(workload, sm_scores, v8_cols):
     sm = sm_summary(sm_scores)
     sm_default = sm[SM_DEFAULT][0]
-    v8 = {slug: summarize_column(v8_cols[slug]) for slug in (V8_DEFAULT, V8_JITLESS)}
+    v8 = {
+        slug: summarize_column(v8_cols[slug])
+        for slug in (V8_DEFAULT, V8_JITLESS)
+    }
     v8_default = v8[V8_DEFAULT][0]
 
     def ratio(mean, denom):
         return mean / denom if denom else 0.0
 
-    return [
+    rows = [
         make_row(workload, "V8", "default",          *v8[V8_DEFAULT][:2], 1.0 if v8_default else 0.0),
         make_row(workload, "V8", "jitless",          *v8[V8_JITLESS][:2], ratio(v8[V8_JITLESS][0], v8_default)),
         make_row(workload, "SpiderMonkey", "default",         *sm[SM_DEFAULT][:2], 1.0 if sm_default else 0.0),
         make_row(workload, "SpiderMonkey", "interpreter-only", *sm[SM_INTERP][:2], ratio(sm[SM_INTERP][0], sm_default)),
         make_row(workload, "SpiderMonkey", "AmberMonkey",     *sm[SM_AM][:2],     ratio(sm[SM_AM][0], sm_default)),
     ]
+    return rows
 
 
 def main():
     data = load_stdin()
-    validate_records(
-        data,
-        (SM_INTERP, SM_AM, SM_DEFAULT, V8_DEFAULT, V8_JITLESS),
-        "comparison",
-    )
+    required = (SM_INTERP, SM_AM, SM_DEFAULT, V8_DEFAULT, V8_JITLESS)
+    validate_records(data, required, "comparison")
     v8 = load_v8()
 
     sp3_sm_scores = {v: run_scores(data.columns[v]) for v in (SM_INTERP, SM_AM, SM_DEFAULT)}
