@@ -24,6 +24,46 @@ ARTIFACTS = (
 )
 
 
+def command_flag(command, name, value="true"):
+    pattern = rf"(?:^|\s){re.escape(name)}={re.escape(value)}(?=\s|$)"
+    return re.search(pattern, command) is not None
+
+
+def validate_manifest(record):
+    variant = record.get("variant")
+    command = record.get("command")
+    if not isinstance(variant, str) or not variant:
+        manifest.fail(PREFIX, f"invalid manifest variant {variant!r}")
+    if not isinstance(command, str) or not command:
+        manifest.fail(PREFIX, f"{variant}: manifest command is missing")
+    if "talos-test -a cpstartup" not in command or not command_flag(
+        command, "JS_AOT_TIMING", "1"
+    ):
+        manifest.fail(PREFIX, f"{variant}: cpstartup timing is not enabled")
+
+    use_aot = command_flag(command, "JIT_OPTION_useAOTImage")
+    use_aot_ic = command_flag(command, "JIT_OPTION_useAOTIC")
+    use_aot_baseline = command_flag(command, "JIT_OPTION_useAOTBaseline")
+    aot_only = command_flag(command, "JIT_OPTION_aotOnly")
+    ion_off = command_flag(command, "JIT_OPTION_ion", "false")
+    native_regex_off = command_flag(command, "JIT_OPTION_nativeRegExp", "false")
+
+    if not ion_off or not native_regex_off:
+        manifest.fail(PREFIX, f"{variant}: execution controls are not matched")
+    if variant == "default-no-ion" and (
+        use_aot or use_aot_ic or use_aot_baseline or aot_only
+    ):
+        manifest.fail(PREFIX, f"{variant}: AOT execution is enabled")
+    if variant == "aot-corpus-ic" and not (
+        use_aot_ic and not use_aot and not use_aot_baseline and aot_only
+    ):
+        manifest.fail(PREFIX, f"{variant}: incomplete IC-only policy")
+    if variant == "aot-corpus" and not (use_aot and aot_only):
+        manifest.fail(PREFIX, f"{variant}: incomplete AOT-only policy")
+
+    return variant, command
+
+
 def obs_lines(obs, key):
     lines = obs.get(key) or []
     if isinstance(lines, str):
@@ -48,6 +88,7 @@ def content_records(lines):
 
 def main():
     m = manifest.load(PREFIX)
+    variant, _ = validate_manifest(m)
     obs = json.load(sys.stdin)
 
     lines = obs_lines(obs, "stdout") + obs_lines(obs, "stderr")
@@ -64,6 +105,14 @@ def main():
             phases[name] = (calls + info["calls"], ns + info["total_ns"])
         for name, value in rec.get("counters", {}).items():
             counters[name] = counters.get(name, 0) + value
+
+    if variant == "aot-corpus-ic":
+        baseline_installs, _ = phases.get("baseline_install", (0, 0))
+        if baseline_installs:
+            manifest.fail(
+                PREFIX,
+                f"{variant}: observed {baseline_installs} Baseline-body attachments",
+            )
 
     def per_call_us(phase):
         calls, ns = phases.get(phase, (0, 0))
@@ -88,7 +137,7 @@ def main():
         "artifacts": artifacts,
         "content_processes": n,
         "meta": {
-            "variant": m.get("variant"),
+            "variant": variant,
             "commit": m.get("git", {}).get("commit", ""),
         },
     }

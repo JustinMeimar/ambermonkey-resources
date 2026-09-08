@@ -1,6 +1,6 @@
 name = "aot-attachment-cost"
-description = "Per-artifact AOT install cost vs runtime codegen cost during cpstartup, from JS_AOT_TIMING content-process shutdown records."
-default_iterations = 5
+description = "Per-artifact AOT installation and runtime-codegen costs during cpstartup under the current matched execution configurations."
+default_iterations = 10
 allow_failure = false
 
 [analyze]
@@ -11,9 +11,12 @@ analysis = "timing"
 script = "figures/attachment_table.py"
 
 [variables]
-PRE       = "cd @FIREFOX && @MC_AOT JS_AOT_TIMING=1"
-CPSTARTUP = "./mach talos-test -a cpstartup"
+CPSTARTUP = "JIT_OPTION_ion=false JIT_OPTION_nativeRegExp=false ./mach talos-test -a cpstartup"
+AOT = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+# Explicit component selection keeps aotOnly from enabling Baseline bodies.
+AOT_IC = "JIT_OPTION_useAOTIC=true JIT_OPTION_aotOnly=true"
 
 [variants]
-runtime = "$PRE                              $CPSTARTUP 2>&1"
-aot     = "$PRE JIT_OPTION_useAOTImage=true  $CPSTARTUP 2>&1"
+default-no-ion = "@CLEAN_AOT JS_AOT_TIMING=1         $CPSTARTUP 2>&1"
+aot-corpus-ic  = "@CLEAN_AOT JS_AOT_TIMING=1 $AOT_IC $CPSTARTUP 2>&1"
+aot-corpus     = "@CLEAN_AOT JS_AOT_TIMING=1 $AOT    $CPSTARTUP 2>&1"

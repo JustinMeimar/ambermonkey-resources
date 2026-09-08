@@ -1,5 +1,5 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Plot first-iteration latency relative to interpreter-only."""
+"""Plot first-iteration latency relative to the Baseline JIT."""
 
 import os
 from pathlib import Path
@@ -16,7 +16,7 @@ PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve()
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import apply_amber_style, figure_size, load_configurations
 
-BASELINE = "interp-only"
+BASELINE = "default-no-ion"
 CONFIGS = load_configurations()
 ORDER = tuple(slug for slug, config in sorted(CONFIGS.items(), key=lambda item: item[1]["order"]))
 
@@ -57,7 +57,7 @@ ax.bar(
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
 ax.set_xticks(list(positions))
 ax.set_xticklabels([CONFIGS[variant]["short"] for variant in variants])
-ax.set_ylabel("First-iteration latency\n(relative to interpreter)")
+ax.set_ylabel("First-iteration latency\n(relative to Baseline JIT)")
 ax.set_xlim(-0.6, len(variants) - 0.4)
 ax.set_ylim(0, max(mean + error for mean, error in zip(means, errors)) * 1.12)
 ax.grid(axis="x", visible=False)

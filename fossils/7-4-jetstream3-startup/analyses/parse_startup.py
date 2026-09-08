@@ -12,7 +12,16 @@ sys.path.insert(0, os.environ["FOSSIL_PROJECT_DIR"] + "/scripts")
 from benchmarks import jetstream3, manifest, raptor
 
 PREFIX = "parse_startup.py"
-EXPECTED_WORKLOADS = frozenset({"mobx-startup"})
+EXPECTED_WORKLOADS = frozenset(
+    {
+        "babylonjs-startup-es5",
+        "babylonjs-startup-es6",
+        "jsdom-d3-startup",
+        "mobx-startup",
+        "prismjs-startup-es5",
+        "prismjs-startup-es6",
+    }
+)
 
 
 def url_parameters(command):
@@ -31,9 +40,8 @@ def validate_manifest(record):
         manifest.fail(PREFIX, f"{variant}: manifest command is missing")
 
     params = url_parameters(command)
-    tests = params.get("test", [""])
-    if len(tests) != 1 or frozenset(tests[0].split(",")) != EXPECTED_WORKLOADS:
-        manifest.fail(PREFIX, f"{variant}: unexpected JetStream workloads {tests!r}")
+    if params.get("tags") != ["startup"]:
+        manifest.fail(PREFIX, f"{variant}: expected the JetStream startup tag")
     if params.get("iterationCount") != ["2"]:
         manifest.fail(PREFIX, f"{variant}: iterationCount must be 2")
     if params.get("worstCaseCount") != ["1"]:
@@ -43,39 +51,51 @@ def validate_manifest(record):
     use_aot_ic = manifest.command_flag(command, "JIT_OPTION_useAOTIC")
     use_aot_baseline = manifest.command_flag(command, "JIT_OPTION_useAOTBaseline")
     aot_only = manifest.command_flag(command, "JIT_OPTION_aotOnly")
-    skip_baseline = manifest.command_flag(command, "JIT_OPTION_aotSkipBaselineFn")
-    disable_backend = manifest.command_flag(command, "JIT_OPTION_disableJitBackend")
     native_regex_off = (
         re.search(r"(?:^|\s)JIT_OPTION_nativeRegExp=false(?=\s|$)", command)
         is not None
     )
+    headless = "--setenv MOZ_HEADLESS=1" in command
     ion_off = "--setpref javascript.options.ion=false" in command
     wasm_off = "--setpref javascript.options.wasm=false" in command
 
+    if not headless:
+        manifest.fail(PREFIX, f"{variant}: headless mode was not enabled")
     if not wasm_off:
         manifest.fail(PREFIX, f"{variant}: WebAssembly was not disabled")
 
-    if variant == "interp-only" and not disable_backend:
-        manifest.fail(PREFIX, "interp-only: JIT backend was not disabled")
-    if variant in {"aot-corpus", "aot-corpus-ic"}:
-        if not (use_aot_ic and aot_only and ion_off and native_regex_off):
-            manifest.fail(PREFIX, f"{variant}: incomplete restricted-execution policy")
-    if variant == "aot-corpus-ic" and (use_aot_baseline or skip_baseline):
-        manifest.fail(PREFIX, "aot-corpus-ic: AOT Baseline functions were enabled")
-    if variant == "aot-corpus" and not use_aot_baseline:
-        manifest.fail(PREFIX, "aot-corpus: AOT Baseline functions were not enabled")
-    if variant == "default" and (
-        use_aot or use_aot_ic or use_aot_baseline or aot_only or disable_backend
-    ):
-        manifest.fail(PREFIX, "default: non-default execution flags are present")
+    if variant == "aot-corpus":
+        if not (use_aot and aot_only and ion_off and native_regex_off):
+            manifest.fail(PREFIX, "aot-corpus: incomplete restricted-execution policy")
+    if variant == "aot-corpus-ic":
+        if not (
+            use_aot_ic
+            and not use_aot
+            and not use_aot_baseline
+            and aot_only
+            and ion_off
+            and native_regex_off
+        ):
+            manifest.fail(PREFIX, "aot-corpus-ic: incomplete IC-only policy")
+    if variant == "default-no-ion":
+        if (
+            use_aot
+            or use_aot_ic
+            or use_aot_baseline
+            or aot_only
+            or not ion_off
+            or not native_regex_off
+        ):
+            manifest.fail(PREFIX, "default-no-ion: configurations are not matched")
 
     execution = {
         "aot_image": "enabled" if use_aot or use_aot_ic or use_aot_baseline else "disabled",
-        "aot_ic": "enabled" if use_aot_ic else "disabled",
+        "aot_ic": "enabled" if use_aot or use_aot_ic else "disabled",
+        "aot_baseline_functions": (
+            "enabled" if use_aot or use_aot_baseline else "disabled"
+        ),
         "aot_policy": "aot-only" if aot_only else "disabled",
-        "aot_baseline_functions": "enabled" if use_aot_baseline else "disabled",
-        "ion": "unavailable" if disable_backend else "disabled" if ion_off else "enabled",
-        "jit_backend": "disabled" if disable_backend else "enabled",
+        "ion": "disabled" if ion_off else "enabled",
         "native_regexp": "disabled" if native_regex_off else "enabled",
         "wasm": "disabled",
     }
