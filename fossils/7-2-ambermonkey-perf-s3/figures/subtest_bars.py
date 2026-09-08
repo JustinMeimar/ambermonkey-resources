@@ -51,7 +51,7 @@ WORKLOAD_LABELS = {
     "TodoMVC-Angular-Complex-DOM": "Angular",
     "TodoMVC-Backbone": "Backbone",
     "TodoMVC-JavaScript-ES5": "JS ES5",
-    "TodoMVC-JavaScript-ES6-Webpack-Complex-DOM": "JS ES6/Webpack",
+    "TodoMVC-JavaScript-ES6-Webpack-Complex-DOM": "WP-ES6",
     "TodoMVC-Lit-Complex-DOM": "Lit",
     "TodoMVC-Preact-Complex-DOM": "Preact",
     "TodoMVC-React-Complex-DOM": "React",
