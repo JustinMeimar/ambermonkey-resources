@@ -13,7 +13,6 @@ script = "figures/attachment_table.py"
 [variables]
 CPSTARTUP = "JIT_OPTION_ion=false JIT_OPTION_nativeRegExp=false ./mach talos-test -a cpstartup"
 AOT = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
-# Explicit component selection keeps aotOnly from enabling Baseline bodies.
 AOT_IC = "JIT_OPTION_useAOTIC=true JIT_OPTION_aotOnly=true"
 
 [variants]
