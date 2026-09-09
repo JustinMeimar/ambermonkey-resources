@@ -1,5 +1,5 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Per-subtest Speedometer 3 speedup for every variant, plus geomean."""
+"""Per-subtest Speedometer 3 speedup for restricted variants, plus geomean."""
 
 import os
 from pathlib import Path
@@ -8,7 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 import numpy as np
-from fossil_figures import load_stdin
+from fossil_figures import FigureData, load_stdin
 
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
@@ -36,6 +36,7 @@ from common import (
 
 
 NORMALIZE_TO = "interp-only"
+PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus")
 CONFIGS = load_configurations()
 VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 
@@ -65,14 +66,18 @@ WORKLOAD_LABELS = {
 
 apply_amber_style("double")
 data = load_stdin()
-validate_data(data, baseline=NORMALIZE_TO)
-
-variants = [v for v in VARIANT_ORDER if v in data.column_names and v != NORMALIZE_TO]
 # The registry can list configurations not measured by this fossil; only
 # error on data-side variants that the registry doesn't know about.
 extras = [v for v in data.column_names if v not in VARIANT_ORDER]
 if extras:
     raise ValueError(f"unexpected variants present: {extras}")
+variants = [v for v in PLOT_VARIANTS if v in data.column_names]
+if not variants:
+    raise ValueError(f"no plotted variants present; expected a subset of {PLOT_VARIANTS}")
+data = FigureData(
+    {v: data.columns[v] for v in (NORMALIZE_TO, *variants) if v in data.columns}
+)
+validate_data(data, baseline=NORMALIZE_TO)
 
 workloads = sorted((child(data.columns[NORMALIZE_TO], "workloads_ms").children or {}).keys())
 baseline_runs = {

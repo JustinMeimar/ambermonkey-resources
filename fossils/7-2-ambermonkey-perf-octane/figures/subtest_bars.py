@@ -1,5 +1,5 @@
 #!/home/justin/tools/fossil/figures/.venv/bin/python
-"""Per-subtest Octane speedup for every variant, plus geomean."""
+"""Per-subtest Octane speedup for restricted variants, plus geomean."""
 
 import os
 from pathlib import Path
@@ -8,7 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, LogLocator, NullLocator
 import numpy as np
-from fossil_figures import load_stdin
+from fossil_figures import FigureData, load_stdin
 
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
@@ -36,6 +36,7 @@ from common import (  # noqa: E402
 
 
 NORMALIZE_TO = "interp-only"
+PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus")
 CONFIGS = load_configurations()
 VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 
@@ -57,12 +58,16 @@ WORKLOAD_LABELS = {
 
 apply_amber_style("double")
 data = load_stdin()
-validate_data(data, baseline=NORMALIZE_TO)
-
-variants = [v for v in VARIANT_ORDER if v in data.column_names and v != NORMALIZE_TO]
 extras = [v for v in data.column_names if v not in VARIANT_ORDER]
 if extras:
     raise ValueError(f"unexpected variants present: {extras}")
+variants = [v for v in PLOT_VARIANTS if v in data.column_names]
+if not variants:
+    raise ValueError(f"no plotted variants present; expected a subset of {PLOT_VARIANTS}")
+data = FigureData(
+    {v: data.columns[v] for v in (NORMALIZE_TO, *variants) if v in data.columns}
+)
+validate_data(data, baseline=NORMALIZE_TO)
 
 workloads = sorted((child(data.columns[NORMALIZE_TO], "workload_scores").children or {}).keys())
 baseline_runs = {
@@ -105,6 +110,7 @@ x[geomean_idx] += GEOMEAN_GROUP_GAP
 fig, ax = plt.subplots(figsize=figure_size("double", 1.48))
 
 geomean_annotations = []
+y_max = 1.0
 for i, variant in enumerate(variants):
     workload_offset = (i - (n_variants - 1) / 2) * bar_width
     geomean_offset = (i - (n_variants - 1) / 2) * geomean_bar_width
@@ -138,13 +144,17 @@ for i, variant in enumerate(variants):
     geomean_annotations.append(
         (x[geomean_idx] + geomean_offset, geomean_value)
     )
+    y_max = max(y_max, max(v + e for v, e in zip(values, upper_errors)))
 
 # Place the labels in the open space above the preceding workloads. Each
 # leader runs left-to-right along its own lane, then straight down to the
 # corresponding Geomean bar. Increasing the lane height with bar position
 # keeps the vertical legs from crossing later horizontal leaders.
+axis_ceiling = 10 ** np.ceil(np.log10(y_max))
 label_xs = x[geomean_idx] - 1.75 + np.linspace(-0.22, 0.22, n_variants)
-label_levels = np.geomspace(7.5, 68.0, n_variants)
+label_floor = max(max(value for _, value in geomean_annotations) * 1.3, y_max * 0.35)
+label_ceiling = axis_ceiling / 1.35
+label_levels = np.geomspace(label_floor, label_ceiling, n_variants)
 for (bar_x, value), label_x, label_y in zip(
     geomean_annotations, label_xs, label_levels
 ):
@@ -187,7 +197,7 @@ ax.yaxis.set_minor_locator(NullLocator())
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.55, x[geomean_idx] + BAR_GROUP_WIDTH / 2)
 y_min_pos = 0.1
-ax.set_ylim(y_min_pos, 100.0)
+ax.set_ylim(y_min_pos, axis_ceiling)
 ax.grid(axis="x", visible=False)
 ax.grid(axis="y", zorder=0)
 ax.tick_params(axis="x", length=0, pad=2)
