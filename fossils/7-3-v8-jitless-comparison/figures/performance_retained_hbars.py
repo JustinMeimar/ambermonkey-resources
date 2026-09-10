@@ -8,6 +8,7 @@ import sys
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import to_hex, to_rgb
 from fossil_figures import load_stdin
 
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
@@ -44,6 +45,14 @@ SERIES = (
     ("Baseline JIT (SM)", "default-no-ion"),
     ("JITless (V8)", "v8-jitless"),
 )
+LOCAL_FONT_SCALE = 1.08
+
+
+def lighten_color(color, amount=0.18):
+    """Blend a color toward white while preserving its configuration hue."""
+    return to_hex(
+        tuple(channel + (1.0 - channel) * amount for channel in to_rgb(color))
+    )
 
 
 def retained(data, numerator, denominator):
@@ -81,34 +90,35 @@ fig, ax = plt.subplots(figsize=figure_size("single", 1.92))
 centers = np.arange(len(SERIES))[::-1]
 centers[-1] -= 0.03
 bar_height = 0.268
-offset = bar_height / 2
+pair_gap = 0.025
+offset = (bar_height + pair_gap) / 2
 
 for center, (label, slug), speedometer_value, octane_value in zip(
     centers, SERIES, speedometer, octane
 ):
     color = CONFIGS[slug]["color"]
     edgecolor = darken_color(color)
-    for value, y, hatch in (
-        (speedometer_value, center + offset, ""),
-        (octane_value, center - offset, "////"),
+    for value, y, hatch, facecolor in (
+        (speedometer_value, center + offset, "", color),
+        (octane_value, center - offset, "////", lighten_color(color)),
     ):
         ax.barh(
             y,
             value,
             height=bar_height,
-            color=color,
+            color=facecolor,
             edgecolor=edgecolor,
             linewidth=0.55,
             hatch=hatch,
             zorder=2,
         )
         ax.text(
-            value + 1.1,
+            value + 0.6,
             y,
             f"{value:.1f}%",
             ha="left",
             va="center",
-            fontsize=FONT_SIZES["annotation"],
+            fontsize=FONT_SIZES["annotation"] * LOCAL_FONT_SCALE,
             fontweight="semibold",
             color="#333333",
         )
@@ -118,14 +128,15 @@ for center, (label, slug), speedometer_value, octane_value in zip(
         label,
         ha="left",
         va="bottom",
-        fontsize=FONT_SIZES["annotation"],
+        fontsize=FONT_SIZES["annotation"] * LOCAL_FONT_SCALE,
         color="#222222",
     )
 
 ax.axvline(100, color="#555555", linewidth=0.8, linestyle="--", zorder=1)
-ax.set_xlim(0, 112)
+ax.set_xlim(0, 106)
 ax.set_ylim(-0.48, len(SERIES) - 0.52)
 ax.set_xticks(np.arange(0, 101, 20), [f"{value}%" for value in range(0, 101, 20)])
+ax.tick_params(axis="x", labelsize=FONT_SIZES["tick"] * LOCAL_FONT_SCALE)
 ax.set_yticks([])
 ax.grid(axis="x", color="#D8D8D8", linewidth=0.55, zorder=0)
 ax.grid(False, axis="y")
@@ -137,6 +148,7 @@ ax.spines["bottom"].set_color("#777777")
 ax.spines["bottom"].set_linewidth(0.65)
 
 legend_color = "#E6E6E6"
+legend_octane_color = lighten_color(legend_color, amount=0.45)
 legend_edgecolor = "#666666"
 handles = (
     mpatches.Patch(
@@ -146,7 +158,7 @@ handles = (
         label="Speedometer 3.1",
     ),
     mpatches.Patch(
-        facecolor=legend_color,
+        facecolor=legend_octane_color,
         edgecolor=legend_edgecolor,
         linewidth=0.55,
         hatch="////",
@@ -164,7 +176,7 @@ fig.legend(
     handletextpad=0.4,
     columnspacing=0.9,
     borderpad=0,
-    fontsize=FONT_SIZES["legend"],
+    fontsize=FONT_SIZES["legend"] * LOCAL_FONT_SCALE,
 )
 fig.subplots_adjust(left=0.08, right=0.98, bottom=0.25, top=0.96)
 save_png_and_pdf(fig, sys.argv[1])

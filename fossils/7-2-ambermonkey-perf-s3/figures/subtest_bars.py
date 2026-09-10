@@ -158,7 +158,7 @@ for i, variant in enumerate(variants):
         edgecolor=darken_color(colors[i]),
         linewidth=BAR_EDGE_WIDTH,
         error_kw={"elinewidth": 0.5, "capthick": 0.5, "capsize": 1.2, "ecolor": "#444"},
-        label=("AM-Oracle*" if variant == "aot-oracle" else CONFIGS[variant]["long"]),
+        label=CONFIGS[variant]["long"],
         zorder=3,
     )
     ax.bar(
