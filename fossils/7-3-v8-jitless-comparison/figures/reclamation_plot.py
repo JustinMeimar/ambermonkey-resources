@@ -12,8 +12,8 @@ from figure_style import (
 )
 
 
-def render_reclamation_bars(bars, xlabel, save, output_path):
-    """Render tightly spaced bars whose ratios are relative to engine default."""
+def draw_reclamation_bars(ax, bars, xlabel, *, legend=True):
+    """Draw one panel of ratios relative to each configuration's engine default."""
     bar_height = 0.15
     bar_gap = 0.018
     top_pad = 0.12
@@ -31,8 +31,6 @@ def render_reclamation_bars(bars, xlabel, save, output_path):
     upper_errors = [bar["upper_error"] for bar in bars]
     colors = [bar["color"] for bar in bars]
 
-    height = 1.52 if len(bars) > 4 else 1.38
-    fig, ax = plt.subplots(figsize=figure_size("single", height))
     handles = ax.barh(
         positions,
         ratios,
@@ -69,18 +67,28 @@ def render_reclamation_bars(bars, xlabel, save, output_path):
             fontsize=FONT_SIZES["annotation"],
         )
 
-    ax.legend(
-        loc="lower center",
-        bbox_to_anchor=(0.5, 1.01),
-        ncol=3 if len(bars) > 4 else len(bars),
-        frameon=False,
-        handlelength=1.0,
-        handleheight=0.8,
-        handletextpad=0.35,
-        columnspacing=0.65,
-        borderpad=0.0,
-        fontsize=FONT_SIZES["legend"],
-    )
+    if legend:
+        ax.legend(
+            loc="lower center",
+            bbox_to_anchor=(0.5, 1.01),
+            ncol=3 if len(bars) > 4 else len(bars),
+            frameon=False,
+            handlelength=1.0,
+            handleheight=0.8,
+            handletextpad=0.35,
+            columnspacing=0.65,
+            borderpad=0.0,
+            fontsize=FONT_SIZES["legend"],
+        )
+
+    return handles
+
+
+def render_reclamation_bars(bars, xlabel, save, output_path):
+    """Render one standalone retained-performance panel."""
+    height = 1.52 if len(bars) > 4 else 1.38
+    fig, ax = plt.subplots(figsize=figure_size("single", height))
+    draw_reclamation_bars(ax, bars, xlabel)
 
     fig.subplots_adjust(
         left=0.055,

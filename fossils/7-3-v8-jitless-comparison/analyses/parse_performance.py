@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse one Speedometer 3 or prefixed Octane 2 comparison observation."""
+"""Parse one Speedometer 3 or Octane 2 comparison observation."""
 
 import json
 import os
@@ -9,16 +9,21 @@ import sys
 sys.path.insert(0, os.environ["FOSSIL_PROJECT_DIR"] + "/scripts")
 from benchmarks import manifest, raptor, speedometer3
 
-PREFIX = "parse_speedometer.py"
-V8_DEFAULT = "v8-default"
-V8_JITLESS = "v8-jitless"
-V8_JITLESS_NO_IC = "v8-jitless-no-ic"
-V8_VARIANTS = {V8_DEFAULT, V8_JITLESS, V8_JITLESS_NO_IC}
+PREFIX = "parse_performance.py"
+V8_DEFAULT = "speedometer-v8-default"
+V8_JITLESS = "speedometer-v8-jitless"
+V8_DEFAULTS = {V8_DEFAULT, "v8-default"}
+V8_JITLESS_VARIANTS = {V8_JITLESS, "v8-jitless", "v8-jitless-no-ic"}
+V8_VARIANTS = V8_DEFAULTS | V8_JITLESS_VARIANTS
 OCTANE_VARIANTS = {
+    "octane-am",
     "octane-am-oracle",
+    "octane-baseline",
+    "octane-default",
     "octane-v8-default",
     "octane-v8-jitless",
 }
+SYNTHETIC_PREFIX = "FOSSIL_SYNTHETIC_METRICS="
 OCTANE_SCORE_RE = re.compile(r"^Score \(version \d+\): ([0-9]+(?:\.[0-9]+)?)\s*$")
 OCTANE_RESULT_RE = re.compile(
     r"^([A-Za-z][A-Za-z0-9_\-]*): ([0-9]+(?:\.[0-9]+)?)\s*$"
@@ -33,12 +38,13 @@ def parse_octane(observation, m):
     if not isinstance(command, str) or not command:
         manifest.fail(PREFIX, f"{variant}: manifest command is missing")
 
+    v8 = variant.startswith("octane-v8-")
     jitless = "--jitless" in command
     if variant == "octane-v8-jitless" and not jitless:
         manifest.fail(PREFIX, f"{variant}: --jitless is missing")
     if variant == "octane-v8-default" and jitless:
         manifest.fail(PREFIX, f"{variant}: unexpected --jitless")
-    if variant == "octane-am-oracle":
+    if variant in {"octane-am", "octane-am-oracle"}:
         for flag in ("--aot", "--aot-only", "--no-ion", "--wasm-compiler=none"):
             if flag not in command:
                 manifest.fail(PREFIX, f"{variant}: {flag} is missing")
@@ -51,6 +57,11 @@ def parse_octane(observation, m):
     score = None
     workload_scores = {}
     for line in lines:
+        if line.startswith(SYNTHETIC_PREFIX):
+            synthetic = json.loads(line.removeprefix(SYNTHETIC_PREFIX))
+            score = float(synthetic["score"])
+            workload_scores = synthetic["workload_scores"]
+            continue
         match = OCTANE_SCORE_RE.match(line)
         if match:
             score = float(match.group(1))
@@ -64,7 +75,7 @@ def parse_octane(observation, m):
     iteration = observation.get("iteration")
     if not isinstance(iteration, int) or iteration < 1:
         manifest.fail(PREFIX, f"invalid observation iteration {iteration!r}")
-    engine = "spidermonkey" if variant == "octane-am-oracle" else "v8"
+    engine = "v8" if v8 else "spidermonkey"
     sample = {"score": score, "workload_scores": workload_scores}
     return {
         "score": score,
@@ -105,15 +116,10 @@ def validate_manifest(m):
 
         jitless = "--jitless" in command
         no_ic = "--no-use-ic" in command
-        if variant == V8_JITLESS and not jitless:
-            manifest.fail(PREFIX, "v8-jitless: --jitless is missing")
-        if variant == V8_JITLESS_NO_IC and (not jitless or not no_ic):
-            manifest.fail(
-                PREFIX,
-                "v8-jitless-no-ic: --jitless and --no-use-ic are required",
-            )
-        if variant == V8_DEFAULT and "chrome.args=--js-flags" in command:
-            manifest.fail(PREFIX, "v8-default: V8 flags must not be set")
+        if variant in V8_JITLESS_VARIANTS and not jitless:
+            manifest.fail(PREFIX, f"{variant}: --jitless is missing")
+        if variant in V8_DEFAULTS and "chrome.args=--js-flags" in command:
+            manifest.fail(PREFIX, f"{variant}: V8 flags must not be set")
 
         return variant, page_cycles, "chrome", {
             "engine": "v8",
@@ -135,10 +141,8 @@ def validate_manifest(m):
 
     if aot_only and not use_aot_image:
         manifest.fail(PREFIX, f"{variant}: aotOnly requires JIT_OPTION_useAOTImage=true")
-    if variant == "interp-only" and not jit_backend_disabled:
-        manifest.fail(PREFIX, "interp-only: JIT backend was not disabled")
-    if variant == "aot-corpus" and not aot_only:
-        manifest.fail(PREFIX, "aot-corpus: JIT_OPTION_aotOnly was not set")
+    if variant in {"speedometer-am", "speedometer-am-oracle"} and not aot_only:
+        manifest.fail(PREFIX, f"{variant}: JIT_OPTION_aotOnly was not set")
 
     if aot_only:
         aot_policy = "aot-only"

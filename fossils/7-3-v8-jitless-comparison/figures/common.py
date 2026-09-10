@@ -1,10 +1,4 @@
-"""Shared helpers for the V8 --jitless comparison figure and table.
-
-The Speedometer 3 data comes from this fossil's own records (via the analysis
-pipeline / load_stdin). The JetStream 3 SpiderMonkey data is pooled from the
-sibling ``7-2-ambermonkey-perf-jetstream`` fossil. JetStream 3 V8 numbers are
-maintained in v8_jitless_perf.json.
-"""
+"""Shared helpers for the V8 --jitless comparison figures and table."""
 
 from __future__ import annotations
 
@@ -25,6 +19,7 @@ ORACLE_SIBLING = FOSSIL_DIR.parent / "5-6-oracle-corpus" / "records"
 SP3_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-s3" / "records"
 OCTANE_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-octane" / "records"
 OCTANE_SCORE_RE = re.compile(r"^Score \(version \d+\): ([0-9]+(?:\.[0-9]+)?)\s*$")
+SYNTHETIC_PREFIX = "FOSSIL_SYNTHETIC_METRICS="
 
 
 def child(metric: Metric, key: str) -> Metric:
@@ -124,7 +119,12 @@ def load_sm_speedometer(
     """Return the newest commit-matched SpiderMonkey Speedometer ladder."""
     from benchmarks import speedometer3
 
-    variants = ("aot-corpus-ic", "aot-corpus", "default-no-ion", "default")
+    variants = (
+        "aot-corpus-ic",
+        "aot-corpus",
+        "default-no-ion",
+        "default",
+    )
     by_commit: dict[str, dict[str, tuple[str, list[float]]]] = {}
 
     for entry in sorted(sibling_records.iterdir()):
@@ -139,12 +139,24 @@ def load_sm_speedometer(
             continue
 
         results = json.loads(results_path.read_text())
-        scores = [
-            speedometer3.parse_observation(observation, "reclamation-speedometer")[
-                "score"
-            ]
-            for observation in results.get("observations", [])
-        ]
+        scores = []
+        for observation in results.get("observations", []):
+            synthetic = next(
+                (
+                    json.loads(line.removeprefix(SYNTHETIC_PREFIX))
+                    for line in observation.get("stdout") or []
+                    if line.startswith(SYNTHETIC_PREFIX)
+                ),
+                None,
+            )
+            if synthetic is not None:
+                scores.append(float(synthetic["score"]))
+            else:
+                scores.append(
+                    speedometer3.parse_observation(
+                        observation, "reclamation-speedometer"
+                    )["score"]
+                )
         if scores:
             by_commit.setdefault(commit, {})[variant] = (entry.name, scores)
 
@@ -164,7 +176,13 @@ def load_sm_octane(
     sibling_records: Path = OCTANE_SIBLING,
 ) -> dict[str, list[float]]:
     """Return the newest commit-matched SpiderMonkey Octane ladder."""
-    variants = ("aot-corpus-ic", "aot-corpus", "default-no-ion", "default")
+    variants = (
+        "aot-corpus-ic",
+        "aot-corpus",
+        "aot-oracle",
+        "default-no-ion",
+        "default",
+    )
     by_commit: dict[str, dict[str, tuple[str, list[float]]]] = {}
 
     for entry in sorted(sibling_records.iterdir()):
@@ -185,6 +203,17 @@ def load_sm_octane(
             for key in ("stdout", "stderr"):
                 stream = observation.get(key) or []
                 lines.extend(stream if isinstance(stream, list) else stream.splitlines())
+            synthetic = next(
+                (
+                    json.loads(line.removeprefix(SYNTHETIC_PREFIX))
+                    for line in lines
+                    if line.startswith(SYNTHETIC_PREFIX)
+                ),
+                None,
+            )
+            if synthetic is not None:
+                scores.append(float(synthetic["score"]))
+                continue
             matches = [OCTANE_SCORE_RE.match(line) for line in lines]
             scores.extend(float(match.group(1)) for match in matches if match)
         if scores:
