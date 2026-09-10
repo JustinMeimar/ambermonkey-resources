@@ -1,5 +1,5 @@
 name = "v8-jitless-comparison"
-description = "Speedometer 3 headroom recovered by AmberMonkey against SpiderMonkey default, alongside V8 --jitless against V8 default in a matched non-PGO Chromium build."
+description = "Speedometer 3 and Octane 2 restricted performance retained by AmberMonkey and V8 Jitless relative to each engine's default configuration."
 default_iterations = 3
 allow_failure = false
 
@@ -9,6 +9,10 @@ speedometer-detail = "analyses/parse_speedometer.py"
 [figures.jitless-bars]
 analysis = "speedometer-detail"
 script   = "figures/jitless_bars.py"
+
+[figures.octane-bars]
+analysis = "speedometer-detail"
+script   = "figures/octane_bars.py"
 
 [tables.jitless-comparison]
 analysis = "speedometer-detail"
@@ -24,11 +28,28 @@ RESULT     = "cat testing/mozharness/build/raptor.json"
 
 INTERP  = "JIT_OPTION_disableJitBackend=true"
 AOT     = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+IC_ONLY = "JIT_OPTION_aotSkipBaselineFn=true"
+NO_REGEX = "JIT_OPTION_nativeRegExp=false"
+
+# Octane excludes zlib, whose asm.js path would make the comparison depend on
+# wasm compilation. V8 runs in the already-built Chromium via ChromeDriver.
+OCTANE_RUN = "/home/justin/spidermonkey/ambermonkey/fossils/7-2-ambermonkey-perf-octane/scripts/run-no-zlib.js"
+OCTANE_CHROME_RUNNER = "python3 /home/justin/spidermonkey/ambermonkey/fossils/7-3-v8-jitless-comparison/scripts/run_octane_chrome.py --chrome @V8_CHROME_NOPGO --chromedriver @V8_CHROMEDRIVER --octane-dir @OCTANE_DIR"
+OCTANE_CLEAN_ENV = "env -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_useAOTImage -u JIT_OPTION_aotOnly -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotRecordDir -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_baselineJit -u JIT_OPTION_nativeRegExp -u JIT_OPTION_disableCacheIR"
+OCTANE_SM = "@JSSHELL_AOT --wasm-compiler=none --aot --aot-only --no-native-regexp --no-ion -f $OCTANE_RUN"
 
 [variants]
-interp-only = "@CLEAN_AOT $INTERP $SM_MACH          1>&2 && $RESULT"
-aot-corpus  = "@CLEAN_AOT $AOT    $SM_MACH $ION_OFF 1>&2 && $RESULT"
-default     = "@CLEAN_AOT         $SM_MACH          1>&2 && $RESULT"
-v8-default  = "cd @FIREFOX && $V8_MACH             1>&2 && $RESULT"
-v8-jitless  = "cd @FIREFOX && $V8_MACH $V8_JITLESS 1>&2 && $RESULT"
+interp-only    = "@CLEAN_AOT $INTERP                   $SM_MACH          1>&2 && $RESULT"
+aot-corpus-ic  = "@CLEAN_AOT $AOT $IC_ONLY $NO_REGEX $SM_MACH $ION_OFF 1>&2 && $RESULT"
+aot-corpus     = "@CLEAN_AOT $AOT          $NO_REGEX $SM_MACH $ION_OFF 1>&2 && $RESULT"
+default-no-ion = "@CLEAN_AOT                         $SM_MACH $ION_OFF 1>&2 && $RESULT"
+default        = "@CLEAN_AOT                         $SM_MACH          1>&2 && $RESULT"
+v8-default     = "cd @FIREFOX && $V8_MACH                              1>&2 && $RESULT"
+v8-jitless     = "cd @FIREFOX && $V8_MACH $V8_JITLESS                  1>&2 && $RESULT"
 v8-jitless-no-ic = "cd @FIREFOX && $V8_MACH $V8_JITLESS_NO_IC 1>&2 && $RESULT"
+
+# The V8 pair is ready to bury. The optional AM-Oracle variant assumes the
+# AOT shell was linked with an Octane-specific corpus before it is buried.
+octane-v8-default = "$OCTANE_CHROME_RUNNER"
+octane-v8-jitless = "$OCTANE_CHROME_RUNNER --jitless"
+octane-am-oracle  = "cd @OCTANE_DIR && $OCTANE_CLEAN_ENV $OCTANE_SM"

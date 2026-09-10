@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse one Speedometer 3 observation for the V8-JITless comparison fossil."""
+"""Parse one Speedometer 3 or prefixed Octane 2 comparison observation."""
 
 import json
 import os
@@ -14,6 +14,74 @@ V8_DEFAULT = "v8-default"
 V8_JITLESS = "v8-jitless"
 V8_JITLESS_NO_IC = "v8-jitless-no-ic"
 V8_VARIANTS = {V8_DEFAULT, V8_JITLESS, V8_JITLESS_NO_IC}
+OCTANE_VARIANTS = {
+    "octane-am-oracle",
+    "octane-v8-default",
+    "octane-v8-jitless",
+}
+OCTANE_SCORE_RE = re.compile(r"^Score \(version \d+\): ([0-9]+(?:\.[0-9]+)?)\s*$")
+OCTANE_RESULT_RE = re.compile(
+    r"^([A-Za-z][A-Za-z0-9_\-]*): ([0-9]+(?:\.[0-9]+)?)\s*$"
+)
+
+
+def parse_octane(observation, m):
+    variant = m.get("variant")
+    command = m.get("command")
+    if variant not in OCTANE_VARIANTS:
+        manifest.fail(PREFIX, f"unknown Octane variant {variant!r}")
+    if not isinstance(command, str) or not command:
+        manifest.fail(PREFIX, f"{variant}: manifest command is missing")
+
+    jitless = "--jitless" in command
+    if variant == "octane-v8-jitless" and not jitless:
+        manifest.fail(PREFIX, f"{variant}: --jitless is missing")
+    if variant == "octane-v8-default" and jitless:
+        manifest.fail(PREFIX, f"{variant}: unexpected --jitless")
+    if variant == "octane-am-oracle":
+        for flag in ("--aot", "--aot-only", "--no-ion", "--wasm-compiler=none"):
+            if flag not in command:
+                manifest.fail(PREFIX, f"{variant}: {flag} is missing")
+
+    lines = []
+    for key in ("stdout", "stderr"):
+        stream = observation.get(key) or []
+        lines.extend(stream if isinstance(stream, list) else stream.splitlines())
+
+    score = None
+    workload_scores = {}
+    for line in lines:
+        match = OCTANE_SCORE_RE.match(line)
+        if match:
+            score = float(match.group(1))
+            continue
+        match = OCTANE_RESULT_RE.match(line)
+        if match:
+            workload_scores[match.group(1)] = float(match.group(2))
+    if score is None or not workload_scores:
+        manifest.fail(PREFIX, f"{variant}: incomplete Octane output")
+
+    iteration = observation.get("iteration")
+    if not isinstance(iteration, int) or iteration < 1:
+        manifest.fail(PREFIX, f"invalid observation iteration {iteration!r}")
+    engine = "spidermonkey" if variant == "octane-am-oracle" else "v8"
+    sample = {"score": score, "workload_scores": workload_scores}
+    return {
+        "score": score,
+        "workload_scores": workload_scores,
+        "runs": {f"run_{iteration:02d}": sample},
+        "meta": {
+            "variant": variant,
+            "commit": m.get("git", {}).get("commit", ""),
+            "iterations": m.get("iterations"),
+            "benchmark": "octane2",
+            "execution": {
+                "engine": engine,
+                "jit": "disabled" if jitless or engine == "spidermonkey" else "enabled",
+                "jitless": "enabled" if jitless else "disabled",
+            },
+        },
+    }
 
 
 def validate_manifest(m):
@@ -95,6 +163,10 @@ def validate_manifest(m):
 
 observation = json.load(sys.stdin)
 m = manifest.load(PREFIX)
+if m.get("variant", "").startswith("octane-"):
+    json.dump(parse_octane(observation, m), sys.stdout, sort_keys=True)
+    raise SystemExit(0)
+
 variant, page_cycles, expected_app, execution = validate_manifest(m)
 r = raptor.load(observation, PREFIX)
 application = r.get("application") or {}

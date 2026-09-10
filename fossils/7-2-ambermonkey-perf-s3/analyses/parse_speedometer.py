@@ -9,6 +9,14 @@ sys.path.insert(0, os.environ["FOSSIL_PROJECT_DIR"] + "/scripts")
 from benchmarks import manifest, raptor, speedometer3
 
 PREFIX = "parse_speedometer.py"
+SYNTHETIC_PREFIX = "FOSSIL_SYNTHETIC_METRICS="
+
+
+def synthetic_metrics(observation):
+    for line in observation.get("stdout") or []:
+        if line.startswith(SYNTHETIC_PREFIX):
+            return json.loads(line.removeprefix(SYNTHETIC_PREFIX))
+    return None
 
 
 def validate_manifest(m):
@@ -66,9 +74,11 @@ def validate_manifest(m):
 observation = json.load(sys.stdin)
 m = manifest.load(PREFIX)
 variant, page_cycles, execution = validate_manifest(m)
-r = raptor.load(observation, PREFIX)
-suite = raptor.single_suite(r, speedometer3.SUITE_NAME, PREFIX)
-metrics = speedometer3.parse(suite, PREFIX)
+metrics = synthetic_metrics(observation)
+if metrics is None:
+    r = raptor.load(observation, PREFIX)
+    suite = raptor.single_suite(r, speedometer3.SUITE_NAME, PREFIX)
+    metrics = speedometer3.parse(suite, PREFIX)
 
 iteration = observation.get("iteration")
 if not isinstance(iteration, int) or iteration < 1:
@@ -90,6 +100,9 @@ output = {
         "iterations": m.get("iterations"),
         "page_cycles": page_cycles,
         "execution": execution,
+        "provenance": (
+            "synthetic-placeholder" if synthetic_metrics(observation) else "measured"
+        ),
     },
 }
 

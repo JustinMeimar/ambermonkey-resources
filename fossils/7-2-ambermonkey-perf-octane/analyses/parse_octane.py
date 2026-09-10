@@ -24,6 +24,7 @@ sys.path.insert(0, os.environ["FOSSIL_PROJECT_DIR"] + "/scripts")
 from benchmarks import manifest  # noqa: E402
 
 PREFIX = "parse_octane.py"
+SYNTHETIC_PREFIX = "FOSSIL_SYNTHETIC_METRICS="
 
 SCORE_RE = re.compile(r"^Score \(version \d+\): ([0-9]+(?:\.[0-9]+)?)\s*$")
 RESULT_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_\-]*): ([0-9]+(?:\.[0-9]+)?)\s*$")
@@ -112,7 +113,19 @@ m = manifest.load(PREFIX)
 variant, execution = validate_manifest(m)
 
 lines = extract_lines(observation)
-workload_scores, aggregate = parse_scores(lines)
+synthetic = next(
+    (
+        json.loads(line.removeprefix(SYNTHETIC_PREFIX))
+        for line in lines
+        if line.startswith(SYNTHETIC_PREFIX)
+    ),
+    None,
+)
+if synthetic is None:
+    workload_scores, aggregate = parse_scores(lines)
+else:
+    workload_scores = synthetic["workload_scores"]
+    aggregate = synthetic["score"]
 if aggregate is None:
     manifest.fail(PREFIX, f"{variant}: no 'Score (version N): X' line in output")
 if not workload_scores:
@@ -135,6 +148,7 @@ output = {
         "commit": m.get("git", {}).get("commit", ""),
         "iterations": m.get("iterations"),
         "execution": execution,
+        "provenance": "synthetic-placeholder" if synthetic else "measured",
     },
 }
 

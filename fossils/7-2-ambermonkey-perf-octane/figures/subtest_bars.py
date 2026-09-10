@@ -36,7 +36,7 @@ from common import (  # noqa: E402
 
 
 NORMALIZE_TO = "interp-only"
-PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus")
+PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus", "aot-oracle")
 CONFIGS = load_configurations()
 VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 
@@ -54,6 +54,19 @@ WORKLOAD_LABELS = {
     "Box2D": "Box2D",
     "Typescript": "TypeScript",
 }
+
+
+def ratio_ci(numerator, denominator, rng):
+    if len(numerator) < 2 or len(denominator) < 2:
+        return np.mean(numerator) / np.mean(denominator), 0.0, 0.0
+    return bootstrap_ratio_ci(numerator, denominator, rng)
+
+
+def geomean_ratio_ci(numerator, denominator, rng):
+    if len(numerator) < 2 or len(denominator) < 2:
+        ratios = np.mean(numerator, axis=0) / np.mean(denominator, axis=0)
+        return float(np.exp(np.mean(np.log(ratios)))), 0.0, 0.0
+    return bootstrap_geomean_ratio_ci(numerator, denominator, rng)
 
 
 apply_amber_style("double")
@@ -84,8 +97,8 @@ for variant in variants:
     variant_runs = {}
     for w in workloads:
         variant_runs[w] = run_values(column, "workload_scores", w)
-        results.append(bootstrap_ratio_ci(variant_runs[w], baseline_runs[w], rng))
-    aggregate = bootstrap_geomean_ratio_ci(
+        results.append(ratio_ci(variant_runs[w], baseline_runs[w], rng))
+    aggregate = geomean_ratio_ci(
         np.array([variant_runs[w] for w in workloads]).T,
         np.array([baseline_runs[w] for w in workloads]).T,
         rng,
@@ -107,7 +120,7 @@ x = np.arange(n_groups, dtype=float)
 geomean_idx = n_groups - 1
 x[geomean_idx] += GEOMEAN_GROUP_GAP
 
-fig, ax = plt.subplots(figsize=figure_size("double", 1.48))
+fig, ax = plt.subplots(figsize=figure_size("double", 1.35))
 
 geomean_annotations = []
 y_max = 1.0
@@ -127,7 +140,7 @@ for i, variant in enumerate(variants):
         edgecolor=darken_color(colors[i]),
         linewidth=BAR_EDGE_WIDTH,
         error_kw={"elinewidth": 0.5, "capthick": 0.5, "capsize": 1.2, "ecolor": "#444"},
-        label=CONFIGS[variant]["long"],
+        label=("AM-Oracle*" if variant == "aot-oracle" else CONFIGS[variant]["long"]),
         zorder=3,
     )
     ax.bar(
@@ -142,39 +155,24 @@ for i, variant in enumerate(variants):
         zorder=3,
     )
     geomean_annotations.append(
-        (x[geomean_idx] + geomean_offset, geomean_value)
+        (x[geomean_idx] + geomean_offset, geomean_value, upper_errors[-1])
     )
     y_max = max(y_max, max(v + e for v, e in zip(values, upper_errors)))
 
-# Place the labels in the open space above the preceding workloads. Each
-# leader runs left-to-right along its own lane, then straight down to the
-# corresponding Geomean bar. Increasing the lane height with bar position
-# keeps the vertical legs from crossing later horizontal leaders.
-axis_ceiling = 10 ** np.ceil(np.log10(y_max))
-label_xs = x[geomean_idx] - 1.75 + np.linspace(-0.22, 0.22, n_variants)
-label_floor = max(max(value for _, value in geomean_annotations) * 1.3, y_max * 0.35)
-label_ceiling = axis_ceiling / 1.35
-label_levels = np.geomspace(label_floor, label_ceiling, n_variants)
-for (bar_x, value), label_x, label_y in zip(
-    geomean_annotations, label_xs, label_levels
-):
-    ax.annotate(
+# Label each GeoMean bar directly; vertical text fits the narrow bars without
+# leaders or extra horizontal space.
+axis_ceiling = max(10.0, y_max * 1.12)
+for bar_x, value, upper_error in geomean_annotations:
+    ax.text(
+        bar_x,
+        (value + upper_error) * 1.10,
         f"{value:.1f}×",
-        xy=(bar_x, value),
-        xytext=(label_x, label_y),
-        ha="right",
-        va="center",
-        fontsize=FONT_SIZES["annotation"],
+        ha="center",
+        va="bottom",
+        rotation=90,
+        fontsize=FONT_SIZES["annotation"] - 0.5,
         fontweight="semibold",
         color="#222222",
-        arrowprops={
-            "arrowstyle": "-",
-            "color": "#666666",
-            "linewidth": 0.55,
-            "shrinkA": 2,
-            "shrinkB": 0,
-            "connectionstyle": "angle,angleA=0,angleB=90,rad=0",
-        },
         zorder=4,
     )
 ax.axhline(1.0, color="black", linewidth=0.6, linestyle="--", zorder=2)
@@ -187,7 +185,7 @@ ax.set_xticklabels(
     rotation_mode="anchor",
     fontsize=FONT_SIZES["annotation"],
 )
-ax.set_ylabel("Speedup over Interpreter")
+ax.set_ylabel("Speedup over Interp")
 ax.set_yscale("log")
 # Show 1×, 2×, 5×, 10×, 20×, 50×, ... as major ticks on the log axis;
 # the default LogLocator only labels decades, which reads as "1×, 10×"

@@ -41,37 +41,44 @@ prose = "AmberMonkey"
 color = "#B2182B"
 order = 4
 
+[aot-oracle]
+long  = "AM-Oracle"
+short = "AM-O"
+prose = "AM-Oracle"
+color = "#7A0916"
+order = 5
+
 [aot]
 long  = "AmberMonkey+Ion"
 short = "AM+I"
 prose = "AmberMonkey with Ion"
 color = "#E08214"
-order = 5
+order = 6
 
 [default-no-ion]
 long  = "Baseline JIT"
 short = "BL"
 prose = "Baseline JIT"
 color = "#2166AC"
-order = 6
+order = 7
 
 [default]
 long  = "Default (Ion)"
 short = "DEF"
 prose = "Default (Ion)"
 color = "#762A83"
-order = 7
+order = 8
 
 [v8-jitless]
 long  = "V8 --jitless"
 short = "V8-JL"
 prose = "V8 --jitless"
 color = "#1B7837"
-order = 8
+order = 9
 
 [v8-default]
 long  = "V8 default"
 short = "V8"
 prose = "V8 default"
 color = "#5AAE61"
-order = 9
+order = 10

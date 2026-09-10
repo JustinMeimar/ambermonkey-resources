@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -21,6 +22,9 @@ FOSSIL_DIR = Path(__file__).resolve().parents[1]
 V8_JSON = FOSSIL_DIR / "v8_jitless_perf.json"
 JS3_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-jetstream" / "records"
 ORACLE_SIBLING = FOSSIL_DIR.parent / "5-6-oracle-corpus" / "records"
+SP3_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-s3" / "records"
+OCTANE_SIBLING = FOSSIL_DIR.parent / "7-2-ambermonkey-perf-octane" / "records"
+OCTANE_SCORE_RE = re.compile(r"^Score \(version \d+\): ([0-9]+(?:\.[0-9]+)?)\s*$")
 
 
 def child(metric: Metric, key: str) -> Metric:
@@ -109,6 +113,90 @@ def load_oracle_speedometer(
     ]
     if not complete:
         raise ValueError("no commit-matched Speedometer oracle/default records")
+
+    _, newest = max(complete, key=lambda item: item[0])
+    return {variant: newest[variant][1] for variant in variants}
+
+
+def load_sm_speedometer(
+    sibling_records: Path = SP3_SIBLING,
+) -> dict[str, list[float]]:
+    """Return the newest commit-matched SpiderMonkey Speedometer ladder."""
+    from benchmarks import speedometer3
+
+    variants = ("aot-corpus-ic", "aot-corpus", "default-no-ion", "default")
+    by_commit: dict[str, dict[str, tuple[str, list[float]]]] = {}
+
+    for entry in sorted(sibling_records.iterdir()):
+        manifest_path = entry / "manifest.json"
+        results_path = entry / "results.json"
+        if not manifest_path.exists() or not results_path.exists():
+            continue
+        manifest = json.loads(manifest_path.read_text())
+        variant = manifest.get("variant")
+        commit = (manifest.get("git") or {}).get("commit")
+        if variant not in variants or not commit:
+            continue
+
+        results = json.loads(results_path.read_text())
+        scores = [
+            speedometer3.parse_observation(observation, "reclamation-speedometer")[
+                "score"
+            ]
+            for observation in results.get("observations", [])
+        ]
+        if scores:
+            by_commit.setdefault(commit, {})[variant] = (entry.name, scores)
+
+    complete = [
+        (max(record[variant][0] for variant in variants), record)
+        for record in by_commit.values()
+        if all(variant in record for variant in variants)
+    ]
+    if not complete:
+        raise ValueError("no commit-matched SpiderMonkey Speedometer ladder records")
+
+    _, newest = max(complete, key=lambda item: item[0])
+    return {variant: newest[variant][1] for variant in variants}
+
+
+def load_sm_octane(
+    sibling_records: Path = OCTANE_SIBLING,
+) -> dict[str, list[float]]:
+    """Return the newest commit-matched SpiderMonkey Octane ladder."""
+    variants = ("aot-corpus-ic", "aot-corpus", "default-no-ion", "default")
+    by_commit: dict[str, dict[str, tuple[str, list[float]]]] = {}
+
+    for entry in sorted(sibling_records.iterdir()):
+        manifest_path = entry / "manifest.json"
+        results_path = entry / "results.json"
+        if not manifest_path.exists() or not results_path.exists():
+            continue
+        manifest = json.loads(manifest_path.read_text())
+        variant = manifest.get("variant")
+        commit = (manifest.get("git") or {}).get("commit")
+        if variant not in variants or not commit:
+            continue
+
+        results = json.loads(results_path.read_text())
+        scores = []
+        for observation in results.get("observations", []):
+            lines = []
+            for key in ("stdout", "stderr"):
+                stream = observation.get(key) or []
+                lines.extend(stream if isinstance(stream, list) else stream.splitlines())
+            matches = [OCTANE_SCORE_RE.match(line) for line in lines]
+            scores.extend(float(match.group(1)) for match in matches if match)
+        if scores:
+            by_commit.setdefault(commit, {})[variant] = (entry.name, scores)
+
+    complete = [
+        (max(record[variant][0] for variant in variants), record)
+        for record in by_commit.values()
+        if all(variant in record for variant in variants)
+    ]
+    if not complete:
+        raise ValueError("no commit-matched SpiderMonkey Octane ladder records")
 
     _, newest = max(complete, key=lambda item: item[0])
     return {variant: newest[variant][1] for variant in variants}

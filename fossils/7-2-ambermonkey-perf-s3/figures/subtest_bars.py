@@ -36,7 +36,7 @@ from common import (
 
 
 NORMALIZE_TO = "interp-only"
-PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus")
+PLOT_VARIANTS = ("blinterp-only", "aot-corpus-ic", "aot-corpus", "aot-oracle")
 CONFIGS = load_configurations()
 VARIANT_ORDER = [slug for slug, _ in sorted(CONFIGS.items(), key=lambda kv: kv[1]["order"])]
 
@@ -64,6 +64,19 @@ WORKLOAD_LABELS = {
 }
 
 
+def ratio_ci(numerator, denominator, rng):
+    if len(numerator) < 2 or len(denominator) < 2:
+        return np.mean(numerator) / np.mean(denominator), 0.0, 0.0
+    return bootstrap_ratio_ci(numerator, denominator, rng)
+
+
+def geomean_ratio_ci(numerator, denominator, rng):
+    if len(numerator) < 2 or len(denominator) < 2:
+        ratios = np.mean(numerator, axis=0) / np.mean(denominator, axis=0)
+        return float(np.exp(np.mean(np.log(ratios)))), 0.0, 0.0
+    return bootstrap_geomean_ratio_ci(numerator, denominator, rng)
+
+
 apply_amber_style("double")
 data = load_stdin()
 # The registry can list configurations not measured by this fossil; only
@@ -80,6 +93,14 @@ data = FigureData(
 validate_data(data, baseline=NORMALIZE_TO)
 
 workloads = sorted((child(data.columns[NORMALIZE_TO], "workloads_ms").children or {}).keys())
+# Keep the tall Observable result away from the upper-left legend. Swapping it
+# with compact Lit preserves the otherwise alphabetical workload ordering.
+observable = "Charts-observable-plot"
+lit = "TodoMVC-Lit-Complex-DOM"
+if observable in workloads and lit in workloads:
+    observable_idx = workloads.index(observable)
+    lit_idx = workloads.index(lit)
+    workloads[observable_idx], workloads[lit_idx] = workloads[lit_idx], workloads[observable_idx]
 baseline_runs = {
     w: run_values(data.columns[NORMALIZE_TO], "workloads_ms", w)
     for w in workloads
@@ -94,8 +115,8 @@ for variant in variants:
     variant_runs = {}
     for w in workloads:
         variant_runs[w] = run_values(column, "workloads_ms", w)
-        results.append(bootstrap_ratio_ci(baseline_runs[w], variant_runs[w], rng))
-    aggregate = bootstrap_geomean_ratio_ci(
+        results.append(ratio_ci(baseline_runs[w], variant_runs[w], rng))
+    aggregate = geomean_ratio_ci(
         np.array([baseline_runs[w] for w in workloads]).T,
         np.array([variant_runs[w] for w in workloads]).T,
         rng,
@@ -137,7 +158,7 @@ for i, variant in enumerate(variants):
         edgecolor=darken_color(colors[i]),
         linewidth=BAR_EDGE_WIDTH,
         error_kw={"elinewidth": 0.5, "capthick": 0.5, "capsize": 1.2, "ecolor": "#444"},
-        label=CONFIGS[variant]["long"],
+        label=("AM-Oracle*" if variant == "aot-oracle" else CONFIGS[variant]["long"]),
         zorder=3,
     )
     ax.bar(
@@ -152,37 +173,25 @@ for i, variant in enumerate(variants):
         zorder=3,
     )
     geomean_annotations.append(
-        (x[geomean_idx] + geomean_offset, geomean_value)
+        (x[geomean_idx] + geomean_offset, geomean_value, upper_errors[-1])
     )
     y_max = max(
         y_max,
         max(v + e for v, e in zip(values, upper_errors)),
     )
 
-# Place larger horizontal labels in staggered lanes and connect each one to
-# its narrow Geo Mean bar. This uses the otherwise empty headroom without
-# requiring tiny vertical type.
-label_floor = max(max(value for _, value in geomean_annotations) * 1.15, y_max * 0.64)
-label_ceiling = y_max * 0.96
-label_levels = np.linspace(label_floor, label_ceiling, n_variants)
-for (bar_x, value), label_y in zip(geomean_annotations, label_levels):
-    ax.annotate(
+# Match the Octane panel: label each GeoMean bar directly with vertical text.
+for bar_x, value, upper_error in geomean_annotations:
+    ax.text(
+        bar_x,
+        value + upper_error + 0.06,
         f"{value:.1f}×",
-        xy=(bar_x, value),
-        xytext=(bar_x - 0.10, label_y),
         ha="center",
-        va="center",
-        fontsize=FONT_SIZES["annotation"],
+        va="bottom",
+        rotation=90,
+        fontsize=FONT_SIZES["annotation"] - 0.5,
         fontweight="semibold",
         color="#222222",
-        arrowprops={
-            "arrowstyle": "-",
-            "color": "#666666",
-            "linewidth": 0.55,
-            "shrinkA": 2,
-            "shrinkB": 0,
-            "connectionstyle": "angle,angleA=0,angleB=90,rad=0",
-        },
         zorder=4,
     )
 
@@ -196,11 +205,11 @@ ax.set_xticklabels(
     rotation_mode="anchor",
     fontsize=FONT_SIZES["annotation"],
 )
-ax.set_ylabel("Speedup over Interpreter")
+ax.set_ylabel("Speedup over Interp")
 ax.yaxis.set_major_locator(MultipleLocator(1))
 ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}×"))
 ax.set_xlim(-0.55, x[geomean_idx] + BAR_GROUP_WIDTH / 2)
-ax.set_ylim(0, y_max * 1.05 if y_max else 1)
+ax.set_ylim(0, max(5.0, y_max * 1.05) if y_max else 5.0)
 ax.grid(axis="x", visible=False)
 ax.grid(axis="y", zorder=0)
 ax.tick_params(axis="x", length=0, pad=2)
@@ -209,7 +218,7 @@ ax.margins(x=0.005)
 ax.legend(
     frameon=False,
     loc="upper left",
-    bbox_to_anchor=(0.0, 1.015),
+    bbox_to_anchor=(0.0, 0.995),
     borderaxespad=0,
     ncol=n_variants,
     handlelength=1.1,
