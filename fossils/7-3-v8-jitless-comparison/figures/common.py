@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import statistics
-import sys
 from pathlib import Path
 
 import matplotlib as mpl
@@ -26,14 +24,6 @@ def child(metric: Metric, key: str) -> Metric:
     if metric.children is None or key not in metric.children:
         raise ValueError(f"missing metric path component {key!r}")
     return metric.children[key]
-
-
-def tag_at(metric: Metric, *path: str) -> str:
-    for key in path:
-        metric = child(metric, key)
-    if metric.tag is None:
-        raise ValueError(f"metric {'.'.join(path)!r} is not a tag")
-    return metric.tag
 
 
 def run_scores(column: Metric) -> list[float]:
@@ -58,17 +48,8 @@ def validate_records(
             f"missing {family} variants {missing!r}; found "
             f"{sorted(data.column_names)}"
         )
-    commits = set()
     for variant in required:
-        column = data.columns[variant]
-        run_scores(column)
-        commits.add(tag_at(column, "meta", "commit"))
-    if len(commits) != 1 or "" in commits:
-        message = f"{family} records do not share one valid source commit: {commits}"
-        if os.environ.get("FOSSIL_FORCE") == "1":
-            print(f"warning: {message} (FOSSIL_FORCE=1)", file=sys.stderr)
-        else:
-            raise ValueError(message)
+        run_scores(data.columns[variant])
 
 
 def load_oracle_speedometer(

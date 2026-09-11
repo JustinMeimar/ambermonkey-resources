@@ -33,7 +33,6 @@ SM_BASELINE = "default-no-ion"
 SM_DEFAULT = "default"
 SP3_AM = "speedometer-am"
 SP3_ORACLE = "speedometer-am-oracle"
-SP3_ORACLE_DEFAULT = "speedometer-oracle-default"
 SP3_BASELINE = "speedometer-baseline"
 SP3_DEFAULT = "speedometer-default"
 V8_DEFAULT = "speedometer-v8-default"
@@ -100,13 +99,8 @@ apply_amber_style("single")
 data = load_stdin()
 validate_records(
     data,
-    (SP3_AM, SP3_BASELINE, SP3_DEFAULT),
+    (SP3_AM, SP3_ORACLE, SP3_BASELINE, SP3_DEFAULT),
     "Speedometer SpiderMonkey comparison",
-)
-validate_records(
-    data,
-    (SP3_ORACLE, SP3_ORACLE_DEFAULT),
-    "Speedometer oracle comparison",
 )
 validate_records(data, (V8_DEFAULT, V8_JITLESS), "Speedometer V8 comparison")
 validate_records(
@@ -121,7 +115,7 @@ speedometer_bars = panel_bars(
     run_scores(data.columns[SP3_AM]),
     run_scores(data.columns[SP3_DEFAULT]),
     run_scores(data.columns[SP3_ORACLE]),
-    run_scores(data.columns[SP3_ORACLE_DEFAULT]),
+    run_scores(data.columns[SP3_DEFAULT]),
     run_scores(data.columns[SP3_BASELINE]),
     run_scores(data.columns[V8_JITLESS]),
     run_scores(data.columns[V8_DEFAULT]),

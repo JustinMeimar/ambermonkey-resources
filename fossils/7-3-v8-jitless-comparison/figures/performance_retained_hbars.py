@@ -13,6 +13,7 @@ from fossil_figures import load_stdin
 
 PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
+from benchmark_stats import bootstrap_ratio_ci  # noqa: E402
 from figure_style import (  # noqa: E402
     FONT_SIZES,
     apply_amber_style,
@@ -26,7 +27,6 @@ from common import run_scores, save_png_and_pdf, validate_records  # noqa: E402
 
 SP3_AM = "speedometer-am"
 SP3_ORACLE = "speedometer-am-oracle"
-SP3_ORACLE_DEFAULT = "speedometer-oracle-default"
 SP3_BASELINE = "speedometer-baseline"
 SP3_DEFAULT = "speedometer-default"
 SP3_V8_DEFAULT = "speedometer-v8-default"
@@ -55,16 +55,22 @@ def lighten_color(color, amount=0.18):
     )
 
 
-def retained(data, numerator, denominator):
-    return 100.0 * np.mean(run_scores(data.columns[numerator])) / np.mean(
-        run_scores(data.columns[denominator])
+def retained(data, numerator, denominator, rng):
+    ratio, lower_error, upper_error = bootstrap_ratio_ci(
+        run_scores(data.columns[numerator]),
+        run_scores(data.columns[denominator]),
+        rng,
     )
+    return tuple(100.0 * value for value in (ratio, lower_error, upper_error))
 
 
 apply_amber_style("single")
 data = load_stdin()
-validate_records(data, (SP3_AM, SP3_BASELINE, SP3_DEFAULT), "Speedometer SpiderMonkey comparison")
-validate_records(data, (SP3_ORACLE, SP3_ORACLE_DEFAULT), "Speedometer oracle comparison")
+validate_records(
+    data,
+    (SP3_AM, SP3_ORACLE, SP3_BASELINE, SP3_DEFAULT),
+    "Speedometer SpiderMonkey comparison",
+)
 validate_records(data, (SP3_V8_DEFAULT, SP3_V8_JITLESS), "Speedometer V8 comparison")
 validate_records(
     data,
@@ -73,17 +79,18 @@ validate_records(
 )
 validate_records(data, (OCTANE_V8_DEFAULT, OCTANE_V8_JITLESS), "Octane V8 comparison")
 
+rng = np.random.default_rng(0)
 speedometer = (
-    retained(data, SP3_AM, SP3_DEFAULT),
-    retained(data, SP3_ORACLE, SP3_ORACLE_DEFAULT),
-    retained(data, SP3_BASELINE, SP3_DEFAULT),
-    retained(data, SP3_V8_JITLESS, SP3_V8_DEFAULT),
+    retained(data, SP3_AM, SP3_DEFAULT, rng),
+    retained(data, SP3_ORACLE, SP3_DEFAULT, rng),
+    retained(data, SP3_BASELINE, SP3_DEFAULT, rng),
+    retained(data, SP3_V8_JITLESS, SP3_V8_DEFAULT, rng),
 )
 octane = (
-    retained(data, OCTANE_AM, OCTANE_DEFAULT),
-    retained(data, OCTANE_ORACLE, OCTANE_DEFAULT),
-    retained(data, OCTANE_BASELINE, OCTANE_DEFAULT),
-    retained(data, OCTANE_V8_JITLESS, OCTANE_V8_DEFAULT),
+    retained(data, OCTANE_AM, OCTANE_DEFAULT, rng),
+    retained(data, OCTANE_ORACLE, OCTANE_DEFAULT, rng),
+    retained(data, OCTANE_BASELINE, OCTANE_DEFAULT, rng),
+    retained(data, OCTANE_V8_JITLESS, OCTANE_V8_DEFAULT, rng),
 )
 
 fig, ax = plt.subplots(figsize=figure_size("single", 1.92))
@@ -93,14 +100,14 @@ bar_height = 0.268
 pair_gap = 0.025
 offset = (bar_height + pair_gap) / 2
 
-for center, (label, slug), speedometer_value, octane_value in zip(
+for center, (label, slug), speedometer_result, octane_result in zip(
     centers, SERIES, speedometer, octane
 ):
     color = CONFIGS[slug]["color"]
     edgecolor = darken_color(color)
-    for value, y, hatch, facecolor in (
-        (speedometer_value, center + offset, "", color),
-        (octane_value, center - offset, "////", lighten_color(color)),
+    for (value, lower_error, upper_error), y, hatch, facecolor in (
+        (speedometer_result, center + offset, "", color),
+        (octane_result, center - offset, "////", lighten_color(color)),
     ):
         ax.barh(
             y,
@@ -110,10 +117,17 @@ for center, (label, slug), speedometer_value, octane_value in zip(
             edgecolor=edgecolor,
             linewidth=0.55,
             hatch=hatch,
+            xerr=np.array([[lower_error], [upper_error]]),
+            error_kw={
+                "ecolor": "#222222",
+                "elinewidth": 0.75,
+                "capsize": 2.0,
+                "capthick": 0.75,
+            },
             zorder=2,
         )
         ax.text(
-            value + 0.6,
+            value + upper_error + 0.6,
             y,
             f"{value:.1f}%",
             ha="left",

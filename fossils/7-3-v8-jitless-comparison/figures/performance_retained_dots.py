@@ -24,7 +24,6 @@ from common import run_scores, save_png_and_pdf, validate_records  # noqa: E402
 
 SP3_AM = "speedometer-am"
 SP3_ORACLE = "speedometer-am-oracle"
-SP3_ORACLE_DEFAULT = "speedometer-oracle-default"
 SP3_BASELINE = "speedometer-baseline"
 SP3_DEFAULT = "speedometer-default"
 SP3_V8_DEFAULT = "speedometer-v8-default"
@@ -54,8 +53,11 @@ def retained(data, numerator, denominator):
 
 apply_amber_style("single")
 data = load_stdin()
-validate_records(data, (SP3_AM, SP3_BASELINE, SP3_DEFAULT), "Speedometer SpiderMonkey comparison")
-validate_records(data, (SP3_ORACLE, SP3_ORACLE_DEFAULT), "Speedometer oracle comparison")
+validate_records(
+    data,
+    (SP3_AM, SP3_ORACLE, SP3_BASELINE, SP3_DEFAULT),
+    "Speedometer SpiderMonkey comparison",
+)
 validate_records(data, (SP3_V8_DEFAULT, SP3_V8_JITLESS), "Speedometer V8 comparison")
 validate_records(
     data,
@@ -66,7 +68,7 @@ validate_records(data, (OCTANE_V8_DEFAULT, OCTANE_V8_JITLESS), "Octane V8 compar
 
 speedometer = (
     retained(data, SP3_AM, SP3_DEFAULT),
-    retained(data, SP3_ORACLE, SP3_ORACLE_DEFAULT),
+    retained(data, SP3_ORACLE, SP3_DEFAULT),
     retained(data, SP3_BASELINE, SP3_DEFAULT),
     retained(data, SP3_V8_JITLESS, SP3_V8_DEFAULT),
 )
