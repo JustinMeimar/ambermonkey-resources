@@ -8,8 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-DEFAULT_BUILD = Path("/home/justin/spidermonkey/firefox/build-browser-release")
-AOT_BUILD = Path("/home/justin/spidermonkey/firefox/build-browser-release-aot")
+DEFAULT_BUILD = Path(os.environ["FOSSIL_CONST_BIN_RELEASE"]).parents[2]
+AOT_BUILD = Path(os.environ["FOSSIL_CONST_BIN_AOT"]).parents[2]
 DEFAULT_LIBXUL = DEFAULT_BUILD / "dist/bin/libxul.so"
 AOT_LIBXUL = AOT_BUILD / "dist/bin/libxul.so"
 DEFAULT_FIREFOX = DEFAULT_BUILD / "dist/bin/firefox"
@@ -17,8 +17,7 @@ AOT_FIREFOX = AOT_BUILD / "dist/bin/firefox"
 DEFAULT_DIST_BIN = DEFAULT_BUILD / "dist/bin"
 AOT_DIST_BIN = AOT_BUILD / "dist/bin"
 AOT_PACKED_IMAGE = AOT_BUILD / "js/src/jit/aot/AOTImage.inc"
-SELECTED_CORPUS_ENV = "SELECTED_CORPUS_DIR"
-SELECTED_CORPUS_DEFAULT = Path("/tmp/amber-aot-corpus-selected")
+SELECTED_CORPUS = Path(os.environ["FOSSIL_CONST_SELECTED_CORPUS"])
 
 LIBXUL_COLUMNS = [
     {"key": "configuration",      "label": "Configuration",      "align": "left",  "format": "str"},
@@ -85,15 +84,8 @@ def linked_image_bytes(libxul):
     return end - start
 
 
-def selected_corpus_dir():
-    override = os.environ.get(SELECTED_CORPUS_ENV)
-    if override:
-        return Path(override)
-    return SELECTED_CORPUS_DEFAULT
-
-
 def corpus_files_bytes():
-    d = selected_corpus_dir()
+    d = SELECTED_CORPUS
     if not d.is_dir():
         return 0
     total = 0
@@ -171,7 +163,7 @@ TABLES = {
 
 def main():
     out_path = sys.argv[1] if len(sys.argv) > 1 else None
-    name = os.environ.get("FOSSIL_TABLE_NAME") or "libxul"
+    name = os.environ["FOSSIL_TABLE_NAME"]
     builder = TABLES.get(name)
     if builder is None:
         die(f"unknown FOSSIL_TABLE_NAME={name!r}; valid: {sorted(TABLES)}")

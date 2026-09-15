@@ -5,11 +5,12 @@ Invoked as `fossil table loso`; arg 1 is the destination path.
 """
 
 import json
+import os
 import statistics
 import sys
 from pathlib import Path
 
-CORPUS_DIR = Path("/tmp/amber-aot-corpus")
+CORPUS_DIR = Path(os.environ["FOSSIL_CONST_CORPUS"])
 FOSSIL_DIR = Path(__file__).resolve().parent.parent
 TRAIN_FILE = FOSSIL_DIR / "train.txt"
 

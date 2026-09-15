@@ -1,0 +1,19 @@
+name = "7-2-oracle-corpus"
+description = "Speedometer 3 performance with its benchmark-oracle AOT corpus."
+default_iterations = 3
+allow_failure = false
+
+[analyze]
+benchmark = "analyses/parse_benchmark.py"
+
+[tables.speedometer3]
+analysis = "benchmark"
+script = "scripts/benchmark_table.py"
+
+[tables.jetstream3]
+analysis = "benchmark"
+script = "scripts/benchmark_table.py"
+
+[variants]
+speedometer3-default = "@AOT_BROWSER @S3_RAPTOR 1>&2 && @RAPTOR_RESULT"
+speedometer3-aot-only = "@AOT_BROWSER @S3_RAPTOR @AOT_ONLY_SETENV @NO_REGEX_SETENV @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"

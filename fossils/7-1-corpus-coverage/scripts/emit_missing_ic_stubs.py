@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """List the CacheIR stub bodies missing from the AOT corpus, per workload.
 
 Reads records/ directly rather than the fossil analyze pipeline because the

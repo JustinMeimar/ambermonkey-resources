@@ -1,4 +1,4 @@
-name = "corpus-construction"
+name = "6-1-corpus-construction"
 description = "Record the AOT artifact corpus one tp6 site at a time, plus the self-hosted baseline set. train.txt and test.txt freeze the 24/8 partition."
 default_iterations = 1
 allow_failure = false
@@ -12,7 +12,7 @@ script = "scripts/loso.py"
 [variables]
 # useAOTImage stays off: the recorder must observe the whole compile stream.
 INIT      = "rm -rf @CORPUS/$SITE && mkdir -p @CORPUS/$SITE"
-RECORD    = "cd @FIREFOX && @MC_AOT ./mach raptor -t $SITE --binary @BIN_AOT --setenv JIT_OPTION_aotRecordDir=@CORPUS/$SITE --setenv @SANDBOX --setenv MOZ_HEADLESS=1 --page-cycles 1 --browser-cycles 1 --post-startup-delay 1000"
+RECORD    = "cd @FIREFOX && @MOZCONFIG_AOT ./mach raptor -t $SITE --binary @BIN_AOT --setenv JIT_OPTION_aotRecordDir=@CORPUS/$SITE --setenv @NO_CONTENT_SANDBOX_ENV --setenv MOZ_HEADLESS=1 --page-cycles 1 --browser-cycles 1 --post-startup-delay 1000"
 EMIT      = "printf '{\"site\":\"%s\",\"blfun\":%s,\"ic\":%s,\"bytes\":%s}\\n' $SITE $(ls @CORPUS/$SITE | grep -c '^blfun-') $(ls @CORPUS/$SITE | grep -c '^ic-') $(du -sb @CORPUS/$SITE | cut -f1)"
 
 # --spectre-mitigations=on is mandatory: the two mitigation bits are fingerprinted

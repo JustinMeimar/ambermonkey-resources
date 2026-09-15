@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Octane 2 performance retained as a fraction of each engine's default."""
 
 import os
@@ -8,7 +8,7 @@ import sys
 import numpy as np
 from fossil_figures import load_stdin
 
-PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+PROJECT_DIR = Path(os.environ["FOSSIL_PROJECT_DIR"])
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import apply_amber_style, load_configurations  # noqa: E402
 from benchmark_stats import bootstrap_ratio_ci  # noqa: E402

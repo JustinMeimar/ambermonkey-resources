@@ -1,11 +1,10 @@
-name = "binary-size"
+name = "7-6-binary-size"
 description = "On-disk binary-size cost for matched release builds: libxul.so + AOT image (engine view), and firefox launcher + full dist/bin (whole-browser view)."
 default_iterations = 1
 allow_failure = false
 
 # Requires a preceding `mach jit-aot build` so AOTImage.inc holds real content.
-# corpus_files_bytes needs SELECTED_CORPUS_DIR or /tmp/amber-aot-corpus-selected;
-# reports 0 otherwise, because the build does not retain the source dir after packing.
+# The selected source corpus is @SELECTED_CORPUS.
 [tables.libxul]
 script = "scripts/measure.py"
 

@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Per-subtest Speedometer 3 speedup for restricted variants, plus geomean."""
 
 import os
@@ -10,7 +10,7 @@ from matplotlib.ticker import FuncFormatter, MultipleLocator
 import numpy as np
 from fossil_figures import FigureData, load_stdin
 
-PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+PROJECT_DIR = Path(os.environ["FOSSIL_PROJECT_DIR"])
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import (  # noqa: E402
     BAR_EDGE_WIDTH,

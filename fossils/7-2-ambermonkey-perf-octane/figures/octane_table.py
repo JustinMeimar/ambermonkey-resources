@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Emit the Octane 2.0 tier-ladder table."""
 
 import json
@@ -12,7 +12,7 @@ from fossil_figures import load_stdin, write_typst_table
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import run_values, validate_data
 
-PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+PROJECT_DIR = Path(os.environ["FOSSIL_PROJECT_DIR"])
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import load_configurations  # noqa: E402
 
@@ -88,7 +88,7 @@ def main():
                 (aot_speedup - ic_speedup) / aot_speedup
             )
             payload["ic_share_of_aot_speedup"] = ic_speedup / aot_speedup
-    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-2-ambermonkey-perf-octane")
+    payload["source_fossil"] = os.environ["FOSSIL_NAME"]
     payload["workload"] = "octane2"
     payload["runs_per_variant"] = runs_per_variant
     out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")

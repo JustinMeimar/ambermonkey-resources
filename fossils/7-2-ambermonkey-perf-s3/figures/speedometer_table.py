@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Emit the Speedometer 3.1 tier-ladder table."""
 
 import json
@@ -12,7 +12,7 @@ from fossil_figures import load_stdin, write_typst_table
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import child, run_values, validate_data
 
-PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+PROJECT_DIR = Path(os.environ["FOSSIL_PROJECT_DIR"])
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from figure_style import load_configurations  # noqa: E402
 
@@ -94,7 +94,7 @@ def main():
                 (aot_speedup - ic_speedup) / aot_speedup
             )
             payload["ic_share_of_aot_speedup"] = ic_speedup / aot_speedup
-    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-2-ambermonkey-perf-s3")
+    payload["source_fossil"] = os.environ["FOSSIL_NAME"]
     payload["workload"] = "speedometer3"
     payload["runs_per_variant"] = runs_per_variant
     payload["page_cycles_per_run"] = page_cycles

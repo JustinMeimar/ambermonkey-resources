@@ -4,11 +4,12 @@ Reads $CORPUS per-site subdirs, train.txt, and the self-hosted dir.
 Invoked as `fossil table composition`; arg 1 is the destination path."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
-CORPUS_DIR = Path("/tmp/amber-aot-corpus")
-SELFHOSTED_DIR = Path("/tmp/amber-aot-selfhosted")
+CORPUS_DIR = Path(os.environ["FOSSIL_CONST_CORPUS"])
+SELFHOSTED_DIR = Path(os.environ["FOSSIL_CONST_SELFHOSTED"])
 FOSSIL_DIR = Path(__file__).resolve().parent.parent
 TRAIN_FILE = FOSSIL_DIR / "train.txt"
 TEST_FILE = FOSSIL_DIR / "test.txt"

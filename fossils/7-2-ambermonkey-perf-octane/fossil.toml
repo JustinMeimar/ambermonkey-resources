@@ -1,5 +1,5 @@
-name = "ambermonkey-perf-octane"
-description = "Held-out Octane 2.0 performance ladder in jsshell (zlib excluded because it uses asm.js): interpreter only, AmberMonkey-Empty (eager baseline interpreter with no ICs, no baseline JIT, no Ion — the minimum-machinery substrate the AM variants build on), AmberMonkey-IC (blinterp + AOT IC corpus, no AOT Baseline fn), AmberMonkey (AOT IC corpus + AOT Baseline fn where available), default without Ion, default. AOT variants load whichever corpus was linked into the shell binary at build time (the paper reports numbers with the tp6-train corpus, i.e. Octane is genuinely held out). All variants run with --wasm-compiler=none so no WebAssembly or asm.js compiler participates."
+name = "7-2-ambermonkey-perf-octane"
+description = "Held-out Octane 2 performance across the interpreter, AmberMonkey ablations, and the default JIT."
 default_iterations = 3
 allow_failure = false
 
@@ -25,17 +25,12 @@ AOT       = "--aot --aot-only --no-native-regexp"
 BLINTERP  = "--blinterp-eager --no-baseline --cache-ir-stubs=off --no-native-regexp"
 NO_ION    = "--no-ion"
 IC_ONLY   = "JIT_OPTION_aotSkipBaselineFn=true"
-
-# Strip any AOT-related env vars that could leak from the ambient shell into
-# the child jsshell; the per-variant env-var setters below take precedence.
-CLEAN_ENV = "env -u JIT_OPTION_aotSkipBaselineFn -u JIT_OPTION_useAOTImage -u JIT_OPTION_aotOnly -u JIT_OPTION_aotEnforce -u JIT_OPTION_aotRecordDir -u JIT_OPTION_disableJitBackend -u JIT_OPTION_ion -u JIT_OPTION_baselineJit -u JIT_OPTION_nativeRegExp -u JIT_OPTION_disableCacheIR"
-
-RUN = "-f /home/justin/spidermonkey/ambermonkey/fossils/7-2-ambermonkey-perf-octane/scripts/run-no-zlib.js"
+OCTANE_RUNNER = "$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/scripts/run-no-zlib.js"
 
 [variants]
-interp-only    = "cd @OCTANE_DIR && $CLEAN_ENV            @JSSHELL_AOT $JS_BASE $INTERP            $RUN"
-blinterp-only  = "cd @OCTANE_DIR && $CLEAN_ENV            @JSSHELL_AOT $JS_BASE $BLINTERP $NO_ION  $RUN"
-aot-corpus-ic  = "cd @OCTANE_DIR && $CLEAN_ENV $IC_ONLY   @JSSHELL_AOT $JS_BASE $AOT      $NO_ION  $RUN"
-aot-corpus     = "cd @OCTANE_DIR && $CLEAN_ENV            @JSSHELL_AOT $JS_BASE $AOT      $NO_ION  $RUN"
-default-no-ion = "cd @OCTANE_DIR && $CLEAN_ENV            @JSSHELL_AOT $JS_BASE $NO_ION            $RUN"
-default        = "cd @OCTANE_DIR && $CLEAN_ENV            @JSSHELL_AOT $JS_BASE                    $RUN"
+interp-only    = "cd @OCTANE_DIR && @CLEAN_JIT_ENV          @JSSHELL_AOT $JS_BASE $INTERP           -f \"$OCTANE_RUNNER\""
+blinterp-only  = "cd @OCTANE_DIR && @CLEAN_JIT_ENV          @JSSHELL_AOT $JS_BASE $BLINTERP $NO_ION -f \"$OCTANE_RUNNER\""
+aot-corpus-ic  = "cd @OCTANE_DIR && @CLEAN_JIT_ENV $IC_ONLY @JSSHELL_AOT $JS_BASE $AOT $NO_ION      -f \"$OCTANE_RUNNER\""
+aot-corpus     = "cd @OCTANE_DIR && @CLEAN_JIT_ENV          @JSSHELL_AOT $JS_BASE $AOT $NO_ION      -f \"$OCTANE_RUNNER\""
+default-no-ion = "cd @OCTANE_DIR && @CLEAN_JIT_ENV          @JSSHELL_AOT $JS_BASE $NO_ION           -f \"$OCTANE_RUNNER\""
+default        = "cd @OCTANE_DIR && @CLEAN_JIT_ENV          @JSSHELL_AOT $JS_BASE                   -f \"$OCTANE_RUNNER\""

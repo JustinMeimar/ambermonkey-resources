@@ -1,5 +1,5 @@
-name = "ambermonkey-perf-s3"
-description = "Speedometer 3 AmberMonkey performance ladder: interpreter only, AmberMonkey-Empty (eager baseline interpreter with CacheIR/baseline-JIT/Ion all off — the minimum-machinery substrate the AM variants build on), AmberMonkey-IC (blinterp + IC corpus), AmberMonkey (adds AOT Baseline functions), default without Ion, default. AM variants run with the native regex JIT disabled to match AOT-only semantics."
+name = "7-2-ambermonkey-perf-s3"
+description = "Speedometer 3 performance across the interpreter, AmberMonkey ablations, and the default JIT."
 default_iterations = 3
 allow_failure = true
 
@@ -27,20 +27,14 @@ analysis = "speedometer-detail"
 script   = "figures/speedometer_table.py"
 
 [variables]
-MACH    = "./mach raptor -t speedometer3 --app firefox --browser-cycles 1 --page-cycles 3 --binary @BIN_AOT --setenv MOZ_HEADLESS=1"
-ION_OFF = "--setpref javascript.options.ion=false"
-RESULT  = "cat testing/mozharness/build/raptor.json"
-
 INTERP   = "JIT_OPTION_disableJitBackend=true"
-AOT      = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
 IC_ONLY  = "JIT_OPTION_aotSkipBaselineFn=true"
-NO_REGEX = "JIT_OPTION_nativeRegExp=false"
 BLINTERP = "JIT_OPTION_baselineJit=false JIT_OPTION_disableCacheIR=true JIT_OPTION_baselineInterpreterWarmUpThreshold=0"
 
 [variants]
-interp-only    = "@CLEAN_AOT $INTERP                       $MACH          1>&2 && $RESULT"
-blinterp-only  = "@CLEAN_AOT $BLINTERP           $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
-aot-corpus-ic  = "@CLEAN_AOT $AOT       $IC_ONLY $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
-aot-corpus     = "@CLEAN_AOT $AOT                $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
-default-no-ion = "@CLEAN_AOT                               $MACH $ION_OFF 1>&2 && $RESULT"
-default        = "@CLEAN_AOT                               $MACH          1>&2 && $RESULT"
+interp-only    = "@AOT_BROWSER $INTERP                          @S3_RAPTOR              1>&2 && @RAPTOR_RESULT"
+blinterp-only  = "@AOT_BROWSER $BLINTERP           @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+aot-corpus-ic  = "@AOT_BROWSER @AOT_ONLY_ENV $IC_ONLY    @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+aot-corpus     = "@AOT_BROWSER @AOT_ONLY_ENV             @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+default-no-ion = "@AOT_BROWSER                                @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+default        = "@AOT_BROWSER                                @S3_RAPTOR              1>&2 && @RAPTOR_RESULT"

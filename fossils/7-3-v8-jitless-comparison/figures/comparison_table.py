@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Emit a V8-vs-SpiderMonkey headroom table for Speedometer 3 and JetStream 3."""
 
 import json
@@ -126,7 +126,7 @@ def main():
         payload["js3_ambermonkey_over_default"] = js3_sm[SM_AM][0] / js3_sm[SM_DEFAULT][0]
         payload["js3_interp_only_over_default"] = js3_sm[SM_INTERP][0] / js3_sm[SM_DEFAULT][0]
 
-    payload["source_fossil"] = os.environ.get("FOSSIL_NAME", "7-3-v8-jitless-comparison")
+    payload["source_fossil"] = os.environ["FOSSIL_NAME"]
     out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
 
 

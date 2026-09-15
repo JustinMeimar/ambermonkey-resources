@@ -1,4 +1,4 @@
-#!/home/justin/tools/fossil/figures/.venv/bin/python
+#!/usr/bin/env python3
 """Compact horizontal bars for performance retained by workload."""
 
 import os
@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib.colors import to_hex, to_rgb
 from fossil_figures import load_stdin
 
-PROJECT_DIR = Path(os.environ.get("FOSSIL_PROJECT_DIR", Path(__file__).resolve().parents[3]))
+PROJECT_DIR = Path(os.environ["FOSSIL_PROJECT_DIR"])
 sys.path.insert(0, str(PROJECT_DIR / "scripts"))
 from benchmark_stats import bootstrap_ratio_ci  # noqa: E402
 from figure_style import (  # noqa: E402
