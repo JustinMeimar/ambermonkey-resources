@@ -2,151 +2,104 @@
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-FIREFOX_SOURCE = Path(os.environ.get("FIREFOX_SOURCE", "/work/firefox")).resolve()
-EVAL_ROOT = Path(
-    os.environ.get("ARTIFACT_EVAL_WORK_DIR", "/work/evaluation")
-).resolve()
-OBJDIR = EVAL_ROOT / "obj"
-CORPUS_DIR = EVAL_ROOT / "corpus"
-BUNDLE_DIR = EVAL_ROOT / "bundle"
-MOZCONFIG_PATH = EVAL_ROOT / "mozconfig"
-WORKLOAD = SCRIPT_DIR / "smoke.js"
-EXPECTED_OUTPUT = "ambermonkey-smoke: 49995000"
-WORK_ROOT_MARKER = EVAL_ROOT / ".ambermonkey-artifact-eval"
+FIREFOX = Path(
+    os.environ.get("AMBERMONKEY_FIREFOX", "/home/justin/spidermonkey/firefox")
+)
+RESOURCES = Path(
+    os.environ.get("AMBERMONKEY_RESOURCES", "/home/justin/spidermonkey/ambermonkey")
+)
+FOSSIL = Path(
+    os.environ.get("FOSSIL_BIN", "/home/justin/tools/fossil/target/release/fossil")
+)
+FOSSIL_HOME = Path(os.environ.get("FOSSIL_HOME", "/home/justin/.fossil"))
 
 
-def write_mozconfig() -> None:
-    if EVAL_ROOT.exists() and not WORK_ROOT_MARKER.exists() and any(EVAL_ROOT.iterdir()):
-        sys.exit(
-            "artifact-eval: refusing to use a non-empty, unrecognized work directory: "
-            f"{EVAL_ROOT}"
-        )
-    EVAL_ROOT.mkdir(parents=True, exist_ok=True)
-    WORK_ROOT_MARKER.touch()
-    MOZCONFIG_PATH.write_text(
-        "\n".join(
-            (
-                "ac_add_options --enable-application=js",
-                "ac_add_options --enable-optimize",
-                "ac_add_options --enable-aot",
-                "ac_add_options --disable-debug",
-                "ac_add_options --disable-tests",
-                f"mk_add_options MOZ_OBJDIR={OBJDIR}",
-                "mk_add_options AUTOCLOBBER=1",
-                "",
-            )
-        )
-    )
+def run(command: list[str], **kwargs) -> None:
+    print(f"==> {' '.join(command)}", flush=True)
+    subprocess.run(command, check=True, **kwargs)
 
 
-def mach(*args: str) -> None:
-    environment = os.environ.copy()
-    environment["MOZCONFIG"] = str(MOZCONFIG_PATH)
-    subprocess.run(
-        [str(FIREFOX_SOURCE / "mach"), *args],
-        cwd=FIREFOX_SOURCE,
-        env=environment,
-        check=True,
-    )
+def require_checkout(path: Path, description: str) -> None:
+    if not path.is_dir():
+        sys.exit(f"artifact-eval: {description} checkout not found: {path}")
 
 
-def build() -> None:
-    print("==> Building the empty-image AOT JavaScript shell", flush=True)
-    mach("build")
+def configure_fossil() -> None:
+    projects = FOSSIL_HOME / "projects"
+    project = projects / "ambermonkey"
+    projects.mkdir(parents=True, exist_ok=True)
+
+    expected = RESOURCES / "fossils"
+    if project.is_symlink() and project.resolve() == expected.resolve():
+        return
+    if project.exists() or project.is_symlink():
+        sys.exit(f"artifact-eval: {project} exists and does not point to {expected}")
+    project.symlink_to(expected, target_is_directory=True)
 
 
-def evaluate() -> None:
-    shell = OBJDIR / "dist/bin/js"
-    if not shell.is_file():
-        sys.exit("artifact-eval: no stage-1 shell; run 'artifact_eval.py build' first")
-
-    # These directories are wholly owned by this program and deliberately
-    # replaced so repeated evaluations cannot consume stale artifacts.
-    shutil.rmtree(CORPUS_DIR, ignore_errors=True)
-    shutil.rmtree(BUNDLE_DIR, ignore_errors=True)
-
-    print("==> Recording a deterministic smoke workload", flush=True)
-    mach(
-        "ambermonkey",
-        "record",
-        "--corpus",
-        str(CORPUS_DIR),
-        "--workload",
-        str(WORKLOAD),
-    )
-
-    print("==> Packing the corpus and relinking the shell", flush=True)
-    mach(
-        "ambermonkey",
-        "build-image",
-        "--corpus",
-        str(CORPUS_DIR),
-        "--output-dir",
-        str(BUNDLE_DIR),
-    )
-
-    print("==> Inspecting the packed image", flush=True)
-    mach(
-        "ambermonkey",
-        "show-image",
-        "--image",
-        str(OBJDIR / "js/src/jit/aot/AOTImage.inc"),
-        "--limit",
-        "0",
-    )
-
-    print("==> Running strictly from the AOT image", flush=True)
-    completed = subprocess.run(
+def fossil(*arguments: str) -> None:
+    run(
         [
-            str(BUNDLE_DIR / "js"),
-            "--aot",
-            "--aot-only",
-            "--aot-enforce",
-            "--no-ion",
-            "--no-native-regexp",
-            "-f",
-            str(WORKLOAD),
-        ],
-        check=True,
-        text=True,
-        stdout=subprocess.PIPE,
+            str(FOSSIL),
+            "--home",
+            str(FOSSIL_HOME),
+            "--project",
+            "ambermonkey",
+            *arguments,
+        ]
     )
-    output = completed.stdout.strip()
-    print(output)
-    if output != EXPECTED_OUTPUT:
-        sys.exit(f"artifact-eval: expected {EXPECTED_OUTPUT!r}, got {output!r}")
 
-    print("==> AmberMonkey artifact smoke evaluation passed")
+
+def build_shell() -> None:
+    environment = os.environ.copy()
+    environment["MOZCONFIG"] = str(
+        RESOURCES / "mozconfigs" / "shell-release-aot.mozconfig"
+    )
+    run([str(FIREFOX / "mach"), "build"], cwd=FIREFOX, env=environment)
+
+
+def static_tables() -> None:
+    fossil("table", "0-0-static-tables", "--table", "runtime-dependencies")
+    fossil("table", "0-0-static-tables", "--table", "execution-configurations")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build AmberMonkey and run its Fossil evaluations."
+    )
+    subcommands = parser.add_subparsers(dest="action", required=True)
+    subcommands.add_parser("build", help="build the AOT SpiderMonkey shell")
+    subcommands.add_parser(
+        "static-tables", help="run the simplest, dependency-free fossil"
+    )
+    fossil_parser = subcommands.add_parser(
+        "fossil", help="pass the remaining arguments directly to Fossil"
+    )
+    fossil_parser.add_argument("arguments", nargs=argparse.REMAINDER)
+    return parser.parse_args()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Build and exercise the smallest AmberMonkey artifact pipeline."
-    )
-    parser.add_argument(
-        "action",
-        choices=("all", "build", "evaluate"),
-        default="all",
-        nargs="?",
-    )
-    args = parser.parse_args()
+    args = parse_args()
+    require_checkout(FIREFOX, "AmberMonkey Firefox")
+    require_checkout(RESOURCES, "AmberMonkey resources")
+    if not FOSSIL.is_file():
+        sys.exit(f"artifact-eval: Fossil executable not found: {FOSSIL}")
+    configure_fossil()
 
-    mach_path = FIREFOX_SOURCE / "mach"
-    if not mach_path.is_file():
-        sys.exit(f"artifact-eval: FIREFOX_SOURCE does not contain mach: {FIREFOX_SOURCE}")
-
-    write_mozconfig()
-    if args.action in ("all", "build"):
-        build()
-    if args.action in ("all", "evaluate"):
-        evaluate()
+    if args.action == "build":
+        build_shell()
+    elif args.action == "static-tables":
+        static_tables()
+    elif args.action == "fossil":
+        if not args.arguments:
+            sys.exit("artifact-eval: fossil requires a Fossil command")
+        fossil(*args.arguments)
 
 
 if __name__ == "__main__":
