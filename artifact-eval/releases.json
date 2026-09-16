@@ -1,0 +1,12 @@
+{
+  "am-browser-release-tp6": {
+    "archive": "am-browser-release-tp6.tar.xz",
+    "sha256": "64f418a6bc1bb540366da7d586a2611359652be79cf41490559e4765a4d3904f",
+    "executable": "firefox/firefox"
+  },
+  "am-browser-release-oracle-sp3": {
+    "archive": "am-browser-release-oracle-sp3.tar.xz",
+    "sha256": "b034734e9bdc88ee4161fb535b29a757a1056b847cd3bbd8d10a8f54e33bb0f8",
+    "executable": "firefox/firefox"
+  }
+}

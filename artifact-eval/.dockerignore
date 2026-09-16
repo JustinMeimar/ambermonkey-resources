@@ -1,3 +1,7 @@
 *
 !Dockerfile
 !artifact_eval.py
+!configure.py
+!prepare_raptor.py
+!install_engines.py
+!releases.json

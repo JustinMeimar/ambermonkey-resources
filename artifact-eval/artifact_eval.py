@@ -2,105 +2,90 @@
 
 import argparse
 import os
+import shutil
 import subprocess
-import sys
-from pathlib import Path
+import tomllib
+
+import configure as setup
+from install_engines import releases
 
 
-FIREFOX = Path(
-    os.environ.get("AMBERMONKEY_FIREFOX", "/home/justin/spidermonkey/firefox")
-)
-RESOURCES = Path(
-    os.environ.get("AMBERMONKEY_RESOURCES", "/home/justin/spidermonkey/ambermonkey")
-)
-FOSSIL = Path(
-    os.environ.get("FOSSIL_BIN", "/home/justin/tools/fossil/target/release/fossil")
-)
-FOSSIL_HOME = Path(os.environ.get("FOSSIL_HOME", "/home/justin/.fossil"))
+def fossil(*arguments):
+    if not shutil.which(setup.FOSSIL):
+        raise ValueError(f"Fossil executable missing: {setup.FOSSIL}")
+    setup.run([setup.FOSSIL, "--home", setup.FOSSIL_HOME, "--project", "ambermonkey", *arguments])
 
 
-def run(command: list[str], **kwargs) -> None:
-    print(f"==> {' '.join(command)}", flush=True)
-    subprocess.run(command, check=True, **kwargs)
+def definitions():
+    return {path.parent.name: tomllib.loads(path.read_text())
+            for path in sorted((setup.RESOURCES / "fossils").glob("*/fossil.toml"))}
 
 
-def require_checkout(path: Path, description: str) -> None:
-    if not path.is_dir():
-        sys.exit(f"artifact-eval: {description} checkout not found: {path}")
-
-
-def configure_fossil() -> None:
-    projects = FOSSIL_HOME / "projects"
-    project = projects / "ambermonkey"
-    projects.mkdir(parents=True, exist_ok=True)
-
-    expected = RESOURCES / "fossils"
-    if project.is_symlink() and project.resolve() == expected.resolve():
-        return
-    if project.exists() or project.is_symlink():
-        sys.exit(f"artifact-eval: {project} exists and does not point to {expected}")
-    project.symlink_to(expected, target_is_directory=True)
-
-
-def fossil(*arguments: str) -> None:
-    run(
-        [
-            str(FOSSIL),
-            "--home",
-            str(FOSSIL_HOME),
-            "--project",
-            "ambermonkey",
-            *arguments,
-        ]
-    )
-
-
-def build_shell() -> None:
-    environment = os.environ.copy()
-    environment["MOZCONFIG"] = str(
-        RESOURCES / "mozconfigs" / "shell-release-aot.mozconfig"
-    )
-    run([str(FIREFOX / "mach"), "build"], cwd=FIREFOX, env=environment)
-
-
-def static_tables() -> None:
-    fossil("table", "0-0-static-tables", "--table", "runtime-dependencies")
-    fossil("table", "0-0-static-tables", "--table", "execution-configurations")
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Build AmberMonkey and run its Fossil evaluations."
-    )
-    subcommands = parser.add_subparsers(dest="action", required=True)
-    subcommands.add_parser("build", help="build the AOT SpiderMonkey shell")
-    subcommands.add_parser(
-        "static-tables", help="run the simplest, dependency-free fossil"
-    )
-    fossil_parser = subcommands.add_parser(
-        "fossil", help="pass the remaining arguments directly to Fossil"
-    )
-    fossil_parser.add_argument("arguments", nargs=argparse.REMAINDER)
-    return parser.parse_args()
-
-
-def main() -> None:
-    args = parse_args()
-    require_checkout(FIREFOX, "AmberMonkey Firefox")
-    require_checkout(RESOURCES, "AmberMonkey resources")
-    if not FOSSIL.is_file():
-        sys.exit(f"artifact-eval: Fossil executable not found: {FOSSIL}")
-    configure_fossil()
-
-    if args.action == "build":
-        build_shell()
-    elif args.action == "static-tables":
-        static_tables()
-    elif args.action == "fossil":
-        if not args.arguments:
-            sys.exit("artifact-eval: fossil requires a Fossil command")
-        fossil(*args.arguments)
+def main():
+    parser = argparse.ArgumentParser(description="Run configured fossils sequentially and wait for completion.")
+    parser.add_argument("names", nargs="*", help="fossils to run; default: all supported fossils")
+    parser.add_argument("--iterations", type=int, default=int(os.environ.get("N", "1")))
+    parser.add_argument("--variant", action="append", default=[])
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    if args.iterations < 1:
+        raise ValueError("iterations must be positive")
+    available = definitions()
+    if not available:
+        raise ValueError("no fossils found; run configure.py first")
+    names = args.names or [name for name in available if name in setup.SUPPORTED or name == "0-0-static-tables"]
+    binaries = {}
+    for name in names:
+        if name not in available:
+            raise ValueError(f"unknown fossil: {name}")
+        if name == "0-0-static-tables":
+            if args.variant:
+                raise ValueError("static tables have no variants")
+            continue
+        if name not in setup.SUPPORTED:
+            raise ValueError(f"prerequisites not configured for {name}")
+        unknown = set(args.variant) - available[name].get("variants", {}).keys()
+        if unknown:
+            raise ValueError(f"unknown variants for {name}: {', '.join(sorted(unknown))}")
+        release = setup.SUPPORTED[name]
+        binary = setup.ENGINES / release / releases()[release]["executable"]
+        if not binary.is_file():
+            raise ValueError(f"engine missing: {binary}; run configure.py first")
+        binaries[name] = binary
+    if not (setup.FOSSIL_HOME / "projects/ambermonkey/project.toml").is_file():
+        raise ValueError("Fossil project missing; run configure.py first")
+    if binaries and not (setup.FIREFOX / "mach").is_file():
+        raise ValueError(f"Firefox/Raptor checkout missing: {setup.FIREFOX}")
+    if binaries and not args.dry_run:
+        setup.check_raptor()
+    if not args.names:
+        for name in sorted(available.keys() - set(names)):
+            print(f"Skipping {name}: prerequisites not configured", flush=True)
+    for name in names:
+        if name == "0-0-static-tables":
+            if not args.dry_run:
+                for table in available[name].get("tables", {}):
+                    fossil("table", name, "--table", table)
+            continue
+        setup.configure_fossil(binaries[name])
+        command = ["bury", name, "--iterations", str(args.iterations)]
+        for variant in args.variant:
+            command.extend(["--variant", variant])
+        if args.dry_run:
+            fossil(*command, "--dry-run")
+            continue
+        fossil(*command)
+        selected = args.variant or list(available[name]["variants"])
+        fossil("analyze", *[f"{name}:{variant}" for variant in selected], "--last", "1")
+        for kind, flag in (("tables", "table"), ("figures", "figure")):
+            for output in available[name].get(kind, {}):
+                if name == "7-2-oracle-corpus" and output != "speedometer3":
+                    continue
+                fossil(flag, name, f"--{flag}", output, "--last", str(len(selected)))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"artifact-eval: {error}")
