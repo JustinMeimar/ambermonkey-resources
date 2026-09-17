@@ -18,7 +18,28 @@ FOSSIL_HOME = Path(os.environ.get("FOSSIL_HOME", str(Path.home() / ".fossil")))
 SUPPORTED = {
     "7-2-oracle-corpus": "am-browser-release-oracle-sp3",
     "7-2-ambermonkey-perf-s3": "am-browser-release-tp6",
+    "7-2-ambermonkey-perf-octane": "default-shell-release",
+    "7-6-binary-size": "am-browser-release-tp6",
 }
+VARIANTS = {"7-2-ambermonkey-perf-octane": ("default-no-ion", "default")}
+TABLES = {"7-2-ambermonkey-perf-octane": (), "7-6-binary-size": ("browser",)}
+FIGURES = {"7-2-ambermonkey-perf-octane": ()}
+
+
+def executable(name):
+    return ENGINES / name / releases()[name]["executable"]
+
+
+def browser_layout(binary):
+    # Existing size measurements expect a build-style dist/bin directory.
+    directory = binary.parent.parent / "dist/bin"
+    directory.parent.mkdir(parents=True, exist_ok=True)
+    if directory.is_symlink() and directory.resolve() == binary.parent.resolve():
+        return directory / binary.name
+    if directory.exists() or directory.is_symlink():
+        raise ValueError(f"unexpected browser layout: {directory}")
+    directory.symlink_to(binary.parent.resolve(), target_is_directory=True)
+    return directory / binary.name
 
 
 def run(command, **kwargs):
@@ -33,9 +54,15 @@ def configure_fossil(binary=None):
     RESULTS.mkdir(parents=True, exist_ok=True)
     replacements = {"artifact_dir": str(RESULTS / "artifacts")}
     constants = {"FIREFOX": str(FIREFOX)}
+    default_browser = executable("default-browser-release")
+    if default_browser.is_file():
+        constants["BIN_RELEASE"] = str(browser_layout(default_browser))
     if binary:
-        constants["BIN_AOT"] = str(binary)
-        constants["AOT_BROWSER"] = "cd $FIREFOX && $CLEAN_JIT_ENV $NO_CONTENT_SANDBOX_ENV"
+        if binary.name == "js":
+            constants["JSSHELL_AOT"] = str(binary)
+        else:
+            constants["BIN_AOT"] = str(browser_layout(binary))
+            constants["AOT_BROWSER"] = "cd $FIREFOX && $CLEAN_JIT_ENV $NO_CONTENT_SANDBOX_ENV"
     section = ""
     lines = []
     for line in config.read_text().splitlines():
@@ -87,7 +114,11 @@ def main():
     binary = None
     if not args.register_only:
         for name in args.release or releases():
-            binary = install(name, args.archives, ENGINES, args.base_url)
+            installed = install(name, args.archives, ENGINES, args.base_url)
+            if binary is None or installed.name == "firefox":
+                binary = installed
+        if not args.release:
+            binary = executable("am-browser-release-oracle-sp3")
     print("Registering the Fossil project", flush=True)
     configure_fossil(binary)
     print("Configuring result directories", flush=True)

@@ -8,5 +8,15 @@
     "archive": "am-browser-release-oracle-sp3.tar.xz",
     "sha256": "b034734e9bdc88ee4161fb535b29a757a1056b847cd3bbd8d10a8f54e33bb0f8",
     "executable": "firefox/firefox"
+  },
+  "default-browser-release": {
+    "archive": "browser-release.tar.xz",
+    "sha256": "cf3613d53f7ba0f484257405c2eeb3bc149bb70eaf07181363dc177f783e7600",
+    "executable": "firefox/firefox"
+  },
+  "default-shell-release": {
+    "archive": "shell-release.tar.xz",
+    "sha256": "a4b973ca2b33b5f10347f99b6aea8f68f79b74dd85605bedabf335e83ce59cce",
+    "executable": "js"
   }
 }

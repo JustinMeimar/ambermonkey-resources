@@ -3,7 +3,7 @@ description = "AmberMonkey: AOT Baseline JIT sharing"
 artifact_dir = "../paper/lib/artifacts"
 
 [constants]
-FIREFOX = "/home/justin/spidermonkey/firefox"
+FIREFOX = "$FOSSIL_PROJECT_DIR/../../firefox"
 BIN_RELEASE = "$FIREFOX/build-browser-release/dist/bin/firefox"
 BIN_AOT = "$FIREFOX/build-browser-release-aot/dist/bin/firefox"
 JSSHELL_AOT = "$FIREFOX/build-shell-release-aot/dist/bin/js"

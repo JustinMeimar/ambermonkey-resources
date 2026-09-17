@@ -7,7 +7,6 @@ import subprocess
 import tomllib
 
 import configure as setup
-from install_engines import releases
 
 
 def fossil(*arguments):
@@ -44,19 +43,25 @@ def main():
             continue
         if name not in setup.SUPPORTED:
             raise ValueError(f"prerequisites not configured for {name}")
-        unknown = set(args.variant) - available[name].get("variants", {}).keys()
+        supported = setup.VARIANTS.get(name, available[name].get("variants", {}).keys())
+        unknown = set(args.variant) - set(supported)
         if unknown:
-            raise ValueError(f"unknown variants for {name}: {', '.join(sorted(unknown))}")
+            raise ValueError(f"unavailable variants for {name}: {', '.join(sorted(unknown))}")
         release = setup.SUPPORTED[name]
-        binary = setup.ENGINES / release / releases()[release]["executable"]
+        binary = setup.executable(release)
         if not binary.is_file():
             raise ValueError(f"engine missing: {binary}; run configure.py first")
         binaries[name] = binary
+        if name == "7-6-binary-size" and not setup.executable("default-browser-release").is_file():
+            raise ValueError("default browser missing; run configure.py first")
+        if name == "7-2-ambermonkey-perf-octane" and not (setup.FIREFOX / "js/src/octane/base.js").is_file():
+            raise ValueError("Octane benchmark missing from the Firefox checkout")
     if not (setup.FOSSIL_HOME / "projects/ambermonkey/project.toml").is_file():
         raise ValueError("Fossil project missing; run configure.py first")
-    if binaries and not (setup.FIREFOX / "mach").is_file():
+    browser_fossils = set(binaries) - {"7-2-ambermonkey-perf-octane", "7-6-binary-size"}
+    if browser_fossils and not (setup.FIREFOX / "mach").is_file():
         raise ValueError(f"Firefox/Raptor checkout missing: {setup.FIREFOX}")
-    if binaries and not args.dry_run:
+    if browser_fossils and not args.dry_run:
         setup.check_raptor()
     if not args.names:
         for name in sorted(available.keys() - set(names)):
@@ -68,20 +73,30 @@ def main():
                     fossil("table", name, "--table", table)
             continue
         setup.configure_fossil(binaries[name])
+        if not available[name].get("variants"):
+            for table in setup.TABLES.get(name, available[name].get("tables", {})):
+                if args.dry_run:
+                    print(f"Would render {name}: {table}", flush=True)
+                else:
+                    fossil("table", name, "--table", table)
+            continue
+        selected = args.variant or list(setup.VARIANTS.get(name, available[name]["variants"]))
         command = ["bury", name, "--iterations", str(args.iterations)]
-        for variant in args.variant:
+        for variant in selected:
             command.extend(["--variant", variant])
         if args.dry_run:
             fossil(*command, "--dry-run")
             continue
         fossil(*command)
-        selected = args.variant or list(available[name]["variants"])
         fossil("analyze", *[f"{name}:{variant}" for variant in selected], "--last", "1")
         for kind, flag in (("tables", "table"), ("figures", "figure")):
-            for output in available[name].get(kind, {}):
+            outputs = setup.TABLES if kind == "tables" else setup.FIGURES
+            for output in outputs.get(name, available[name].get(kind, {})):
                 if name == "7-2-oracle-corpus" and output != "speedometer3":
                     continue
                 fossil(flag, name, f"--{flag}", output, "--last", str(len(selected)))
+        if name == "7-2-ambermonkey-perf-octane":
+            print("Octane recorded and analyzed; full tier figures need the AmberMonkey shell and interpreter baseline", flush=True)
 
 
 if __name__ == "__main__":
