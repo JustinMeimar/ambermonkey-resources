@@ -1,0 +1,175 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{gross2026state}
+\citation{gruber2019jitless}
+\citation{gruber2018builtins}
+\citation{brunthaler2010quickening}
+\citation{demooij2023cacheir,glew2004lil}
+\@writefile{toc}{\contentsline {section}{Abstract}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Reusability Through Indirection}{1}{section.1}\protected@file@percent }
+\citation{niu2014rockjit}
+\citation{holley2026zerodays}
+\citation{mozilla2026cve10702,nebula2026ionstack}
+\citation{gross2026state}
+\citation{mozilla2026securityadvisories}
+\citation{wang2026enhancedinsecurity}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Restricting JavaScript Execution}{2}{section.2}\protected@file@percent }
+\newlabel{sec:complexity}{{2}{2}{Restricting JavaScript Execution}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Guest-Triggered JIT Compilation}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}JavaScript Semantics}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Restricted Execution}{2}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:restricted-execution}{{2.3}{2}{Restricted Execution}{subsection.2.3}{}}
+\citation{deutsch1984smalltalk}
+\citation{brunthaler2010quickening}
+\citation{alle2018codecaching}
+\citation{henderson2023ic}
+\citation{demooij2023cacheir}
+\citation{demooij2023cacheir}
+\citation{mozilla2026tp6}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Structured Inline Caching Enables a High-Coverage AOT Corpus}{3}{section.3}\protected@file@percent }
+\newlabel{sec:sic}{{3}{3}{Structured Inline Caching Enables a High-Coverage AOT Corpus}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Generated versus Fixed-Handler ICs}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}CacheIR Design for Stub-Body Reuse}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {listing}{\numberline {1}{\ignorespaces Specialized CacheIR stub for string--integer subtraction.}}{3}{listing.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{lst:string-int32-cacheir}{{1}{3}{Specialized CacheIR stub for string--integer subtraction}{listing.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Composition}{3}{subsubsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Code--Data Separation}{3}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Cross-Workload Reuse}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Experimental Design}{3}{subsubsection.3.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Two property-load sites share a fixed-slot CacheIR stub body. The first stub at each site points to the same body despite holding different object shapes and property offsets. Site A also has a dynamic-slot specialization with a separate body. On guard failure, site A tries this specialization, while site B proceeds directly to its fallback.}}{4}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:cacheir-sharing}{{1}{4}{Two property-load sites share a fixed-slot CacheIR stub body. The first stub at each site points to the same body despite holding different object shapes and property offsets. Site A also has a dynamic-slot specialization with a separate body. On guard failure, site A tries this specialization, while site B proceeds directly to its fallback}{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Static and execution-weighted intersection with eight held-out {\tt  tp6}-Test sites as the corpus accumulates artifacts from 24 {\tt  tp6}-Train sites.}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:corpus-growth}{{2}{4}{Static and execution-weighted intersection with eight held-out {\tt tp6}-Test sites as the corpus accumulates artifacts from 24 {\tt tp6}-Train sites}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Coverage Results}{4}{subsubsection.3.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}AmberMonkey}{4}{section.4}\protected@file@percent }
+\newlabel{sec:ambermonkey}{{4}{4}{AmberMonkey}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}JIT Code Coupling}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {listing}{\numberline {2}{\ignorespaces Avoiding JIT coupling through Runtime Indirection Table (RIT) access. The unchanged generator (a) supplies the address, which lowers to a table access (b). Panel (c) compares the emitted instructions. Identifiers and offsets are simplified.}}{5}{listing.2}\protected@file@percent }
+\newlabel{lst:code-lowering}{{2}{5}{Avoiding JIT coupling through Runtime Indirection Table (RIT) access. The unchanged generator (a) supplies the address, which lowers to a table access (b). Panel (c) compares the emitted instructions. Identifiers and offsets are simplified}{listing.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Sharing AOT code through per-runtime Runtime Indirection Tables (RITs). Instead of generating an interpreter for each runtime, \unhbox \voidb@x {\sc  AmberMonkey}{} shares one interpreter and $K$ CacheIR stub bodies across $N$ runtimes. Shared code loads the RIT base from the current frame (1), then retrieves the runtime's pointer from its table (2).}}{5}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:rit-access}{{3}{5}{Sharing AOT code through per-runtime Runtime Indirection Tables (RITs). Instead of generating an interpreter for each runtime, \AM {} shares one interpreter and $K$ CacheIR stub bodies across $N$ runtimes. Shared code loads the RIT base from the current frame (1), then retrieves the runtime's pointer from its table (2)}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Rebindable Dependencies}{5}{subsubsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Ephemeral State}{5}{subsubsection.4.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Rebinding Through Indirection}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Recording Processes}{5}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Loading Process}{5}{subsubsection.4.2.2}\protected@file@percent }
+\citation{v8torque}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Supported Artifacts}{6}{subsubsection.4.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Preserving Existing Code Generators}{6}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Integrating AOT Artifacts}{6}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Image Construction}{6}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:image-construction}{{5.1}{6}{Image Construction}{subsection.5.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Resolution of embedded references in Baseline-generated artifacts.}}{6}{table.caption.6}\protected@file@percent }
+\newlabel{tab:runtime-deps}{{1}{6}{Resolution of embedded references in Baseline-generated artifacts}{table.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Packed \unhbox \voidb@x {\sc  AmberMonkey}{} image. Each binary-manifest entry locates an artifact's metadata record and aligned instruction body. A page boundary separates executable code from image metadata.}}{6}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:aot-image}{{4}{6}{Packed \AM {} image. Each binary-manifest entry locates an artifact's metadata record and aligned instruction body. A page boundary separates executable code from image metadata}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Adapting Static Code to JIT Interfaces}{6}{subsection.5.2}\protected@file@percent }
+\citation{browserbench2024speedometer3}
+\citation{chromium2013octane2}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.1}Garbage-Collection Integration}{7}{subsubsection.5.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2}Debugging and Profiling}{7}{subsubsection.5.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}RIT Access Reduction Optimizations}{7}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Replacing RIT Accesses with Relocations}{7}{subsubsection.5.3.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {listing}{\numberline {3}{\ignorespaces Assembly scaffold for a link-resolved displacement.}}{7}{listing.3}\protected@file@percent }
+\newlabel{lst:image-reloc}{{3}{7}{Assembly scaffold for a link-resolved displacement}{listing.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}Value Mirroring}{7}{subsubsection.5.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Implementation Scope and Limitations}{7}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Design and Corpus Construction}{7}{section.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Execution configurations.}}{8}{table.caption.8}\protected@file@percent }
+\newlabel{tab:exec-configs}{{2}{8}{Execution configurations}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Corpus Construction}{8}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Execution Configurations}{8}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Evaluation: Performance Recovery at Low Cost}{8}{section.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Coverage statistics using the {\tt  tp6}-Train corpus. Utilization is the proportion of artifacts used at least once. Compilation requests count attachment requests for IC stubs and body-compilation requests for Baseline bodies. Request coverage is the proportion of those requests served by the image.}}{8}{table.caption.9}\protected@file@percent }
+\newlabel{tab:coverage}{{3}{8}{Coverage statistics using the {\tt tp6}-Train corpus. Utilization is the proportion of artifacts used at least once. Compilation requests count attachment requests for IC stubs and body-compilation requests for Baseline bodies. Request coverage is the proportion of those requests served by the image}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}AOT Corpus Coverage}{8}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Restricted-Execution Performance}{8}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.1}Cross-Workload Performance}{8}{subsubsection.7.2.1}\protected@file@percent }
+\citation{toufie2024osnoise}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Per-workload speedup over interpreter-only{} on Speedometer 3.1 (top) and Octane 2.0 (bottom, logarithmic y-axis).}}{9}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:restricted-perf}{{5}{9}{Per-workload speedup over \InterpOnly {} on Speedometer 3.1 (top) and Octane 2.0 (bottom, logarithmic y-axis)}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.2}AOT Corpus Ablation}{9}{subsubsection.7.2.2}\protected@file@percent }
+\newlabel{sec:oracle-corpus}{{7.2.3}{9}{Oracle Corpus}{subsubsection.7.2.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.3}Oracle Corpus}{9}{subsubsection.7.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Default-JIT Performance Retained}{9}{subsection.7.3}\protected@file@percent }
+\newlabel{sec:default-jit-retained}{{7.3}{9}{Default-JIT Performance Retained}{subsection.7.3}{}}
+\citation{fallin2025weval,futamura1971partial}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Performance retained relative to each engine's default on Speedometer 3.1 (solid) and Octane 2.0 (hatched).}}{10}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:jitless}{{6}{10}{Performance retained relative to each engine's default on Speedometer 3.1 (solid) and Octane 2.0 (hatched)}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Artifact Installation Cost}{10}{subsection.7.4}\protected@file@percent }
+\newlabel{sec:installation-cost}{{7.4}{10}{Artifact Installation Cost}{subsection.7.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Indirection Overhead}{10}{subsection.7.5}\protected@file@percent }
+\newlabel{sec:indirection-overhead}{{7.5}{10}{Indirection Overhead}{subsection.7.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.5.1}Microbenchmark Overhead}{10}{subsubsection.7.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Retired user-mode instruction overhead relative to run-time-generated Baseline code with Ion disabled. Each executes 50--250 million iterations per run across 50 runs.}}{10}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:indirection}{{7}{10}{Retired user-mode instruction overhead relative to run-time-generated Baseline code with Ion disabled. Each executes 50--250 million iterations per run across 50 runs}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.5.2}Net End-to-End Effect}{10}{subsubsection.7.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Memory and Binary Footprint}{10}{subsection.7.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Related Work}{10}{section.8}\protected@file@percent }
+\citation{serrano2021hopc}
+\citation{poirier2025hopcic}
+\citation{graalvm2026nativeimage,dart2025compile}
+\citation{gruber2018builtins}
+\citation{v8torque}
+\citation{gruber2019jitless}
+\citation{alle2018codecaching}
+\citation{czajkowski2002codesharing}
+\citation{xu2018sharejit,khrabrov2022jitserver}
+\citation{mehta2023reuse}
+\citation{pecimuth2024analysis,pecimuth2025reuse}
+\citation{choi2019ric}
+\citation{xu2021copypatch}
+\bibstyle{ACM-Reference-Format}
+\bibdata{refs}
+\bibcite{alle2018codecaching}{{1}{2018}{{Alle}}{{}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Peak content process PSS memory during Speedometer 3.1, decomposed into shared pages and private run-time-generated code. Configurations are ordered by decreasing Speedometer 3.1 throughput measured in Fig.\nonbreakingspace \ref {fig:restricted-perf}.}}{11}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:sp-memory}{{8}{11}{Peak content process PSS memory during Speedometer 3.1, decomposed into shared pages and private run-time-generated code. Configurations are ordered by decreasing Speedometer 3.1 throughput measured in Fig.~\ref {fig:restricted-perf}}{figure.caption.13}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Packed {\tt  tp6}-Train image footprint.}}{11}{table.caption.14}\protected@file@percent }
+\newlabel{tab:image-footprint}{{4}{11}{Packed {\tt tp6}-Train image footprint}{table.caption.14}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{11}{section.9}\protected@file@percent }
+\bibcite{browserbench2024speedometer3}{{2}{2024}{{BrowserBench.org contributors}}{{}}}
+\bibcite{brunthaler2010quickening}{{3}{2010}{{Brunthaler}}{{}}}
+\bibcite{choi2019ric}{{4}{2019}{{Choi et~al\mbox  {.}}}{{}}}
+\bibcite{chromium2013octane2}{{5}{2013}{{Chromium Blog}}{{}}}
+\bibcite{czajkowski2002codesharing}{{6}{2002}{{Czajkowski et~al\mbox  {.}}}{{}}}
+\bibcite{dart2025compile}{{7}{2025}{{Dart}}{{}}}
+\bibcite{demooij2023cacheir}{{8}{2023}{{de~Mooij et~al\mbox  {.}}}{{}}}
+\bibcite{deutsch1984smalltalk}{{9}{1984}{{Deutsch and Schiffman}}{{}}}
+\bibcite{fallin2025weval}{{10}{2025}{{Fallin and Bernstein}}{{}}}
+\bibcite{futamura1971partial}{{11}{1971}{{Futamura}}{{}}}
+\bibcite{glew2004lil}{{12}{2004}{{Glew et~al\mbox  {.}}}{{}}}
+\bibcite{graalvm2026nativeimage}{{13}{2026}{{GraalVM}}{{}}}
+\bibcite{gross2026state}{{14}{2026}{{Gro{\ss }}}{{}}}
+\bibcite{gruber2018builtins}{{15}{2018}{{Gruber}}{{}}}
+\bibcite{gruber2019jitless}{{16}{2019}{{Gruber}}{{}}}
+\bibcite{henderson2023ic}{{17}{2023}{{Henderson}}{{}}}
+\bibcite{holley2026zerodays}{{18}{2026}{{Holley}}{{}}}
+\bibcite{khrabrov2022jitserver}{{19}{2022}{{Khrabrov et~al\mbox  {.}}}{{}}}
+\bibcite{mehta2023reuse}{{20}{2023}{{Mehta et~al\mbox  {.}}}{{}}}
+\bibcite{mozilla2026securityadvisories}{{21}{2026a}{{Mozilla}}{{}}}
+\bibcite{mozilla2026tp6}{{22}{2026b}{{Mozilla}}{{}}}
+\bibcite{mozilla2026cve10702}{{23}{2026c}{{Mozilla}}{{}}}
+\bibcite{nebula2026ionstack}{{24}{2026}{{Nebula Security}}{{}}}
+\bibcite{niu2014rockjit}{{25}{2014}{{Niu and Tan}}{{}}}
+\bibcite{pecimuth2024analysis}{{26}{2024}{{Pe{\v {c}}im{\'u}th et~al\mbox  {.}}}{{}}}
+\bibcite{pecimuth2025reuse}{{27}{2025}{{Pe{\v {c}}im{\'u}th et~al\mbox  {.}}}{{}}}
+\bibcite{poirier2025hopcic}{{28}{2025}{{Poirier et~al\mbox  {.}}}{{}}}
+\bibcite{serrano2021hopc}{{29}{2021}{{Serrano}}{{}}}
+\bibcite{toufie2024osnoise}{{30}{2024}{{Toufie and Kabaso}}{{}}}
+\bibcite{v8torque}{{31}{[n.\,d.]}{{V8 Project}}{{}}}
+\bibcite{wang2026enhancedinsecurity}{{32}{2026}{{Wang and Chen}}{{}}}
+\bibcite{xu2021copypatch}{{33}{2021}{{Xu and Kjolstad}}{{}}}
+\bibcite{xu2018sharejit}{{34}{2018}{{Xu et~al\mbox  {.}}}{{}}}
+\newlabel{tocindent-1}{0pt}
+\newlabel{tocindent0}{0pt}
+\newlabel{tocindent1}{4.65pt}
+\newlabel{tocindent2}{11.49998pt}
+\newlabel{tocindent3}{22.8pt}
+\newlabel{tocindent4}{0pt}
+\newlabel{tocindent5}{0pt}
+\@writefile{toc}{\contentsline {section}{References}{12}{section*.16}\protected@file@percent }
+\newlabel{TotPages}{{12}{12}{}{page.12}{}}
+\gdef \@abspage@last{12}

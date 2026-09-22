@@ -1,0 +1,429 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{34}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Alle(2018)]%
+        {alle2018codecaching}
+\bibfield{author}{\bibinfo{person}{Mythri Alle}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \bibinfo{title}{Improved Code Caching}.
+\newblock
+  \bibinfo{howpublished}{\url{https://v8.dev/blog/improved-code-caching}}.
+\newblock
+
+
+\bibitem[{BrowserBench.org contributors}(2024)]%
+        {browserbench2024speedometer3}
+\bibfield{author}{\bibinfo{person}{{BrowserBench.org contributors}}.}
+  \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{title}{Announcing {S}peedometer 3.0: A Shared Browser
+  Benchmark for Web Application Responsiveness}.
+\newblock
+  \bibinfo{howpublished}{\url{https://browserbench.org/announcements/speedometer3/}}.
+\newblock
+
+
+\bibitem[Brunthaler(2010)]%
+        {brunthaler2010quickening}
+\bibfield{author}{\bibinfo{person}{Stefan Brunthaler}.}
+  \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Inline Caching Meets Quickening}. In
+  \bibinfo{booktitle}{\emph{ECOOP 2010 -- Object-Oriented Programming}}.
+  \bibinfo{publisher}{Springer-Verlag}, \bibinfo{pages}{429--451}.
+\newblock
+\href{https://doi.org/10.1007/978-3-642-14107-2_21}{doi:\nolinkurl{10.1007/978-3-642-14107-2_21}}
+
+
+\bibitem[Choi et~al\mbox{.}(2019)]%
+        {choi2019ric}
+\bibfield{author}{\bibinfo{person}{Jiho Choi}, \bibinfo{person}{Thomas Shull},
+  {and} \bibinfo{person}{Josep Torrellas}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Reusable Inline Caching for {J}ava{S}cript
+  Performance}. In \bibinfo{booktitle}{\emph{Proceedings of the 40th ACM
+  SIGPLAN Conference on Programming Language Design and Implementation
+  (PLDI)}}. \bibinfo{publisher}{ACM}.
+\newblock
+\href{https://doi.org/10.1145/3314221.3314587}{doi:\nolinkurl{10.1145/3314221.3314587}}
+
+
+\bibitem[{Chromium Blog}(2013)]%
+        {chromium2013octane2}
+\bibfield{author}{\bibinfo{person}{{Chromium Blog}}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \bibinfo{title}{Announcing {O}ctane 2.0}.
+\newblock
+  \bibinfo{howpublished}{\url{https://blog.chromium.org/2013/11/announcing-octane-20.html}}.
+\newblock
+
+
+\bibitem[Czajkowski et~al\mbox{.}(2002)]%
+        {czajkowski2002codesharing}
+\bibfield{author}{\bibinfo{person}{Grzegorz Czajkowski},
+  \bibinfo{person}{Laurent Dayn{\`e}s}, {and} \bibinfo{person}{Nathaniel
+  Nystrom}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Code Sharing among Virtual Machines}. In
+  \bibinfo{booktitle}{\emph{{ECOOP} 2002 -- Object-Oriented Programming}}
+  \emph{(\bibinfo{series}{Lecture Notes in Computer Science},
+  Vol.~\bibinfo{volume}{2374})}. \bibinfo{publisher}{Springer},
+  \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{pages}{155--177}.
+\newblock
+\href{https://doi.org/10.1007/3-540-47993-7_7}{doi:\nolinkurl{10.1007/3-540-47993-7_7}}
+
+
+\bibitem[{Dart}(2025)]%
+        {dart2025compile}
+\bibfield{author}{\bibinfo{person}{{Dart}}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{dart compile}.
+\newblock \bibinfo{howpublished}{\url{https://dart.dev/tools/dart-compile}}.
+\newblock
+
+
+\bibitem[de~Mooij et~al\mbox{.}(2023)]%
+        {demooij2023cacheir}
+\bibfield{author}{\bibinfo{person}{Jan de Mooij}, \bibinfo{person}{Matthew
+  Gaudet}, \bibinfo{person}{Caroline Ireland}, \bibinfo{person}{Nathan
+  Henderson}, {and} \bibinfo{person}{Jos{\'e}~Nelson Amaral}.}
+  \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{{CacheIR}: The Benefits of a Structured
+  Representation for Inline Caches}. In \bibinfo{booktitle}{\emph{Proceedings
+  of the 20th ACM SIGPLAN International Conference on Managed Programming
+  Languages and Runtimes (MPLR)}}. \bibinfo{publisher}{ACM}.
+\newblock
+\href{https://doi.org/10.1145/3617651.3622979}{doi:\nolinkurl{10.1145/3617651.3622979}}
+
+
+\bibitem[Deutsch and Schiffman(1984)]%
+        {deutsch1984smalltalk}
+\bibfield{author}{\bibinfo{person}{L.~Peter Deutsch} {and}
+  \bibinfo{person}{Allan~M. Schiffman}.} \bibinfo{year}{1984}\natexlab{}.
+\newblock \showarticletitle{Efficient Implementation of the {S}malltalk-80
+  System}. In \bibinfo{booktitle}{\emph{Proceedings of the 11th ACM
+  SIGACT-SIGPLAN Symposium on Principles of Programming Languages (POPL)}}.
+  \bibinfo{publisher}{ACM}, \bibinfo{pages}{297--302}.
+\newblock
+\href{https://doi.org/10.1145/800017.800542}{doi:\nolinkurl{10.1145/800017.800542}}
+
+
+\bibitem[Fallin and Bernstein(2025)]%
+        {fallin2025weval}
+\bibfield{author}{\bibinfo{person}{Chris Fallin} {and} \bibinfo{person}{Maxwell
+  Bernstein}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Partial Evaluation, Whole-Program Compilation}.
+\newblock \bibinfo{journal}{\emph{Proc. ACM Program. Lang.}}
+  \bibinfo{volume}{9}, \bibinfo{number}{PLDI}.
+\newblock
+\href{https://doi.org/10.1145/3729259}{doi:\nolinkurl{10.1145/3729259}}
+
+
+\bibitem[Futamura(1971)]%
+        {futamura1971partial}
+\bibfield{author}{\bibinfo{person}{Yoshihiko Futamura}.}
+  \bibinfo{year}{1971}\natexlab{}.
+\newblock \showarticletitle{Partial Evaluation of Computation Process---An
+  Approach to a Compiler-Compiler}.
+\newblock \bibinfo{journal}{\emph{Systems, Computers, Controls}}
+  (\bibinfo{year}{1971}), \bibinfo{pages}{45--50}.
+\newblock
+
+
+\bibitem[Glew et~al\mbox{.}(2004)]%
+        {glew2004lil}
+\bibfield{author}{\bibinfo{person}{Neal Glew}, \bibinfo{person}{Spyridon
+  Triantafyllis}, \bibinfo{person}{Michal Cierniak}, \bibinfo{person}{Marsha
+  Eng}, \bibinfo{person}{Brian Lewis}, {and} \bibinfo{person}{James
+  Stichnoth}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{{LIL}: An Architecture-Neutral Language for
+  Virtual-Machine Stubs}. In \bibinfo{booktitle}{\emph{3rd Virtual Machine
+  Research \& Technology Symposium (VM 04)}}. \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{San Jose, CA}.
+\newblock
+
+
+\bibitem[{GraalVM}(2026)]%
+        {graalvm2026nativeimage}
+\bibfield{author}{\bibinfo{person}{{GraalVM}}.}
+  \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{{GraalVM} Native Image}.
+\newblock
+  \bibinfo{howpublished}{\url{https://www.graalvm.org/latest/reference-manual/native-image/}}.
+\newblock
+
+
+\bibitem[Gro{\ss}(2026)]%
+        {gross2026state}
+\bibfield{author}{\bibinfo{person}{Samuel Gro{\ss}}.}
+  \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{State of {J}ava{S}cript Engine Exploitation}.
+\newblock
+  \bibinfo{howpublished}{\url{https://saelo.github.io/presentations/calif_community_talk_2026_state_of_js_engine_exploitation.pdf}}.
+\newblock
+
+
+\bibitem[Gruber(2018)]%
+        {gruber2018builtins}
+\bibfield{author}{\bibinfo{person}{Jakob Gruber}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \bibinfo{title}{Embedded builtins}.
+\newblock \bibinfo{howpublished}{\url{https://v8.dev/blog/embedded-builtins}}.
+\newblock
+
+
+\bibitem[Gruber(2019)]%
+        {gruber2019jitless}
+\bibfield{author}{\bibinfo{person}{Jakob Gruber}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \bibinfo{title}{{JIT}-less {V}8}.
+\newblock \bibinfo{howpublished}{\url{https://v8.dev/blog/jitless}}.
+\newblock
+
+
+\bibitem[Henderson(2023)]%
+        {henderson2023ic}
+\bibfield{author}{\bibinfo{person}{Nathan Henderson}.}
+  \bibinfo{year}{2023}\natexlab{}.
+\newblock \emph{\bibinfo{title}{On Policy Decisions of Polymorphic Inline
+  Caches}}.
+\newblock \bibinfo{thesistype}{Master's\ thesis}. \bibinfo{school}{University
+  of Alberta}.
+\newblock
+
+
+\bibitem[Holley(2026)]%
+        {holley2026zerodays}
+\bibfield{author}{\bibinfo{person}{Bobby Holley}.}
+  \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{The Zero-Days Are Numbered}.
+\newblock
+  \bibinfo{howpublished}{\url{https://blog.mozilla.org/en/firefox/privacy-security/ai-security-zero-day-vulnerabilities/}}.
+\newblock
+
+
+\bibitem[Khrabrov et~al\mbox{.}(2022)]%
+        {khrabrov2022jitserver}
+\bibfield{author}{\bibinfo{person}{Alexey Khrabrov}, \bibinfo{person}{Marius
+  Pirvu}, \bibinfo{person}{Vijay Sundaresan}, {and} \bibinfo{person}{Eyal de
+  Lara}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{JITServer}: Disaggregated Caching {JIT} Compiler
+  for the {JVM} in the Cloud}. In \bibinfo{booktitle}{\emph{2022 USENIX Annual
+  Technical Conference (USENIX ATC 22)}}. \bibinfo{publisher}{USENIX
+  Association}, \bibinfo{address}{Carlsbad, CA}, \bibinfo{pages}{869--884}.
+\newblock
+
+
+\bibitem[Mehta et~al\mbox{.}(2023)]%
+        {mehta2023reuse}
+\bibfield{author}{\bibinfo{person}{Meetesh~Kalpesh Mehta},
+  \bibinfo{person}{Sebasti{\'a}n Krynski}, \bibinfo{person}{Hugo~Musso
+  Gualandi}, \bibinfo{person}{Manas Thakur}, {and} \bibinfo{person}{Jan
+  Vitek}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Reusing Just-in-Time Compiled Code}.
+\newblock \bibinfo{journal}{\emph{Proc. ACM Program. Lang.}}
+  \bibinfo{volume}{7}, \bibinfo{number}{OOPSLA2}, Article
+  \bibinfo{articleno}{263} (\bibinfo{year}{2023}),
+  \bibinfo{numpages}{22}~pages.
+\newblock
+\href{https://doi.org/10.1145/3622839}{doi:\nolinkurl{10.1145/3622839}}
+
+
+\bibitem[{Mozilla}(2026a)]%
+        {mozilla2026securityadvisories}
+\bibfield{author}{\bibinfo{person}{{Mozilla}}.}
+  \bibinfo{year}{2026}\natexlab{a}.
+\newblock \bibinfo{title}{{Mozilla Foundation Security Advisories}}.
+\newblock
+  \bibinfo{howpublished}{\url{https://github.com/mozilla/foundation-security-advisories}}.
+\newblock
+\newblock
+\shownote{Accessed September 2, 2026}.
+
+
+\bibitem[{Mozilla}(2026b)]%
+        {mozilla2026tp6}
+\bibfield{author}{\bibinfo{person}{{Mozilla}}.}
+  \bibinfo{year}{2026}\natexlab{b}.
+\newblock \bibinfo{title}{Raptor Test List (tp6 pageload suite)}.
+\newblock
+  \bibinfo{howpublished}{\url{https://firefox-source-docs.mozilla.org/testing/perfdocs/test-list.html}}.
+\newblock
+
+
+\bibitem[{Mozilla}(2026c)]%
+        {mozilla2026cve10702}
+\bibfield{author}{\bibinfo{person}{{Mozilla}}.}
+  \bibinfo{year}{2026}\natexlab{c}.
+\newblock \bibinfo{title}{Security Vulnerabilities Fixed in {F}irefox 151.0.3}.
+\newblock
+  \bibinfo{howpublished}{\url{https://www.mozilla.org/security/advisories/mfsa2026-54/}}.
+\newblock
+
+
+\bibitem[{Nebula Security}(2026)]%
+        {nebula2026ionstack}
+\bibfield{author}{\bibinfo{person}{{Nebula Security}}.}
+  \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{{IonStack} Part {I}: Unsound {IonBanana} Peel in
+  {Ion} Compiler, Slipping Through {F}irefox's {S}pider{M}onkey {JIT}}.
+\newblock
+  \bibinfo{howpublished}{\url{https://nebusec.ai/research/ionstack-part-1-cve-2026-10702/}}.
+\newblock
+
+
+\bibitem[Niu and Tan(2014)]%
+        {niu2014rockjit}
+\bibfield{author}{\bibinfo{person}{Ben Niu} {and} \bibinfo{person}{Gang Tan}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{{RockJIT}: Securing Just-In-Time Compilation Using
+  Modular Control-Flow Integrity}. In \bibinfo{booktitle}{\emph{Proceedings of
+  the 2014 ACM SIGSAC Conference on Computer and Communications Security
+  (CCS)}}. \bibinfo{publisher}{ACM}.
+\newblock
+\href{https://doi.org/10.1145/2660267.2660281}{doi:\nolinkurl{10.1145/2660267.2660281}}
+
+
+\bibitem[Pe{\v{c}}im{\'u}th et~al\mbox{.}(2024)]%
+        {pecimuth2024analysis}
+\bibfield{author}{\bibinfo{person}{Andrej Pe{\v{c}}im{\'u}th},
+  \bibinfo{person}{David Leopoldseder}, {and} \bibinfo{person}{Petr
+  T{\r{u}}ma}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{An Analysis of Compiled Code Reusability in Dynamic
+  Compilation}. In \bibinfo{booktitle}{\emph{Proceedings of the 16th ACM
+  SIGPLAN International Workshop on Virtual Machines and Intermediate Languages
+  (VMIL)}}. \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{43--53}.
+\newblock
+\href{https://doi.org/10.1145/3689490.3690406}{doi:\nolinkurl{10.1145/3689490.3690406}}
+
+
+\bibitem[Pe{\v{c}}im{\'u}th et~al\mbox{.}(2025)]%
+        {pecimuth2025reuse}
+\bibfield{author}{\bibinfo{person}{Andrej Pe{\v{c}}im{\'u}th},
+  \bibinfo{person}{David Leopoldseder}, {and} \bibinfo{person}{Petr
+  T{\r{u}}ma}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Reusing Highly Optimized {IR} in Dynamic
+  Compilation}. In \bibinfo{booktitle}{\emph{39th European Conference on
+  Object-Oriented Programming ({ECOOP} 2025)}} \emph{(\bibinfo{series}{Leibniz
+  International Proceedings in Informatics (LIPIcs)},
+  Vol.~\bibinfo{volume}{333})}. \bibinfo{publisher}{Schloss Dagstuhl --
+  Leibniz-Zentrum f{\"u}r Informatik}, \bibinfo{address}{Dagstuhl, Germany},
+  \bibinfo{pages}{25:1--25:25}.
+\newblock
+\href{https://doi.org/10.4230/LIPIcs.ECOOP.2025.25}{doi:\nolinkurl{10.4230/LIPIcs.ECOOP.2025.25}}
+
+
+\bibitem[Poirier et~al\mbox{.}(2025)]%
+        {poirier2025hopcic}
+\bibfield{author}{\bibinfo{person}{Aurore Poirier}, \bibinfo{person}{Erven
+  Rohou}, {and} \bibinfo{person}{Manuel Serrano}.}
+  \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{An Attempt to Catch Up with {JIT} Compilers: The
+  False Lead of Optimizing Inline Caches}.
+\newblock \bibinfo{journal}{\emph{The Art, Science, and Engineering of
+  Programming}} \bibinfo{volume}{10}, \bibinfo{number}{1}
+  (\bibinfo{year}{2025}).
+\newblock
+\href{https://doi.org/10.22152/programming-journal.org/2025/10/6}{doi:\nolinkurl{10.22152/programming-journal.org/2025/10/6}}
+
+
+\bibitem[Serrano(2021)]%
+        {serrano2021hopc}
+\bibfield{author}{\bibinfo{person}{Manuel Serrano}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Of {J}ava{S}cript {AOT} Compilation Performance}.
+\newblock \bibinfo{journal}{\emph{Proc. ACM Program. Lang.}}
+  \bibinfo{volume}{5}, \bibinfo{number}{ICFP} (\bibinfo{year}{2021}).
+\newblock
+\href{https://doi.org/10.1145/3473575}{doi:\nolinkurl{10.1145/3473575}}
+
+
+\bibitem[Toufie and Kabaso(2024)]%
+        {toufie2024osnoise}
+\bibfield{author}{\bibinfo{person}{Zahir Toufie} {and}
+  \bibinfo{person}{Boniface Kabaso}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{{OS} Noise Mitigations for Benchmarking Web Browser
+  Execution Environment Performance}.
+\newblock \bibinfo{journal}{\emph{Discover Computing}} \bibinfo{volume}{27},
+  \bibinfo{number}{1}, Article \bibinfo{articleno}{37} (\bibinfo{year}{2024}).
+\newblock
+\href{https://doi.org/10.1007/s10791-024-09471-4}{doi:\nolinkurl{10.1007/s10791-024-09471-4}}
+
+
+\bibitem[{V8 Project}({[n.\,d.]})]%
+        {v8torque}
+\bibfield{author}{\bibinfo{person}{{V8 Project}}.}
+  \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \bibinfo{title}{{V8} Torque User Manual}.
+\newblock \bibinfo{howpublished}{\url{https://v8.dev/docs/torque}}.
+\newblock
+
+
+\bibitem[Wang and Chen(2026)]%
+        {wang2026enhancedinsecurity}
+\bibfield{author}{\bibinfo{person}{Nan Wang} {and} \bibinfo{person}{Ziling
+  Chen}.} \bibinfo{year}{2026}\natexlab{}.
+\newblock \bibinfo{title}{Enhanced Insecurity Mode: 23 {RCE}s in Edge's `Safe'
+  {W}eb{A}ssembly Interpreter}.
+\newblock
+  \bibinfo{howpublished}{\url{https://www.offensivecon.org/speakers/2026/nan-wang-and-ziling-chen.html}}.
+\newblock
+
+
+\bibitem[Xu and Kjolstad(2021)]%
+        {xu2021copypatch}
+\bibfield{author}{\bibinfo{person}{Haoran Xu} {and} \bibinfo{person}{Fredrik
+  Kjolstad}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Copy-and-Patch Compilation: A fast compilation
+  algorithm for high-level languages and bytecode}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the ACM on Programming Languages
+  (OOPSLA)}}, Vol.~\bibinfo{volume}{5}. \bibinfo{publisher}{ACM}.
+\newblock
+\href{https://doi.org/10.1145/3485513}{doi:\nolinkurl{10.1145/3485513}}
+
+
+\bibitem[Xu et~al\mbox{.}(2018)]%
+        {xu2018sharejit}
+\bibfield{author}{\bibinfo{person}{Xiaoran Xu}, \bibinfo{person}{Keith~D.
+  Cooper}, \bibinfo{person}{Jacob Brock}, \bibinfo{person}{Yan Zhang}, {and}
+  \bibinfo{person}{Handong Ye}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{{ShareJIT}: {JIT} Code Cache Sharing across
+  Processes and Its Practical Implementation}.
+\newblock \bibinfo{journal}{\emph{Proc. ACM Program. Lang.}}
+  \bibinfo{volume}{2}, \bibinfo{number}{OOPSLA} (\bibinfo{year}{2018}).
+\newblock
+\href{https://doi.org/10.1145/3276494}{doi:\nolinkurl{10.1145/3276494}}
+
+
+\end{thebibliography}

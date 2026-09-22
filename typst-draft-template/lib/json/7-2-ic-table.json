@@ -1,0 +1,61 @@
+{
+  "columns": [
+    {
+      "key": "metric",
+      "label": "Metric",
+      "align": "left",
+      "format": "str"
+    },
+    {
+      "key": "tp6_test",
+      "label": "tp6-Test",
+      "align": "right",
+      "format": "str"
+    },
+    {
+      "key": "speedometer3",
+      "label": "Speedometer 3.1",
+      "align": "right",
+      "format": "str"
+    },
+    {
+      "key": "jetstream3",
+      "label": "JetStream 3.0",
+      "align": "right",
+      "format": "str"
+    }
+  ],
+  "rows": [
+    [
+      "#ICs",
+      "1,758",
+      "1,758",
+      "1,758"
+    ],
+    [
+      "Attached",
+      "1,258",
+      "1,090",
+      "1,197"
+    ],
+    [
+      "Utilization",
+      "71.6%",
+      "62.0%",
+      "68.1%"
+    ],
+    [
+      "Total attaches",
+      "790.8k",
+      "1.25M",
+      "1.47M"
+    ],
+    [
+      "AOT hit rate",
+      "99.9%",
+      "99.6%",
+      "98.3%"
+    ]
+  ]
+}
+

@@ -1,0 +1,849 @@
+\documentclass[sigplan,screen,review,anonymous]{acmart}
+
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+
+\setlength{\emergencystretch}{1em}
+\captionsetup{labelfont={bf,sf},textfont={rm},skip=3pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+
+\setlist{topsep=2pt,itemsep=2pt,parsep=0pt}
+\input{aot-image-stats.tex}
+\newcommand{\tpsixtrain}{24}
+\newcommand{\tpsixtest}{8}
+\newcommand{\tpsixtotal}{32}
+\newcommand{\sptrichitrate}{99.6\%}
+\newcommand{\tpsixtesthitrate}{99.9\%}
+\newcommand{\spaotdefault}{61\%}
+\newcommand{\spaotoverbl}{72\%}
+\newcommand{\ionmemreduction}{54\%}
+\newcommand{\libxulgrowth}{1.25\,MB}
+\newcommand{\libxulgrowthpct}{0.67\%}
+\newcommand{\libxuldefault}{186.28\,MB}
+\newcommand{\libxulaot}{187.53\,MB}
+\newcommand{\nonimagegrowth}{48\,KB}
+\newcommand{\browserpackagesize}{91.76\,MB}
+\newcommand{\browserpackageaotsize}{91.89\,MB}
+\newcommand{\browserpackagegrowth}{127\,KB}
+\newcommand{\browserpackagegrowthpct}{0.14\%}
+\newcommand{\browserunpackedgrowth}{1.26\,MB}
+\newcommand{\browserunpackedgrowthpct}{0.33\%}
+\newcommand{\spaotratio}{1.63$\times$}
+\newcommand{\spaoticratio}{1.55$\times$}
+\newcommand{\spamicshare}{87\%}
+\newcommand{\octaneaotratio}{2.07$\times$}
+\newcommand{\octaneaoticratio}{1.99$\times$}
+\newcommand{\octanebratio}{5.5$\times$}
+\newcommand{\octanedefratio}{20.8$\times$}
+\newcommand{\octaneamicshare}{93\%}
+\newcommand{\octaneworkloads}{16}
+\newcommand{\spworkloads}{20}
+\newcommand{\spContentProcs}{5}
+\newcommand{\spAOTsharing}{5.0$\times$}
+\newcommand{\spImageRSSgrowth}{35.0\,MB}
+\newcommand{\spImagePSSgrowth}{5.8\,MB}
+\newcommand{\spIonProcPSS}{24.1\,MB}
+\newcommand{\spAOTProcPSS}{11.0\,MB}
+\newcommand{\spAOTTrampolinePSS}{517\,KB}
+\newcommand{\spPrivatePSSReplaced}{7.3\,MB}
+\newcommand{\spPerfRuns}{10}
+\newcommand{\spPageCycles}{3}
+\newcommand{\octanePerfRuns}{10}
+\newcommand{\interICstaticFirst}{23.3\%}
+\newcommand{\interICdynFirst}{81.2\%}
+\newcommand{\interICstaticFinal}{89.8\%}
+\newcommand{\interICdynFinal}{99.96\%}
+\newcommand{\interBLstaticFinal}{12.9\%}
+\newcommand{\interBLdynFinal}{22.2\%}
+\newcommand{\interSiteCount}{24}
+\newcommand{\interICtrainCount}{1{,}591}
+\newcommand{\oracleBaselineCount}{4823}
+\newcommand{\oracleStubCount}{1201}
+\newcommand{\oracleDefaultFraction}{89\%}
+% Configuration display names
+\newcommand{\AM}{\leavevmode{\sc AmberMonkey}}
+\newcommand{\AMic}{\AM{}-IC}
+\newcommand{\AMempty}{AM-Empty}
+\newcommand{\AMshort}{AM}
+\newcommand{\AMicshort}{AM-IC}
+\newcommand{\AMoracle}{AM-Oracle}
+\newcommand{\BJIT}{Baseline JIT}
+\newcommand{\DefIon}{Default (Ion)}
+\newcommand{\InterpOnly}{interpreter-only}
+
+\newfloat{listing}{tbp}{lol}
+\floatname{listing}{Listing}
+\captionsetup[listing]{position=bottom}
+\lstdefinestyle{ambercode}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=false,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  aboveskip=0pt,
+  belowskip=0pt,
+  frame=none,
+  xleftmargin=0pt,
+  escapeinside={(*@}{@*)}
+}
+\lstset{style=ambercode}
+
+\setcopyright{none}
+\settopmatter{printacmref=false, printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\acmSubmissionID{625}
+\acmYear{2027}
+\acmConference[CGO '27]{2027 IEEE/ACM International Symposium on Code
+  Generation and Optimization}{March 20--24, 2027}{Salt Lake City, Utah, USA}
+
+\begin{document}
+\raggedbottom
+
+\title[Generating Reusable AOT Artifacts from a Production JavaScript JIT Compiler]{Generating Reusable Ahead-of-Time Artifacts from a Production JavaScript Just-in-Time Compiler}
+
+\author{DRAFT}
+\affiliation{%
+  \institution{University of Alberta}
+  \city{Edmonton}
+  \country{Canada}}
+\email{draft@draft.ca}
+
+\author{DRAFT}
+\affiliation{%
+  \institution{University of Alberta}
+  \city{Edmonton}
+  \country{Canada}}
+\email{draft@draft.ca}
+
+\author{DRAFT}
+\affiliation{%
+  \institution{University of Alberta}
+  \city{Edmonton}
+  \country{Canada}}
+\email{draft@draft.ca}
+
+\renewcommand{\shortauthors}{CGO 2027 Submission \#625}
+
+\begin{abstract} Restricted execution modes prevent guest-triggered just-in-time (JIT) compilation, reducing a JavaScript engine's attack surface at the
+cost of performance. Bootstrapping performant JIT code into a trusted ahead-of-time (AOT) build can recover lost performance, but dynamic browser workloads impose two constraints. First, AOT-compiled artifacts must generalize to unseen workloads to justify their binary cost. Second, unlike dedicated AOT compilers, existing JIT code generators are not designed for cross-process reuse.
+
+This paper presents \AM{}, an AOT code-generation model implemented within SpiderMonkey's shared assembler. 
+\AM{} produces reusable JIT artifacts from arbitrary
+JavaScript workloads using a process-decoupled code representation.
+Inline-cache (IC) stub bodies provide the primary source of performance recovery: they recur across workloads despite specializing on runtime behavior. The deployment corpus contains \icstubcount{} total IC stub bodies (\icstubcodesize{}) and serves at least \sptrichitrate{} of IC compilation requests across held-out web benchmarks. Combined with \selfhostedcount{} self-hosted Baseline bodies (\baselinebodycodesize{}), restricted-execution throughput on Speedometer 3.1 reaches \spaotratio{} that of interpreter-only execution and \spaotdefault{} of default tiered-JIT throughput. An oracle corpus performs comparably to the run-time Baseline JIT, while the fixed image increases the Firefox package by only \browserpackagegrowthpct{}.
+
+\end{abstract}
+
+\maketitle
+
+\section{Reusability Through Indirection}
+
+Modern JavaScript engines rely on just-in-time (JIT) compilation to execute programs efficiently. In browsers, however, JIT compilation allows untrusted guest code to influence native code generation. Despite years of mitigation, JIT compilers remain a source of vulnerabilities~\cite{gross2026state}. Restricted execution modes can remove this guest-controlled attack vector by disabling run-time code generation driven by JavaScript. This protection comes at a performance cost: when V8 introduced JITless, Speedometer 2 throughput fell by 40\%~\cite{gruber2019jitless}. Engine designers therefore face the challenge of recovering performance without exposing compilation to guest code.
+
+In addition to the challenges posed by JavaScript's dynamic typing, conventional ahead-of-time (AOT) compilation assumes that the application is known at build time. This assumption does not hold for browser engines, which are built before guest JavaScript becomes available. Consequently, AOT compilation has largely been limited to statically known JavaScript built-ins~\cite{gruber2018builtins}. Beyond these known targets, JIT-generated code that recurs across workloads could be precompiled to recover performance, provided that its reuse justifies the binary-size cost.
+
+Inline caches (ICs) accelerate common dynamic operations, making them a compelling target for performance recovery under restricted execution. Interpreter ICs demonstrate that inline caching can operate without run-time code generation by selecting from predefined handlers~\cite{brunthaler2010quickening}. When dynamic code generation is available, however, JIT compilers may emit native IC stub bodies on demand, specializing them to precise run-time observations~\cite{demooij2023cacheir, glew2004lil}. Restricted execution precludes on-demand compilation. Precompiling these stub bodies also appears infeasible. Run-time observations can produce an unbounded set of specializations, and a stub may depend on guest-program state, such as an object shape observed during a property access.
+
+Although IC specializations are unbounded in principle, two properties of SpiderMonkey make a high-coverage corpus of IC stub bodies feasible in practice. First, a structured intermediate representation expresses specialization computations as sequences of primitive operations that recur across sites. Second, separating code from data allows each IC site to parameterize a shared stub body with its own run-time values. Together, these properties create a many-to-one mapping from IC sites to native stub bodies. A fixed AOT corpus can therefore supply many of the stub bodies that would otherwise be generated at run time.
+
+Recurring code is not inherently reusable. The issue is {\it JIT code coupling}: JIT compilers normally generate code in the same process that executes it. Thus, the JIT-generated code often embeds addresses of helper routines and run-time data. Reusing native compiled JIT code requires a way to locate each address dependency in the new runtime. The native linker can resolve some references, but private run-time state requires explicit engine support.
+
+\AM{} makes SpiderMonkey's JIT code reusable by resolving these address dependencies beneath its existing code generators. Native-linker relocations resolve linker-visible symbols, while references to private run-time state are routed through a side table that separates reusable code from process-local data. This transformation applies to IC stub bodies, Baseline-compiled functions, and the generated Baseline Interpreter. Because \AM{} operates at the assembler level, the existing generators can produce AOT artifacts without changes to their compilation logic. During a trusted build, \AM{} uses these generators to collect a fixed corpus of reusable code. At run time, the engine selects matching artifacts from this corpus and falls back to interpretation when none is available. This approach recovers native execution under restricted execution while reusing SpiderMonkey's implementation of JavaScript semantics.
+
+The contributions of this paper are the following:
+
+\begin{enumerate}[leftmargin=1.5em,labelsep=0.45em]
+
+  \item A characterization of dynamic IC compilation showing that a
+  compact, high-coverage AOT corpus is practical. CacheIR's structured
+  composition and code--data separation map millions of attachment
+  requests onto \interICtrainCount{} reusable guest-script stub bodies. A corpus
+  collected from
+  \tpsixtrain{} page loads serves \sptrichitrate{} of requests on Speedometer
+  3.1 and 99.8\% on Octane 2.0.
+
+  \item \AM{}, a code-generation augmentation that maps and removes JIT code
+  coupling across SpiderMonkey's Baseline Interpreter, Baseline-compiled
+  function bodies, and CacheIR stub bodies. By classifying and rebinding
+  embedded references beneath existing generator interfaces, \AM{} enables the
+  JIT generators to produce reusable AOT artifacts from arbitrary
+  JavaScript source without requiring a separate AOT compiler.
+
+  \item An evaluation that establishes both the practical benefit and the
+  performance boundary of reusable Baseline-tier artifacts. On Speedometer
+  3.1, a fixed corpus delivers \spaotratio{} the interpreter-only throughput
+  and reaches \spaotdefault{} of default tiered-JIT throughput. An oracle
+  corpus reaches \oracleDefaultFraction{} of default
+  tiered-JIT performance and performs comparably to the run-time Baseline JIT.
+  AOT artifacts reduce executable-code memory while
+  increasing the Firefox package by only \browserpackagegrowthpct{}.
+
+\end{enumerate}
+
+\section{Restricting JavaScript Execution}
+\label{sec:complexity}
+
+Restricted execution must prevent guest JavaScript from triggering native-code generation without requiring a new implementation of JavaScript semantics. Guest-triggered compilation exposes complex compiler logic to attacker-controlled bytecode and run-time profiles; a new interpreter or AOT compiler introduces a separate source of semantic errors. \AM{} addresses both risks by moving SpiderMonkey's existing Baseline and inline-cache generators into a trusted build while reusing the JavaScript semantics they already implement.
+
+\subsection{Guest-Triggered JIT Compilation}
+
+Guest-triggered JIT compilation exposes a direct path from attacker-controlled inputs to native instructions~\cite{niu2014rockjit}. An attacker can shape both the bytecode being compiled and the run-time profiles that drive speculative optimization. A missed side effect or invalid type assumption can lead the compiler to emit instructions that violate the engine's memory-safety invariants. For this reason, disabling guest-controlled compilation reduces a significant attack surface.
+
+Although automated bug finding has recently exposed browser vulnerabilities at scale, it has not exhausted the JIT attack surface. Mozilla reported that an early evaluation of Anthropic's Mythos Preview identified 271 Firefox vulnerabilities that were fixed in version 150~\cite{holley2026zerodays}. Several months later, Nebula Security disclosed a high-severity SpiderMonkey JIT miscompilation that enabled arbitrary code execution~\cite{mozilla2026cve10702, nebula2026ionstack}. That later finding suggests that JIT-related vulnerabilities persist and continued mitigation is worthwhile.
+
+A 2026 survey reported that JITs collectively accounted for roughly half of known exploitable V8 bugs, while Baseline compilation was rarely involved~\cite{gross2026state}. Optimizing tiers make speculative type and control-flow inferences that Baseline compilation does not, creating additional opportunities for incorrect assumptions to affect generated code. A review of Mozilla's advisories from 2017 to the present follows a similar pattern: four clear JavaScript Baseline or CacheIR root causes among 45 CVE entries involving JIT compilation~\cite{mozilla2026securityadvisories}. Despite their smaller share of known vulnerabilities, moving Baseline and IC compilation into a trusted build eliminates their guest-triggered attack surface while preserving their generated code for performance recovery.
+
+
+
+\subsection{JavaScript Semantics}
+
+Restricted execution could avoid guest-triggered compilation by using a new interpreter or dedicated AOT compiler. Either approach must independently implement JavaScript's type, control-flow, and memory semantics, creating another source of errors rather than eliminating implementation risk~\cite{wang2026enhancedinsecurity}.
+
+\AM{} instead reuses SpiderMonkey's Baseline and inline-cache code generators. It instruments the shared assembler beneath the code-generation interfaces that SpiderMonkey developers already write and reason about. This leaves the generators' semantic logic unchanged and avoids introducing another implementation of JavaScript semantics.
+
+\subsection{Restricted Execution}
+\label{sec:restricted-execution}
+\AM{} intercepts Baseline-body and IC-stub compilation requests to serve AOT artifacts. A miss in the corpus falls back to interpretation. Regular expression compilation is also disabled and interpreted instead. All guest-triggered JavaScript native code generation is therefore disabled. Artifacts are generated during a trusted build. Guest JavaScript may select and parameterize an existing artifact but cannot generate new instructions.
+
+Two engineering details prevent the complete elimination of run-time executable memory. First, SpiderMonkey lacks a WebAssembly interpreter and therefore relies on compilation. Additionally, trampolines remain run-time generated, but are deterministic and not influenced by guest code. Eliminating these final sources of runtime code generation could allow greater portability for \AM{}, but requires engineering beyond this work.
+
+\section{Structured Inline Caching Enables a High-Coverage AOT Corpus}
+\label{sec:sic}
+
+An AOT system can achieve high coverage on unseen workloads using a small corpus of run-time-compiled IC stub bodies.
+A \emph{fixed-handler} IC design, in which ICs dispatch to specialized and generic handlers fixed at build time, is naturally suited for restricted execution.
+ In contrast, \emph{run-time-generated} ICs reflect a JIT-oriented design: specialized fast paths are generated lazily for newly observed data. An IC relying on run-time code generation may not generalize beyond its particular invocation site. Two design constraints enable an AOT formulation in practice. A structured IR describes IC operations compositionally, while code-data separation enables stub-body sharing. A preliminary experiment shows that SpiderMonkey's CacheIR design yields a high-coverage corpus.
+
+\subsection{Generated versus Fixed-Handler ICs}
+
+
+Inline caches specialize operations using observations collected at a program location~\cite{deutsch1984smalltalk}. Guards check whether a specialization applies to the current inputs, and execution reaches a generic fallback when no specialization applies. Interpreter implementations demonstrate that inline caching does not require run-time code generation~\cite{brunthaler2010quickening}.
+
+A \emph{fixed-handler} IC selects a pre-generated routine using observations from its site. Specialization changes data rather than executable code, making this design compatible with restricted execution. The available handlers range from specialized fast paths to generic implementations. When no specialized handler applies, the IC uses a generic handler rather than generating a new fast path. V8's Ignition interpreter follows this design, recording observations and handler selections in a feedback vector~\cite{alle2018codecaching}.
+
+A \emph{run-time-generated} IC instead compiles new fast paths as it encounters new observations. For example, a property access can generate a fast path for an observed receiver type and property offset. Guards allow subsequent executions to reuse that path when its assumptions hold. JavaScriptCore generates native polymorphic stubs for the object structures observed at a site~\cite{henderson2023ic}. SpiderMonkey also generates native stub bodies but describes their specializations using CacheIR, a high-level intermediate representation~\cite {demooij2023cacheir}.
+
+\subsection{CacheIR Design for Stub-Body Reuse}
+
+At first glance, a run-time-generated IC design appears incompatible with an AOT model. Generating a separate stub body ahead of time for every IC site and run-time observation leads to an impractically large AOT corpus. CacheIR avoids this site-by-site expansion through two complementary properties. \emph{Composition} maps specializations onto recurring IR sequences, and \emph{code--data separation} allows stubs with different site-local values to execute the same compiled body.
+
+\subsubsection{Composition}
+
+CacheIR represents an IC specialization as a sequence of primitive operations. After a novel set of operand types are observed, a CacheIR generator composes the guards, conversions, and result operation needed for its fast path. A CacheIR compiler then lowers the sequence into a native stub body. Generators reuse the same primitive operations across specializations instead of defining each complete path as a dedicated handler.
+
+String--integer subtraction provides a concrete example. In Listing~\ref{lst:string-int32-cacheir}, CacheIR composes four existing operations to guard the operand types and perform an integer subtraction. The CacheIR compiler lowers this sequence into a native stub body.
+SpiderMonkey uses the exact CacheIR sequence as a cache key~\cite{demooij2023cacheir}, so any JavaScript expression that produces this sequence reuses the same body.
+
+\begin{listing}[t!]
+  \centering
+  \begin{minipage}{\linewidth}
+  \begin{minipage}[t]{0.30\linewidth}
+    \centering
+    {\footnotesize\bfseries JS Source\par}
+    \smallskip
+\begin{lstlisting}
+(lhs="41", rhs=1) =>
+{
+  return lhs (*@\textbf{\texttt{-}}@*) rhs;
+}
+\end{lstlisting}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.05\linewidth}
+    \centering
+    \vspace{1.7\baselineskip}$\rightarrow$
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.61\linewidth}
+    \centering
+    {\footnotesize\bfseries CacheIR\par}
+    \smallskip
+\begin{lstlisting}
+GuardToString(lhs) -> str
+GuardStringToInt32(str) -> lhs32
+GuardToInt32(rhs) -> rhs32
+Int32SubResult(lhs32, rhs32)
+\end{lstlisting}
+  \end{minipage}
+  \end{minipage}
+  \caption{Specialized CacheIR stub for string--integer subtraction.}
+  \label{lst:string-int32-cacheir}
+\end{listing}
+
+
+\subsubsection{Code--Data Separation}
+
+Stub-body reuse requires compiled code to remain independent of the run-time values observed at each IC site. CacheIR stores values such as object shapes and property offsets in per-site stub data rather than embedding them in the compiled body. The CacheIR sequence therefore determines the reusable instructions, while each site supplies the data needed by those instructions.
+
+Fig.~\ref{fig:cacheir-sharing} illustrates how different property accesses can share instructions without sharing their observations. The shared body reads the expected object shape and property offset from the current stub, so neither value needs to be embedded in its instructions. Guard failure follows that stub's link to the next specialization or fallback. Each site can therefore maintain its own specialization chain while using shared code. This separation allows \AM{} to include the body in its AOT corpus while each runtime supplies its own stub data.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.90\linewidth]{figures/wrap_figure_1_ic.pdf}
+  \caption{Two property-load sites share a fixed-slot CacheIR stub body.
+    The first stub at each site points to the same body despite holding
+    different object shapes and property offsets. Site A also has a
+    dynamic-slot specialization with a separate body. On guard failure,
+    site A tries this specialization, while site B proceeds directly to
+    its fallback.}
+  \label{fig:cacheir-sharing}
+\end{figure}
+
+\subsection{Cross-Workload Reuse}
+
+Sharing within a single runtime is insufficient for a fixed AOT corpus. A browser cannot anticipate future JavaScript, so artifacts collected at build time must recur across unseen workloads. The experiment measures how often CacheIR stub bodies and Baseline compiled bodies recur between two portions of the {\tt tp6} page-load suite.
+
+\subsubsection{Experimental Design}
+
+Mozilla's {\tt tp6} page-load suite contains 32 common websites, including Amazon, Facebook, and YouTube~\cite{mozilla2026tp6}. The first 24 sites form {\tt tp6}-Train, while the remaining eight form {\tt tp6}-Test. Instrumentation records each distinct IC stub body and Baseline body requested during a page load and counts its executions. Two IC stub bodies are equal when their CacheIR sequences match, whereas two Baseline bodies are equal when their bytecode matches. Fig.~\ref{fig:corpus-growth} shows how progressively larger subsets of {\tt tp6}-Train cover artifacts requested by the combined {\tt tp6}-Test workloads. The experiment adds training sites in ascending order of distinct IC stub-body count, so larger sites do not inflate early coverage.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.90\linewidth]{figures/3-3-corpus-growth.pdf}
+  \caption{Static and execution-weighted intersection with eight held-out
+    {\tt tp6}-Test sites as the corpus accumulates artifacts from 24 {\tt tp6}-Train sites.}
+  \label{fig:corpus-growth}
+\end{figure}
+
+Let $A$ contain the artifacts recorded from the first $k$ training sites, and $B$ contain those requested by the combined test sites. \emph{Static intersection} measures the fraction of distinct test artifacts present in $A$. This fraction alone does not indicate how much execution the corpus covers because artifacts differ in execution frequency. \emph{Execution-weighted intersection} measures the fraction of test artifact executions served by artifacts in $A$. These metrics for IC stub bodies and Baseline bodies are given by:
+
+\begin{equation}
+  I_{\mathrm{static}}(A\mathord{\to}B) = \frac{|A \cap B|}{|B|}, \enspace
+  I_{\mathrm{exec}}(A\mathord{\to}B) =
+    \frac{\sum_{a \in A \cap B} \mathrm{exec}_B(a)}
+         {\sum_{a \in B} \mathrm{exec}_B(a)}.
+\end{equation}
+
+\subsubsection{Coverage Results}
+
+CacheIR yields a compact corpus with high execution coverage on {\tt tp6}-Test. Across three browser cycles for each of the \interSiteCount{} training sites, roughly 5.1 million IC attachment requests reduce to \interICtrainCount{} distinct guest-script stub bodies. Coverage grows rapidly: even the smallest training workload contains only \interICstaticFirst{} of distinct {\tt tp6}-Test stub bodies, yet those bodies account for \interICdynFirst{} of {\tt tp6}-Test stub-body executions. The full corpus includes \interICstaticFinal{} of distinct test bodies, which account for \interICdynFinal{} of test executions. The missing test bodies therefore execute rarely.
+
+Baseline bodies show much less cross-workload reuse. The complete training corpus contains only \interBLstaticFinal{} of distinct {\tt tp6}-Test Baseline bodies and serves \interBLdynFinal{} of their executions. Most covered Baseline bodies belong to invariably provided self-hosted functions such as \texttt{Array.map}.
+
+These results support CacheIR stub bodies as AOT candidates for unseen workloads. Reusing their instructions across processes presents a separate challenge: generated code can embed addresses from the runtime that produced it.
+
+% This example introduces AmberMonkey's solution, so place it at the
+% transition into that section rather than amid the Section 3 figures.
+\begin{listing*}[t!]
+  \centering
+  \begin{minipage}[t]{0.32\textwidth}
+    \vspace{0pt}
+    \centering
+    {\footnotesize\bfseries (a) Baseline code generator\par}
+    \smallskip
+\begin{lstlisting}[language=C++]
+void emitCheck(Masm& masm, Reg out) {
+  auto* flag = cx->interruptFlag();
+  masm.movePtr((*@\bfseries ImmPtr(flag)@*), out);
+  masm.branch32(NonZero,
+    Address(out, 0), &interrupt);
+}
+\end{lstlisting}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \vspace{0pt}
+    \centering
+    {\footnotesize\bfseries (b) Simplified lowering\par}
+    \smallskip
+\begin{lstlisting}[language=C++,deletekeywords={auto}]
+void movePtr(ImmPtr p, Reg dst) {
+  if (auto s = findRITSlot(p))
+    (*@\bfseries emitRITLoad@*)(*s, dst);
+  else
+    reportUnknownPointer(p);
+}
+\end{lstlisting}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \vspace{0pt}
+    \centering
+    {\footnotesize\bfseries (c) Simplified x86-64\par}
+    \smallskip
+\begin{lstlisting}[escapeinside={(*@}{@*)}]
+# Default SpiderMonkey
+movabsq $flag, %rax
+
+# AmberMonkey
+movq -24(%rbp), %r11 # table base
+movq 48(%r11), %rax  # RIT slot no. 6
+\end{lstlisting}
+  \end{minipage}
+  \caption{Avoiding JIT coupling through Runtime Indirection
+    Table (RIT) access. The unchanged generator (a) supplies the address,
+    which lowers to a table access (b). Panel (c) compares the emitted
+    instructions. Identifiers and offsets are simplified.}
+  \label{lst:code-lowering}
+\end{listing*}
+
+\begin{figure*}[t!]
+  \centering
+  \includegraphics[width=0.84\textwidth]{figures/wrap_figure_2_rit.pdf}
+  \caption{Sharing AOT code through per-runtime Runtime Indirection Tables
+    (RITs). Instead of generating an interpreter for each runtime, \AM{}
+    shares one interpreter and $K$ CacheIR stub bodies across $N$ runtimes.
+    Shared code loads the RIT base from the current frame (1), then retrieves
+    the runtime's pointer from its table (2).}
+  \Description{Concurrent runtimes use private Runtime Indirection Tables and
+    frame-header RIT pointers to execute a shared AOT Baseline Interpreter and
+    shared CacheIR stub corpus.}
+  \label{fig:rit-access}
+\end{figure*}
+
+\section{AmberMonkey}
+\label{sec:ambermonkey}
+
+\AM{} allows JIT-compiled artifacts to be reused across processes by decoupling their code representation from the JavaScript runtime. Coupling occurs when runtime addresses are embedded directly in emitted code. AmberMonkey distinguishes rebindable dependencies from those that cannot be recovered in another process, then provides an indirection mechanism called the \emph{Runtime Indirection Table} (RIT). For each dependency that SpiderMonkey can look up after initializing a runtime, \AM{} assigns a RIT slot index that remains fixed across processes. Certain dependencies cannot be recovered this way, such as pointers to movable garbage-collected objects or ephemeral state that lacks a serialization format. AmberMonkey's supported artifact classes avoid coupling to ephemeral state altogether.
+
+\subsection{JIT Code Coupling}
+
+JIT compilers are invoked after the host runtime has initialized. Addresses from the runtime may therefore appear in generated code. Listing~\ref{lst:code-lowering}(a) provides a clear example. A Baseline generator retrieves the address of the runtime's interrupt flag and passes it to the assembler. Ordinary SpiderMonkey embeds that address directly in the instruction shown in panel (c). The resulting code contains a process-specific address. Eliminating JIT coupling requires enumerating these pointers and replacing each embedded address with an indirect lookup through a side table. Whether this replacement is possible depends on whether another process can recover the object to which the pointer refers.
+
+\subsubsection{Rebindable Dependencies}
+
+A dependency on the host runtime is \emph{rebindable} if SpiderMonkey provides an \emph{accessor}: a routine that recovers the dependency's address from an initialized runtime. \AM{} assigns each rebindable dependency a stable RIT slot and invokes its accessor to populate that slot. The slot index remains consistent across processes, while the address stored in the slot is process-local. In Listing~\ref{lst:code-lowering}, \texttt{cx->interruptFlag()} returns the current runtime's interrupt-flag address and is the accessor expression for slot 6.
+
+\subsubsection{Ephemeral State}
+
+Some embedded addresses identify objects that cannot be looked up after initializing a new runtime. SpiderMonkey shapes, also known as hidden classes or maps, are the primary example. A shape describes an object's layout, and optimized Ion code may embed Shape pointers in guards. Shapes are hash-consed within each runtime, so a Shape is identified only by its process-local pointer. Unlike the interrupt flag, SpiderMonkey provides neither an accessor for finding an equivalent Shape nor a serialization format for reconstructing one. Such dependencies are \emph{ephemeral}, and \AM{} rejects artifacts that embed references to them. Supporting those artifacts would therefore require a new mechanism for serializing Shapes. AmberMonkey instead targets Baseline-compiled bodies, CacheIR stub bodies, and the Baseline Interpreter, which do not embed Shape pointers or other ephemeral dependencies.
+
+\subsection{Rebinding Through Indirection}
+
+Once \AM{} has enumerated the rebindable engine dependencies and assigned each a unique slot number, it accesses their addresses indirectly rather than embedding them in generated code. During a trusted build, a recording process generates the artifacts used to construct the AOT image. A loading process later intercepts matching compilation requests and installs those artifacts instead of invoking the corresponding JIT code generator. Both processes allocate and populate a RIT. Each dependency has the same slot index in both processes, while the address stored in that slot is process-local. 
+
+\subsubsection{Recording Processes}
+
+A recording process turns on \AM{}'s AOT-aware code-generation mode. It first populates the RIT by evaluating an ordered offline map that pairs each enumerated dependency with its C++ accessor expression. The order of this map determines the slot assignment. When an assembler routine encounters an absolute pointer, it performs a reverse lookup in the RIT. If the lookup succeeds, the assembler emits a load through the RIT base using the matched slot index. If no entry matches, \AM{} aborts AOT compilation because the pointer represents previously unaccounted-for JIT coupling. The recording process writes accepted artifacts to a directory for later packing into the AOT image described in Section~\ref{sec:image-construction}.
+
+\subsubsection{Loading Process}
+
+Once the recorded artifacts have been packed into the AOT image and linked into a browser's build, a loading process can access their code. At startup, the same accessors used during recording are evaluated to populate the RIT with process-local addresses. Because the slot assignments match those used to generate the artifacts, their RIT references resolve to the corresponding state in the loading process. To resolve a dependency, AOT code loads the RIT base from a fixed field in each Baseline or stub frame, then indexes it with the dependency's stable slot number. Fig.~\ref{fig:rit-access} illustrates this for several loading processes.
+
+Entry trampolines pass the RIT base to the Baseline Interpreter prologue, which stores it in the frame; bailouts and generator resumption preserve it when reconstructing frames. This design costs one word per frame and one load per RIT access, but avoids increasing x86 register pressure. Architectures with larger register budgets could instead pin the base in a register, reducing a load from each RIT access.
+
+\subsubsection{Supported Artifacts}
+
+Whether \AM{} can reuse an artifact depends on whether its embedded runtime dependencies are rebindable or ephemeral. \AM{} accepts a Baseline-generated artifact only when all its references can be resolved. Table~\ref{tab:runtime-deps} summarizes the supported resolution mechanisms. Artifact-local targets use relative offsets, linker-visible definitions use relocations, rebindable runtime identities use RIT slots, and deterministic runtime code is regenerated during trusted initialization. \AM{} rejects references with ephemeral identities or untracked address changes. Every resolved address must also remain valid for the artifact's execution.
+
+\subsection{Preserving Existing Code Generators}
+
+\AM{} imposes RIT indirection at SpiderMonkey's shared assembler boundary, allowing a recording workload to capture artifacts without modifying individual Baseline code generators. Corpus collection requires no workload-specific changes to the code generators. By contrast, V8 Embedded Builtins use an explicitly provisioned corpus. Developers author a fixed set of builtins in Torque or \texttt{CodeStubAssembler}, with Torque lowering to the latter~\cite{v8torque}. Applying indirection at the shared assembler significantly lowers the friction to accrue an AOT corpus. If an embedder can specialize the AOT image to a known workload, the same mechanism can construct an oracle corpus containing every IC stub and Baseline body that the workload encounters. Section~\ref{sec:oracle-corpus} evaluates its performance potential.
+
+
+\section{Integrating AOT Artifacts}
+
+AmberMonkey organizes artifacts from recording processes into an offline native image. Once loaded, the image supplies RIT-enabled artifacts for matching JIT compilation requests. Supplying JIT interfaces with static executable memory requires further integration with garbage collection, debugging and profiling interfaces.
+
+\begin{table}[t!]
+  \caption{Resolution of embedded references in Baseline-generated artifacts.}
+  \label{tab:runtime-deps}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{2.5pt}
+  \setlength{\aboverulesep}{1pt}
+  \setlength{\belowrulesep}{1pt}
+  \renewcommand{\arraystretch}{0.95}
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Status} & \textbf{Reference} & \textbf{Example} & \textbf{Resolution}\\
+    \midrule
+    \multirow[c]{4}{*}{\textit{Supported}}
+      & Artifact-local & Branch target & Relative offset\\
+      & Link-time definition & ABI call & Link relocation\\
+      & Rebindable identity & Interrupt flag & RIT slot\\
+      & Deterministic runtime code & VM trampoline & Generate at trusted init\\
+    \midrule
+    \multirow[c]{2}{*}{\textit{Rejected}}
+      & Ephemeral identity & Object shape & Reject artifact\\
+      & Untracked address change & GC cell & Reject artifact\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Image Construction}
+\label{sec:image-construction}
+
+AmberMonkey packages JIT code rewritten to use RIT indirection into an offline format. Simply storing the native instructions is insufficient. Each artifact, such as an IC stub or a Baseline function, also has metadata that locates entry points, patch sites, and return addresses within those instructions. \AM{} stores both the instructions and metadata so that the loading process can reconstruct the artifact without running its code generator again. For example, the Baseline Interpreter records the offset of its debug-trap handler and vectors of debugger and IC return sites.
+
+\AM{} uses a binary manifest to retrieve the metadata and code for a given artifact, as shown in Fig.~\ref{fig:aot-image}. A uniform directory array provides start and end offsets into non-uniform metadata and code buffers. The metadata of a given artifact class is defined in a declarative YAML schema that generates matching C++ encoders, decoders, and compile-time layout checks. The image also records a format version, corpus fingerprint, and code-generation settings so that incompatible images can be rejected.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=\linewidth]{figures/wrap_figure_3_aot_image.pdf}
+  \caption{Packed \AM{} image. Each binary-manifest entry locates an
+    artifact's metadata record and aligned instruction body. A page boundary
+    separates executable code from image metadata.}
+  \label{fig:aot-image}
+\end{figure}
+
+Artifacts from multiple recording processes can be combined into one AOT image. The completed image is linked into the final engine library. Under restricted execution, each intercepted compilation request looks for a matching artifact in the image; a hit installs the artifact, while a miss uses the generic fallback.
+
+\subsection{Adapting Static Code to JIT Interfaces}
+
+ SpiderMonkey represents a region of JIT-generated instructions with a C++ \texttt{JitCode} object managed by the garbage collector (GC). The object’s internal code pointer normally refers to dynamically allocated executable memory, but when the object is constructed from an AOT artifact, it instead refers to static engine code. The GC must reclaim the object without freeing the static instructions, while debugging and profiling tools must still be able to patch those instructions.
+
+\subsubsection{Garbage-Collection Integration}
+
+SpiderMonkey represents JIT-generated instructions with a GC-managed C++
+\texttt{JitCode} object whose code pointer refers to dynamically
+allocated executable memory. When \AM{} installs an AOT artifact, the same
+object points into the shared \texttt{.text.aot} section. \AM{} marks
+such objects as referencing static code, so finalization reclaims the
+\texttt{JitCode} wrapper without freeing the shared instructions.
+
+Ordinary \texttt{JitCode} objects also carry relocation tables for pointers
+embedded in generated instructions to GC-managed objects. When a compacting
+collection moves a target, SpiderMonkey uses these tables to patch the
+instructions. \AM{}'s Baseline bodies, IC stubs, and Baseline Interpreter
+contain no movable GC pointers, so \texttt{JitCode} objects installed from AOT
+artifacts omit these tables. Supporting tiers that embed movable pointers
+would require routing them through the RIT and updating RIT entries during
+collection rather than modifying shared code.
+
+\subsubsection{Debugging and Profiling}
+
+SpiderMonkey normally enables debugging for a Baseline-compiled function by recompiling its per-script Baseline body with debug instrumentation. This generates native code for a guest function in the loading process, violating restricted execution. \AM{} instead redirects execution to the Baseline Interpreter.
+
+The Baseline Interpreter already contains both normal and instrumented paths. SpiderMonkey enables debugging by replacing a branch that skips the instrumentation with no-op instructions and disables debugging by restoring the branch. Profiling uses a similar pattern. Patching an instruction in \texttt{.text.aot} creates a process-private copy of the affected page, while other loading processes continue to share the unmodified image. Debugging and profiling therefore require no new compilation, but are unavailable where executable pages cannot be modified. This limitation is inherited from SpiderMonkey's patch-based instrumentation.
+
+\subsection{RIT Access Reduction Optimizations}
+
+\AM{} applies two optimizations to reduce RIT access overhead. Native-linker relocations eliminate RIT accesses for references that the linker can resolve, while value mirroring removes a dependent load when accessing frequently read runtime state. Section~\ref{sec:indirection-overhead} evaluates the impact of each optimization separately.
+
+\subsubsection{Replacing RIT Accesses with Relocations}
+
+\AM{} emits a relocation record rather than an RIT access when AOT generation encounters a non-interposable symbol visible to the native linker. These symbols include class pointers, typed-array class-table addresses, static engine data, and ABI functions with linker-visible definitions. \AM{} leaves the instruction's four-byte PC-relative displacement zero and records the displacement's image offset and target symbol. The image builder generates an assembly file that interleaves \texttt{.incbin} and \texttt{.long} directives. Listing~\ref{lst:image-reloc} illustrates this sequence for one relocation. The \texttt{.incbin} directives copy instruction bytes into the object file, and each \texttt{.long} replaces a zeroed displacement with a symbolic relocation. Together, the directives reconstruct the complete image in \texttt{.text.aot}, where the native linker resolves each relocation into a direct PC-relative reference.
+
+\begin{listing}[t!]
+  \centering
+  \begin{minipage}{0.76\linewidth}
+\begin{lstlisting}
+.section .text.aot
+.incbin "AOTImage.inc", 0, disp_offset
+.long engine_symbol - . - 4
+.incbin "AOTImage.inc", disp_offset + 4
+\end{lstlisting}
+  \end{minipage}
+  \caption{Assembly scaffold for a link-resolved displacement.}
+  \label{lst:image-reloc}
+\end{listing}
+
+\subsubsection{Value Mirroring}
+
+After loading an address from an RIT slot, reading the referenced value requires another dependent load. \AM{} avoids this load by mirroring frequently polled scalars directly in the RIT, including the interrupt state, JIT stack limit, and count of zones requiring pre-write barriers. Mutation paths update these entries, using atomic stores when another thread may read them. A nonzero barrier count falls back to the precise per-zone test.
+
+
+
+\subsection{Implementation Scope and Limitations}
+
+The x86-64 implementation captures Baseline bodies, CacheIR stub bodies, and the generated Baseline Interpreter. It does not support optimizing-tier code. The implementation relies on an explicit enumeration of rebindable runtime pointers. Supporting additional artifact classes may require extending the RIT mapping. Support for additional architectures remains future work, although fewer than 100 of the 3.7K added lines are x86-64 specific. As discussed in Section~\ref{sec:restricted-execution}, deterministic startup trampolines and WebAssembly prevent eliminating all run-time executable-memory allocation. \AM{} passes the Test262 JavaScript suite.
+
+\section{Experimental Design and Corpus Construction}
+
+\AM{} is implemented atop Firefox 153.0a1. Both the baseline and \AM{} builds disable profile-guided optimization and link-time optimization. All experiments run on a system with a 6-core AMD Ryzen 5 7640U processor and 32\,GB of memory, with Linux kernel 7.0.9. The setup disables dynamic frequency scaling and simultaneous multithreading (SMT), leaving one hardware thread per core.
+
+Speedometer is an industry-standard benchmark that measures responsiveness across modern web applications~\cite{browserbench2024speedometer3}. For this evaluation, Speedometer 3.1 runs through Mozilla's Raptor performance-testing harness, serving it locally to avoid network effects. Octane 2.0 is a JavaScript performance workload that runs in the shell~\cite{chromium2013octane2}, omitting its zlib sub-benchmark because it involves WebAssembly compilation. The experiment collects 10 independent runs in fresh processes for each benchmark and configuration. Each Speedometer run additionally uses a fresh profile and comprises \spPageCycles{} page cycles. Error bars show 95\% confidence intervals across these runs.
+
+\subsection{Corpus Construction}
+
+The evaluated corpus combines artifacts recorded while Firefox runs the \tpsixtrain{} {\tt tp6}-Train workloads with a separate recording of SpiderMonkey's self-hosted code. After deduplication, it contains \icstubcount{} unique CacheIR stub bodies, \selfhostedcount{} self-hosted Baseline bodies, and one Baseline Interpreter. Every requested Baseline-tier artifact in these recordings was accepted; none encountered an unsupported embedded reference. The cross-workload analysis in Section~\ref{sec:sic} reports \interICtrainCount{} guest-script stub bodies because it filters out engine and self-hosted scripts, whereas corpus construction retains artifacts requested by all source classes. The packed image is fixed before collecting results. The {\tt tp6}-Test set and evaluated workloads do not participate in corpus construction.
+
+\subsection{Execution Configurations}
+
+The evaluation uses the configurations defined in Table~\ref{tab:exec-configs}. SpiderMonkey spans interpretation through tiered Ion compilation. The \AM{} configurations disable guest-code JIT compilation and differ only in the fixed AOT artifacts available; AOT misses fall back to interpretation. \AMoracle{} uses an evaluation-workload-specific corpus. V8 JITless and V8 default provide the cross-engine calibration.
+
+\begin{table}[t!]
+  \caption{Execution configurations.}
+  \label{tab:exec-configs}
+  \centering
+  \footnotesize
+  \setlength{\aboverulesep}{1pt}
+  \setlength{\belowrulesep}{1pt}
+  \renewcommand{\arraystretch}{0.85}
+  \begin{tabular}{@{}p{0.21\columnwidth}@{\hspace{3pt}}p{0.21\columnwidth}@{\hspace{3pt}}p{0.50\columnwidth}@{}}
+    \toprule
+    \textbf{Engine} & \textbf{Configuration} & \textbf{Enabled execution}\\
+    \midrule
+    \multirow[c]{3}{0.21\columnwidth}{SpiderMonkey}
+      & Interpreter only & Bytecode interpreter - no JIT\\
+      & \BJIT{} & Baseline compiler - no Ion\\
+      & \DefIon{} & Baseline and Ion compilers\\
+    \midrule
+    \multirow[c]{4}{0.21\columnwidth}{\AM{}}
+      & \AMempty{} & AOT Baseline interpreter only\\
+      & \AMicshort{} & AOT interpreter and IC bodies\\
+      & \AMshort{} & Adds AOT self-hosted bodies\\
+      & \AMoracle{} & Workload-specific AOT corpus\\
+    \midrule
+    \multirow[c]{2}{0.21\columnwidth}{V8}
+      & JITless & Ignition interpreter - no JIT\\
+      & Default & Ignition and all JIT tiers\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Evaluation: Performance Recovery at Low Cost}
+
+The default AmberMonkey configuration improves restricted-execution
+performance across every measured workload. Most of the gain comes from the
+broadly reusable CacheIR bodies in the tp6-derived corpus. Self-hosted Baseline
+functions contribute only marginally. The oracle configuration shows that AOT
+Baseline compilation can recover substantially more performance when the
+corpus covers the entire workload, but such advance knowledge of guest programs
+is impractical for general browser deployment. The remaining experiments
+quantify artifact-installation cost, RIT-indirection overhead, and
+executable-memory footprint.
+
+\subsection{AOT Corpus Coverage}
+
+The CacheIR corpus serves at least \sptrichitrate{} of IC compilation requests across held-out workloads, although each workload uses only part of the corpus (Table~\ref{tab:coverage}). The fixed corpus therefore supplies nearly all requested IC bodies without workload-specific training. The six most frequently invoked missing stub bodies in {\tt tp6}-Test contain property-access guards for prototype chains longer than those observed during corpus construction.
+
+Self-hosted Baseline bodies are available at build time, but their request coverage varies substantially across workloads. Speedometer uses many self-hosted corpus entries, but most Baseline compilation requests target guest functions absent from the corpus. The Baseline Interpreter, in contrast, is reusable wherever that tier executes. A fixed engine configuration produces one deterministic interpreter artifact. In {\tt tp6}-Test, 66 runtimes share that artifact instead of generating separate copies.
+
+
+\begin{table}[t!]
+  \caption{Coverage statistics using the {\tt tp6}-Train corpus. Utilization is the
+  proportion of artifacts used at least once. Compilation requests count
+  attachment requests for IC stubs and body-compilation requests for
+  Baseline bodies. Request coverage is the proportion of those requests served
+  by the image.}
+  \label{tab:coverage}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{1pt}
+  \setlength{\aboverulesep}{1pt}
+  \setlength{\belowrulesep}{1pt}
+  \renewcommand{\arraystretch}{0.9}
+  \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}>{\raggedright\arraybackslash}p{0.21\columnwidth}lrrr@{}}
+    \toprule
+    \textbf{AOT Artifact} & \textbf{Metric}
+      & \multicolumn{1}{c}{\textbf{tp6-Test}}
+      & \multicolumn{1}{c}{\textbf{Speed3.1}}
+      & \multicolumn{1}{c}{\textbf{Octane2}}\\
+    \midrule
+    \multirow[c]{3}{0.21\columnwidth}{\makecell[l]{CacheIR stub\\bodies (\icstubcount)}}
+      & Utilization & 72\% & 62\% & 27\%\\
+      & Requests & 790.8k & 1.25M & 136.5k\\
+      & AOT coverage & \tpsixtesthitrate{} & \sptrichitrate{} & 99.8\%\\
+    \midrule
+    \multirow[c]{3}{0.21\columnwidth}{\makecell[l]{Baseline bodies\\(\selfhostedcount)}}
+      & Utilization & 30\% & 34\% & 11\%\\
+      & Requests & 9{,}376 & 8{,}596 & 2{,}313\\
+      & AOT coverage & 11.7\% & 43.7\% & 2.2\%\\
+    \midrule
+    \makecell[l]{Baseline\\Interpreter (1)} & Installations & 66 & 7 & 1\\
+    \bottomrule
+  \end{tabular*}
+\end{table}
+
+\subsection{Restricted-Execution Performance}
+
+Restricted-execution performance depends on whether the chosen AOT corpus
+generalizes to unseen workloads and how closely the Baseline tier approximates
+optimized whole-function performance. \AM{} improves throughput across both
+benchmark suites, with CacheIR bodies providing most of its performance
+recovery. The remaining gap to default tiered-JIT performance depends strongly
+on workload structure. Ablations and an oracle corpus distinguish these
+effects.
+
+\begin{figure*}[t!]
+  \centering
+  \includegraphics[width=\textwidth]{figures/7-3-amber-perf-speed3-workloads.pdf}\\[-6pt]
+  \includegraphics[width=\textwidth]{figures/7-2-amber-perf-octane-subtests.pdf}
+  \caption{Per-workload speedup over \InterpOnly{} on Speedometer 3.1
+    (top) and Octane 2.0 (bottom, logarithmic y-axis).}
+  \label{fig:restricted-perf}
+\end{figure*}
+
+\subsubsection{Cross-Workload Performance}
+
+The fixed corpus improves throughput over interpretation on every workload in
+Figure~\ref{fig:restricted-perf}. At the request coverage reported in
+Table~\ref{tab:coverage}, a corpus collected from unrelated page loads supplies
+useful specialized paths across both benchmark suites. CacheIR bodies
+generalize across applications by specializing individual operations rather
+than whole guest functions. Corpus coverage therefore determines whether
+\AM{} can supply recurring Baseline artifacts. It does not determine how much
+default JIT performance those artifacts retain, which
+Section~\ref{sec:default-jit-retained} evaluates.
+
+\subsubsection{AOT Corpus Ablation}
+
+CacheIR stub bodies account for \spamicshare{} of the improvement from
+\InterpOnly{} to \AM{} on Speedometer and \octaneamicshare{} on Octane, making
+them the dominant transferable artifact class. Self-hosted Baseline bodies
+provide smaller and more workload-specific gains. Most components change
+little when they are added, although Observable Plot and RegExp benefit
+greatly.
+
+The empty-corpus configuration shows why corpus coverage matters. With only
+the AOT Baseline Interpreter, execution pays Baseline-interpreter and IC
+fallback overhead without specialized IC bodies and can perform worse than
+\InterpOnly{}. This failure mode requires a poorly matched corpus. The
+{\tt tp6}-Train corpus serves at least \sptrichitrate{} of IC compilation
+requests on every held-out workload in Table~\ref{tab:coverage}.
+
+\subsubsection{Oracle Corpus}
+\label{sec:oracle-corpus}
+
+An oracle corpus separates the limitation of cross-workload prediction from
+the limitation of Baseline execution itself. For Speedometer, adding
+workload-specific application bodies expands the corpus to
+\oracleBaselineCount{} Baseline functions and \oracleStubCount{} IC bodies.
+Restricted execution then reaches \oracleDefaultFraction{} of default
+tiered-JIT throughput. Workload-specific Baseline code can therefore recover
+substantially more performance when its identities are known in advance.
+Complete application functions lack the cross-workload reuse that makes
+CacheIR bodies practical deployment artifacts.
+
+\subsection{Default-JIT Performance Retained}
+\label{sec:default-jit-retained}
+
+Figure~\ref{fig:jitless} shows that the fraction of peak performance retained
+by \AM{} depends strongly on the category of workload. Speedometer 3.1
+exercises common-case web interactions, while Octane 2.0 is a performance
+benchmark. The short-lived intervals of computation in Speedometer 3.1 give
+less time for an optimizing JIT to warm up. In contrast, the cost of
+whole-function optimization is easily amortized by the long-running
+computational kernels in Octane.  The higher fraction of peak performance retained on a web workload
+is particularly relevant because \AM{} is designed for deployment beneath
+Firefox.
+
+SpiderMonkey's Baseline JIT serves as a control for \AMoracle{}, which
+captures every artifact requested from that tier. The two perform nearly
+identically on Octane, while \AMoracle{} slightly exceeds the Baseline JIT on
+Speedometer 3.1. The per-artifact costs in
+Section~\ref{sec:installation-cost} support compile-time elision as one
+contributor to this difference. Consequently, the gap between \AM{} and
+\AMoracle{} reflects the limits of cross-workload corpus generalization, while
+the remaining gap to default primarily reflects the absence of the optimizing
+tier.
+
+V8 JITless is the closest analogue to \AM{}. To keep the comparison fair, the
+WebAssembly-based {\tt zlib} sub-benchmark is omitted from Octane. V8 JITless
+retains more of its default performance than \AM{} with its
+\tpsixtrain{}-derived training corpus on Speedometer, but retains 21\% less
+than \AM{} on Octane. One plausible contributor is that CacheIR bodies
+generalize particularly well to Octane: they account for
+\octaneamicshare{} of \AM{}'s improvement over interpretation, and the corpus
+serves 99.8\% of its IC compilation requests. This cross-engine comparison is
+nevertheless relative: each configuration is normalized to its own engine's
+default, so it does not establish higher absolute throughput. The experiment
+uses Chromium 155 without PGO.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=\linewidth]
+    {figures/7-3-v8-jitless-comparison.pdf}
+  \caption{Performance retained relative to each engine's default on
+    Speedometer 3.1 (solid) and Octane 2.0 (hatched).}
+  \label{fig:jitless}
+\end{figure}
+
+\subsection{Artifact Installation Cost}
+\label{sec:installation-cost}
+
+Artifact reuse removes meaningful compilation work, especially for frequent
+CacheIR stubs. Across ten matched startup-benchmark runs, installing a CacheIR
+body took 0.08\,$\mu$s versus 3.50\,$\mu$s to compile one, a 44$\times$
+difference. Installation was also 9$\times$ cheaper for the Baseline Interpreter
+and 4$\times$ cheaper for a Baseline body. These per-operation savings support
+compilation elision as a contributor to \AMoracle{}'s Speedometer advantage
+over the Baseline JIT. Despite these isolated reductions in installation cost,
+end-to-end startup measurements were too noisy to isolate a latency change, a
+known challenge in browser benchmarking~\cite{toufie2024osnoise}.
+
+\subsection{Indirection Overhead}
+\label{sec:indirection-overhead}
+
+\AM{} replaces embedded runtime pointers with RIT accesses, adding instructions and, in some cases, dependent loads. The following experiments separate the cost on affected Baseline paths from its end-to-end impact.
+
+\subsubsection{Microbenchmark Overhead}
+
+Seven microbenchmarks measure the effect of RIT access on retired instruction counts in steady-state loops. Linker relocations and value mirroring are both evaluated
+against a pre-optimization variant where all decoupling goes through the RIT. The pure RIT indirection adds between one and fourteen instructions per iteration across the
+benchmarks, resulting in a 3.0\% geometric-mean increase. Linker relocations are applied first, removing two instructions from each ABI call and one from each VM call. Value mirroring is
+subsequently applied and removes one instruction from an interrupt check, two from a stack check, and three from an inactive pre-barrier check. Together, these optimizations reduce geometric-mean instruction overhead to 1.2\% (Fig.~\ref{fig:indirection}). The performance cost of these additional instructions varies across microarchitectures. Retired instruction count therefore provides a clearer measure of the work introduced by RIT access and removed by the two optimizations.
+
+\subsubsection{Net End-to-End Effect}
+
+The microbenchmarks intentionally magnify indirection-sensitive paths. The end-to-end comparison measures Speedometer 3.1 scores for \AM{} and the Baseline JIT. An oracle corpus gives each JIT artifact a direct AOT counterpart. Across \spPerfRuns{} independent browser runs per configuration, \AM{} scores 12.787 versus 12.425 for the Baseline JIT, a 2.9\% improvement (95\% CI: 2.5--3.3\%). Full AOT coverage therefore improves end-to-end performance despite its indirection overhead.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=\linewidth]{figures/7-7-indirection-overhead.pdf}
+  \caption{Retired user-mode instruction overhead relative to
+    run-time-generated Baseline code with Ion disabled. 
+    % Linux \texttt{perf stat} measures seven microbenchmarks under an oracle corpus.
+    Each executes 50--250 million iterations per run across 50 runs.}
+  \label{fig:indirection}
+\end{figure}
+
+\subsection{Memory and Binary Footprint}
+
+\AM{} moves duplicated private executable code into shared engine pages. Figure~\ref{fig:sp-memory} reports executable memory using proportional set size (PSS), which apportions each shared page among mapping processes. When ordered by the measured Speedometer throughput in Fig.~\ref{fig:restricted-perf}, total executable-code PSS decreases monotonically across configurations. They therefore form an empirical performance--memory Pareto frontier among the evaluated configurations, with \AM{} occupying an intermediate point between interpretation and the Baseline JIT. Its small private component consists of deterministic trampolines rather than guest-generated code.
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=\linewidth]{figures/7-5-per-proc-pss.pdf}
+  \caption{Peak content process PSS memory during Speedometer
+    3.1, decomposed into shared pages and
+    private run-time-generated code. Configurations are ordered by decreasing
+    Speedometer 3.1 throughput measured in Fig.~\ref{fig:restricted-perf}.}
+  \label{fig:sp-memory}
+\end{figure}
+
+The {\tt tp6}-Train corpus occupies \corpuspacked{} in the packed image (Table~\ref{tab:image-footprint}). In matched Firefox release builds, it increases both the SpiderMonkey library (+\libxulgrowthpct{}) and the compressed Firefox package (+\browserpackagegrowthpct{}). This one-time binary footprint displaces private executable pages in live instances, hence its deployment cost is amortized as the process count grows.
+
+\begin{table}[t]
+  \caption{Packed {\tt tp6}-Train image footprint.}
+  \label{tab:image-footprint}
+  \centering
+  \footnotesize
+  \begin{tabular}{lrr}
+    \toprule
+    Component & Size & Image share \\
+    \midrule
+    IC stub code & \icstubcodesize{} & \icstubimageshare{} \\
+    Baseline-body code & \baselinebodycodesize{} & \baselinebodyimageshare{} \\
+    Baseline-interpreter code & \baselineinterpretercodesize{} & \baselineinterpreterimageshare{} \\
+    Metadata & \imagemetadatasize{} & \imagemetadatashare{} \\
+    Alignment & \imagealignmentsize{} & \imagealignmentshare{} \\
+    \midrule
+    Total & \aotimagekilobytes{} & 100.0\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+
+\section{Related Work}
+
+SpiderMonkey's Portable Baseline Interpreter (PBL) and Weval provide the most direct prior work on AOT CacheIR. PBL executes JavaScript bytecode and CacheIR without run-time code generation, and its AOT IC extension uses a fixed corpus collected from SpiderMonkey's test suite. Weval partially evaluates PBL after obtaining guest bytecode, producing compiled application functions and CacheIR stub bodies~\cite{fallin2025weval,futamura1971partial}. \AM{} instead constructs an engine image before future guest programs are known. Application functions remain interpreted unless they match existing artifacts; \AM{} identifies artifacts that generalize across workloads and makes output from ordinary production Baseline generators reusable across runtimes.
+
+Hopc is another AOT compiler for JavaScript. It receives modules during the build, uses static analyses to infer types and ranges, and creates guarded function versions specialized for likely data representations~\cite{serrano2021hopc}. Later work modifies property-cache instructions after observing run-time shapes~\cite{poirier2025hopcic}. GraalVM Native Image and Dart AOT similarly compile applications supplied at build time~\cite{graalvm2026nativeimage,dart2025compile}. \AM{} is designed for when workloads are not fixed.
+
+V8 Embedded Builtins provide a JavaScript-specific precedent for reusable generated code. V8 generates builtins during its build, embeds their instructions in the engine binary, and shares them across isolates and processes. A root register and root table provide isolate-specific addresses, while private \texttt{Code} objects retain per-isolate metadata~\cite{gruber2018builtins}. \AM{} adopts the same broad separation between immutable instructions and private runtime state, but differs in how artifacts enter the image. V8 developers define a fixed builtin set through CodeStubAssembler and Torque, whereas \AM{} captures artifacts produced through existing Baseline and CacheIR generation interfaces and derives runtime dependencies from pointers emitted by those generators~\cite{v8torque}.
+
+V8 Jitless combines embedded builtins with Ignition to execute unknown guest programs without run-time executable-memory allocation ~\cite{gruber2019jitless}. Ignition's ICs select from handlers generated with the engine, giving it a fixed executable set before guest execution ~\cite{alle2018codecaching}. SpiderMonkey instead normally generates native CacheIR bodies after observing an IC site. \AM{} preserves this run-time selection model while sourcing the executable body from a fixed cross-workload corpus.
+
+Several systems share native JIT code across runtime instances. ShMVM shares HotSpot-compiled code among JVM processes and replaces embedded references to private objects with per-process indirection-table accesses, a direct precedent for RIT-style rebinding~\cite{czajkowski2002codesharing}. ShareJIT shares methods generated during Android application execution, while JITServer remotely compiles and caches native OpenJ9 code for reuse across JVMs, including on different machines~\cite{xu2018sharejit,khrabrov2022jitserver}. \AM{} instead fixes its corpus before guest code is known and performs assembler-level rebinding.
+
+Other systems persist compilation work across executions. Mehta et al. curate an offline repository of context-specialized R functions selected by contextual dispatch~\cite{mehta2023reuse}. Pe\v{c}im\'uth et al. instead reuse preoptimized Graal IR and defer VM-specific compilation~\cite{pecimuth2024analysis,pecimuth2025reuse}. Reusable Inline Caching carries context-independent IC information into later executions~\cite{choi2019ric}. \AM{} additionally selects structured IC bodies according to measured cross-workload recurrence. Copy-and-Patch records embedded addresses but patches them during materialization; \AM{} instead uses linker relocations and the RIT~\cite{xu2021copypatch}.
+
+\section{Conclusion}
+
+\AM{} provides a practical path for adapting dynamically compiled runtimes to restricted execution. Rather than replace the JIT, it turns recurring JIT output into reusable native artifacts in a fixed engine image. Portability rests on a simple distinction: link-time symbols can be relocated, runtime identities can be rebound through indirection, and ephemeral identities prevent reuse.
+
+SpiderMonkey's structured ICs are well suited to this model because CacheIR separates recurring computation from site-local state, allowing IC bodies to generalize across workloads even when application bodies do not. \AM{} encodes this distinction as a portability test and serves the resulting artifacts through existing compilation and tier-transition interfaces. Other runtimes may expose similar opportunities in fixed IC handlers, interpreters, builtins, or compiler-generated helpers.
+
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\end{document}

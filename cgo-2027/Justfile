@@ -1,0 +1,4 @@
+# Compile main.pdf, including bibliography and cross-references.
+# Requires latexmk and a TeX installation with the acmart class.
+build:
+    latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex

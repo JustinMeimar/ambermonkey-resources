@@ -1,0 +1,11 @@
+name = "0-1-baseline-cache-simulation"
+default_iterations = 1
+allow_failure = true
+
+[analyze]
+recurrence = "analyze.py"
+
+[variants]
+speedometer3 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" speedometer3"
+jetstream3 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" jetstream3"
+tp6 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" tp6"
