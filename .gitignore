@@ -1,7 +1,10 @@
 # Per-fossil burial records: generated data, one dir per run. Fossil
 # treats these as append-only under ~/.fossil/projects/<name>, which
 # is a symlink into this tree.
-fossils/*/records/
+/fossils-I/**/records/
+/fossils-II/**/records/
+/fossils/*/records/
+/.last
 
 # Python bytecode caches from analysis scripts.
 __pycache__/
@@ -13,3 +16,4 @@ __pycache__/
 
 # Standalone V8 checkout and build outputs.
 v8-project/
+/oopsla-2027/artifacts/

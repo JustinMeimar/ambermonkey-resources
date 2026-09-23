@@ -1,2 +1,3 @@
 name = "ambermonkey-oopsla"
-artifact_dir = "~/spidermonkey/ambermonkey/oopsla-2027/artifacts"
+description = "AmberMonkey for Default Performance"
+artifact_dir = "../oopsla-2027/artifacts"

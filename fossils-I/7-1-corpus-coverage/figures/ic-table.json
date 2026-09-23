@@ -1,0 +1,49 @@
+{
+  "columns": [
+    {
+      "key": "metric",
+      "label": "Metric",
+      "align": "left",
+      "format": "str"
+    },
+    {
+      "key": "jetstream3",
+      "label": "JetStream 3.0",
+      "align": "right",
+      "format": "str"
+    },
+    {
+      "key": "speedometer3",
+      "label": "Speedometer 3.1",
+      "align": "right",
+      "format": "str"
+    }
+  ],
+  "rows": [
+    [
+      "#ICs",
+      "1,347",
+      "1,347"
+    ],
+    [
+      "Attached",
+      "1,091",
+      "1,051"
+    ],
+    [
+      "Utilization",
+      "81.0%",
+      "78.0%"
+    ],
+    [
+      "Total attaches",
+      "1.46M",
+      "1.24M"
+    ],
+    [
+      "AOT hit rate",
+      "70.3%",
+      "99.6%"
+    ]
+  ]
+}

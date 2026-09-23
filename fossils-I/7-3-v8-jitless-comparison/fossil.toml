@@ -1,0 +1,43 @@
+name = "7-3-v8-jitless-comparison"
+description = "Speedometer 3 and Octane 2 performance retained relative to each engine's default configuration."
+default_iterations = 3
+allow_failure = false
+
+[analyze]
+performance = "analyses/parse_performance.py"
+
+[artifacts.performance-retained]
+format = "pdf"
+analysis = "performance"
+script   = "figures/performance_retained.py"
+
+[artifacts.performance-retained-dots]
+format = "pdf"
+analysis = "performance"
+script   = "figures/performance_retained_dots.py"
+
+[artifacts.performance-retained-hbars]
+format = "pdf"
+analysis = "performance"
+script   = "figures/performance_retained_hbars.py"
+
+[variables]
+V8_MACH    = "./mach raptor -t speedometer3 --app chrome --browser-cycles 1 --page-cycles 3 --binary \"$FOSSIL_PROJECT_DIR/../v8-project/run-chromium-nixos.sh\" --browsertime-chromedriver \"$FOSSIL_PROJECT_DIR/../v8-project/run-chromedriver-nixos.sh\" --browsertime-arg chrome.args=--headless=new"
+V8_JITLESS = "--browsertime-arg chrome.args=--js-flags=--jitless"
+V8_D8 = "$FOSSIL_PROJECT_DIR/../v8-project/d8/release/d8"
+OCTANE_RUNNER = "$FOSSIL_PROJECT_DIR/7-2-ambermonkey-perf-octane/scripts/run-no-zlib.js"
+
+[variants]
+speedometer-am             = "@AOT_BROWSER @AOT_ONLY_ENV @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+speedometer-am-oracle      = "@AOT_BROWSER @AOT_ONLY_ENV @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+speedometer-baseline       = "@AOT_BROWSER         @NO_REGEX_ENV @S3_RAPTOR @NO_ION_PREF 1>&2 && @RAPTOR_RESULT"
+speedometer-default        = "@AOT_BROWSER                       @S3_RAPTOR              1>&2 && @RAPTOR_RESULT"
+speedometer-v8-default     = "cd @FIREFOX && $V8_MACH             1>&2 && @RAPTOR_RESULT"
+speedometer-v8-jitless     = "cd @FIREFOX && $V8_MACH $V8_JITLESS 1>&2 && @RAPTOR_RESULT"
+
+octane-am         = "cd @OCTANE_DIR && @CLEAN_JIT_ENV @JSSHELL_AOT --wasm-compiler=none --aot --aot-only --no-native-regexp --no-ion -f \"$OCTANE_RUNNER\""
+octane-am-oracle  = "cd @OCTANE_DIR && @CLEAN_JIT_ENV @JSSHELL_AOT --wasm-compiler=none --aot --aot-only --no-native-regexp --no-ion -f \"$OCTANE_RUNNER\""
+octane-baseline   = "cd @OCTANE_DIR && @CLEAN_JIT_ENV @JSSHELL_AOT --wasm-compiler=none --no-native-regexp --no-ion -f \"$OCTANE_RUNNER\""
+octane-default    = "cd @OCTANE_DIR && @CLEAN_JIT_ENV @JSSHELL_AOT --wasm-compiler=none -f \"$OCTANE_RUNNER\""
+octane-v8-default = "cd @OCTANE_DIR && \"$V8_D8\" \"$OCTANE_RUNNER\""
+octane-v8-jitless = "cd @OCTANE_DIR && \"$V8_D8\" --jitless \"$OCTANE_RUNNER\""

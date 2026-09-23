@@ -1,0 +1,263 @@
+{
+  "train_sites": [
+    "paypal",
+    "cnn",
+    "microsoft",
+    "netflix",
+    "pinterest",
+    "fandom",
+    "bing-search",
+    "facebook",
+    "office",
+    "outlook",
+    "amazon",
+    "instagram",
+    "google-search",
+    "google-slides",
+    "google-mail",
+    "imdb",
+    "linkedin",
+    "expedia",
+    "google-docs",
+    "buzzfeed",
+    "ebay",
+    "imgur",
+    "nytimes",
+    "espn"
+  ],
+  "test_sites": [
+    "reddit",
+    "tumblr",
+    "twitch",
+    "twitter",
+    "wikia",
+    "wikipedia",
+    "yahoo-mail",
+    "youtube"
+  ],
+  "order_policy": "tp6-Train sites ordered by ascending IC-body count",
+  "test_oracle": {
+    "ic_distinct": 1190,
+    "ic_entries": 44342207,
+    "baseline_distinct": 4649,
+    "baseline_entries": 6605989
+  },
+  "points": [
+    {
+      "corpus_size": 1,
+      "added_site": "paypal",
+      "added_site_ic_dynamic": 0.8118008875832454,
+      "ic_static": 0.23277310924369748,
+      "ic_dynamic": 0.8118008875832454,
+      "baseline_static": 0.010324801032480103,
+      "baseline_dynamic": 0.004702096839701065
+    },
+    {
+      "corpus_size": 2,
+      "added_site": "cnn",
+      "added_site_ic_dynamic": 0.9124826375917644,
+      "ic_static": 0.4134453781512605,
+      "ic_dynamic": 0.9124930114552033,
+      "baseline_static": 0.016562701656270166,
+      "baseline_dynamic": 0.017389069221883355
+    },
+    {
+      "corpus_size": 3,
+      "added_site": "microsoft",
+      "added_site_ic_dynamic": 0.9758647556717238,
+      "ic_static": 0.5142857142857142,
+      "ic_dynamic": 0.9801027946128167,
+      "baseline_static": 0.01914390191439019,
+      "baseline_dynamic": 0.021297643698770918
+    },
+    {
+      "corpus_size": 4,
+      "added_site": "netflix",
+      "added_site_ic_dynamic": 0.9591960995536375,
+      "ic_static": 0.6092436974789915,
+      "ic_dynamic": 0.9893762392115485,
+      "baseline_static": 0.0296838029683803,
+      "baseline_dynamic": 0.06035659459923412
+    },
+    {
+      "corpus_size": 5,
+      "added_site": "pinterest",
+      "added_site_ic_dynamic": 0.9312991570311329,
+      "ic_static": 0.6403361344537815,
+      "ic_dynamic": 0.9896620165974147,
+      "baseline_static": 0.03312540331254033,
+      "baseline_dynamic": 0.06360364814413103
+    },
+    {
+      "corpus_size": 6,
+      "added_site": "fandom",
+      "added_site_ic_dynamic": 0.9791868275749107,
+      "ic_static": 0.6857142857142857,
+      "ic_dynamic": 0.9906747311878275,
+      "baseline_static": 0.044525704452570446,
+      "baseline_dynamic": 0.07955871558369232
+    },
+    {
+      "corpus_size": 7,
+      "added_site": "bing-search",
+      "added_site_ic_dynamic": 0.9073129806100991,
+      "ic_static": 0.7252100840336134,
+      "ic_dynamic": 0.99112486665357,
+      "baseline_static": 0.04581630458163046,
+      "baseline_dynamic": 0.08039432097146998
+    },
+    {
+      "corpus_size": 8,
+      "added_site": "facebook",
+      "added_site_ic_dynamic": 0.9821159555725316,
+      "ic_static": 0.7478991596638656,
+      "ic_dynamic": 0.9913019439920976,
+      "baseline_static": 0.04775220477522048,
+      "baseline_dynamic": 0.08358763540175437
+    },
+    {
+      "corpus_size": 9,
+      "added_site": "office",
+      "added_site_ic_dynamic": 0.9426069388021214,
+      "ic_static": 0.7647058823529411,
+      "ic_dynamic": 0.9914206796247196,
+      "baseline_static": 0.056786405678640565,
+      "baseline_dynamic": 0.11097187718598986
+    },
+    {
+      "corpus_size": 10,
+      "added_site": "outlook",
+      "added_site_ic_dynamic": 0.9659884317440491,
+      "ic_static": 0.7873949579831933,
+      "ic_dynamic": 0.9986479698676252,
+      "baseline_static": 0.06646590664659066,
+      "baseline_dynamic": 0.12267338017063001
+    },
+    {
+      "corpus_size": 11,
+      "added_site": "amazon",
+      "added_site_ic_dynamic": 0.96467286799685,
+      "ic_static": 0.8042016806722689,
+      "ic_dynamic": 0.998853597882487,
+      "baseline_static": 0.06689610668961067,
+      "baseline_dynamic": 0.12330871274535879
+    },
+    {
+      "corpus_size": 12,
+      "added_site": "instagram",
+      "added_site_ic_dynamic": 0.9841390393581447,
+      "ic_static": 0.8126050420168067,
+      "ic_dynamic": 0.9990015156440003,
+      "baseline_static": 0.06840180684018068,
+      "baseline_dynamic": 0.1260518296351992
+    },
+    {
+      "corpus_size": 13,
+      "added_site": "google-search",
+      "added_site_ic_dynamic": 0.96582470511673,
+      "ic_static": 0.8294117647058824,
+      "ic_dynamic": 0.9990240900729186,
+      "baseline_static": 0.06904710690471069,
+      "baseline_dynamic": 0.12678207608277883
+    },
+    {
+      "corpus_size": 14,
+      "added_site": "google-slides",
+      "added_site_ic_dynamic": 0.9389604355958195,
+      "ic_static": 0.8378151260504202,
+      "ic_dynamic": 0.9990376663028974,
+      "baseline_static": 0.0696924069692407,
+      "baseline_dynamic": 0.12685110435394306
+    },
+    {
+      "corpus_size": 15,
+      "added_site": "google-mail",
+      "added_site_ic_dynamic": 0.9706846120672342,
+      "ic_static": 0.8420168067226891,
+      "ic_dynamic": 0.9990425149564612,
+      "baseline_static": 0.0699075069907507,
+      "baseline_dynamic": 0.12705501023389534
+    },
+    {
+      "corpus_size": 16,
+      "added_site": "imdb",
+      "added_site_ic_dynamic": 0.9874231564522713,
+      "ic_static": 0.8495798319327731,
+      "ic_dynamic": 0.9993082662755148,
+      "baseline_static": 0.0795870079587008,
+      "baseline_dynamic": 0.14950236822979876
+    },
+    {
+      "corpus_size": 17,
+      "added_site": "linkedin",
+      "added_site_ic_dynamic": 0.941007198852326,
+      "ic_static": 0.8672268907563025,
+      "ic_dynamic": 0.9993897462072648,
+      "baseline_static": 0.0800172080017208,
+      "baseline_dynamic": 0.14988202372120207
+    },
+    {
+      "corpus_size": 18,
+      "added_site": "expedia",
+      "added_site_ic_dynamic": 0.9903321456236944,
+      "ic_static": 0.8747899159663866,
+      "ic_dynamic": 0.9994230102259005,
+      "baseline_static": 0.08711550871155087,
+      "baseline_dynamic": 0.15639550716781395
+    },
+    {
+      "corpus_size": 19,
+      "added_site": "google-docs",
+      "added_site_ic_dynamic": 0.9399296927191738,
+      "ic_static": 0.8773109243697479,
+      "ic_dynamic": 0.9994426980145575,
+      "baseline_static": 0.08776080877608088,
+      "baseline_dynamic": 0.1571455841055745
+    },
+    {
+      "corpus_size": 20,
+      "added_site": "buzzfeed",
+      "added_site_ic_dynamic": 0.9885450221275635,
+      "ic_static": 0.880672268907563,
+      "ic_dynamic": 0.9994507941384153,
+      "baseline_static": 0.09916110991611099,
+      "baseline_dynamic": 0.17609914276272637
+    },
+    {
+      "corpus_size": 21,
+      "added_site": "ebay",
+      "added_site_ic_dynamic": 0.9948819417130049,
+      "ic_static": 0.8857142857142857,
+      "ic_dynamic": 0.999500430819783,
+      "baseline_static": 0.099591309959131,
+      "baseline_dynamic": 0.17801346626523296
+    },
+    {
+      "corpus_size": 22,
+      "added_site": "imgur",
+      "added_site_ic_dynamic": 0.9863827932606061,
+      "ic_static": 0.8890756302521008,
+      "ic_dynamic": 0.9995497066711181,
+      "baseline_static": 0.10927081092708109,
+      "baseline_dynamic": 0.20007238885804987
+    },
+    {
+      "corpus_size": 23,
+      "added_site": "nytimes",
+      "added_site_ic_dynamic": 0.9905048027943218,
+      "ic_static": 0.8932773109243698,
+      "ic_dynamic": 0.9995497066711181,
+      "baseline_static": 0.12325231232523123,
+      "baseline_dynamic": 0.21480432377347283
+    },
+    {
+      "corpus_size": 24,
+      "added_site": "espn",
+      "added_site_ic_dynamic": 0.991640853600273,
+      "ic_static": 0.8983193277310925,
+      "ic_dynamic": 0.999556224163583,
+      "baseline_static": 0.1292751129275113,
+      "baseline_dynamic": 0.22212419669484765
+    }
+  ]
+}

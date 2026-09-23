@@ -1,0 +1,58 @@
+name = "6-1-corpus-construction"
+description = "Record the AOT artifact corpus one tp6 site at a time, plus the self-hosted baseline set. train.txt and test.txt freeze the 24/8 partition."
+default_iterations = 1
+allow_failure = false
+
+[artifacts.composition]
+format = "json"
+script = "scripts/emit_composition.py"
+
+[artifacts.loso]
+format = "json"
+script = "scripts/loso.py"
+
+[variables]
+# useAOTImage stays off: the recorder must observe the whole compile stream.
+INIT      = "rm -rf @CORPUS/$SITE && mkdir -p @CORPUS/$SITE"
+RECORD    = "cd @FIREFOX && @MOZCONFIG_AOT ./mach raptor -t $SITE --binary @BIN_AOT --setenv JIT_OPTION_aotRecordDir=@CORPUS/$SITE --setenv @NO_CONTENT_SANDBOX_ENV --setenv MOZ_HEADLESS=1 --page-cycles 1 --browser-cycles 1 --post-startup-delay 1000"
+EMIT      = "printf '{\"site\":\"%s\",\"blfun\":%s,\"ic\":%s,\"bytes\":%s}\\n' $SITE $(ls @CORPUS/$SITE | grep -c '^blfun-') $(ls @CORPUS/$SITE | grep -c '^ic-') $(du -sb @CORPUS/$SITE | cut -f1)"
+
+# --spectre-mitigations=on is mandatory: the two mitigation bits are fingerprinted
+# into every blob; without it the browser refuses to install the recorded image.
+SH_RECORD = "rm -rf @SELFHOSTED && @JSSHELL_AOT --spectre-mitigations=on --aot-record=@SELFHOSTED --aot-record-self-hosted -e 'quit(0);'"
+SH_EMIT   = "printf '{\"site\":\"self-hosted\",\"blfun\":%s,\"ic\":%s,\"bytes\":%s}\\n' $(ls @SELFHOSTED | grep -c '^blfun-') $(ls @SELFHOSTED | grep -c '^ic-') $(du -sb @SELFHOSTED | cut -f1)"
+
+[variants]
+self-hosted    = "$SH_RECORD 1>&2 && $SH_EMIT"
+amazon         = "SITE=amazon;         $INIT && $RECORD 1>&2 && $EMIT"
+bing-search    = "SITE=bing-search;    $INIT && $RECORD 1>&2 && $EMIT"
+buzzfeed       = "SITE=buzzfeed;       $INIT && $RECORD 1>&2 && $EMIT"
+cnn            = "SITE=cnn;            $INIT && $RECORD 1>&2 && $EMIT"
+ebay           = "SITE=ebay;           $INIT && $RECORD 1>&2 && $EMIT"
+espn           = "SITE=espn;           $INIT && $RECORD 1>&2 && $EMIT"
+expedia        = "SITE=expedia;        $INIT && $RECORD 1>&2 && $EMIT"
+facebook       = "SITE=facebook;       $INIT && $RECORD 1>&2 && $EMIT"
+fandom         = "SITE=fandom;         $INIT && $RECORD 1>&2 && $EMIT"
+google-docs    = "SITE=google-docs;    $INIT && $RECORD 1>&2 && $EMIT"
+google-mail    = "SITE=google-mail;    $INIT && $RECORD 1>&2 && $EMIT"
+google-search  = "SITE=google-search;  $INIT && $RECORD 1>&2 && $EMIT"
+google-slides  = "SITE=google-slides;  $INIT && $RECORD 1>&2 && $EMIT"
+imdb           = "SITE=imdb;           $INIT && $RECORD 1>&2 && $EMIT"
+imgur          = "SITE=imgur;          $INIT && $RECORD 1>&2 && $EMIT"
+instagram      = "SITE=instagram;      $INIT && $RECORD 1>&2 && $EMIT"
+linkedin       = "SITE=linkedin;       $INIT && $RECORD 1>&2 && $EMIT"
+microsoft      = "SITE=microsoft;      $INIT && $RECORD 1>&2 && $EMIT"
+netflix        = "SITE=netflix;        $INIT && $RECORD 1>&2 && $EMIT"
+nytimes        = "SITE=nytimes;        $INIT && $RECORD 1>&2 && $EMIT"
+office         = "SITE=office;         $INIT && $RECORD 1>&2 && $EMIT"
+outlook        = "SITE=outlook;        $INIT && $RECORD 1>&2 && $EMIT"
+paypal         = "SITE=paypal;         $INIT && $RECORD 1>&2 && $EMIT"
+pinterest      = "SITE=pinterest;      $INIT && $RECORD 1>&2 && $EMIT"
+reddit         = "SITE=reddit;         $INIT && $RECORD 1>&2 && $EMIT"
+tumblr         = "SITE=tumblr;         $INIT && $RECORD 1>&2 && $EMIT"
+twitch         = "SITE=twitch;         $INIT && $RECORD 1>&2 && $EMIT"
+twitter        = "SITE=twitter;        $INIT && $RECORD 1>&2 && $EMIT"
+wikia          = "SITE=wikia;          $INIT && $RECORD 1>&2 && $EMIT"
+wikipedia      = "SITE=wikipedia;      $INIT && $RECORD 1>&2 && $EMIT"
+yahoo-mail     = "SITE=yahoo-mail;     $INIT && $RECORD 1>&2 && $EMIT"
+youtube        = "SITE=youtube;        $INIT && $RECORD 1>&2 && $EMIT"

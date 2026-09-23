@@ -1,0 +1,10 @@
+{
+  "repository": "Firefox",
+  "base_revision": "362151bdbc7aa7542a914ecb42748ca57f3946e8",
+  "commits": [
+    "c7b23b64dcf3a1c81d2691862124d91e1c96e021"
+  ],
+  "files": [
+    "0001-baseline-cache-trace.patch"
+  ]
+}

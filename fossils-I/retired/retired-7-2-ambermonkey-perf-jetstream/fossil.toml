@@ -1,0 +1,46 @@
+name = "ambermonkey-perf-jetstream"
+description = "JetStream 3 JavaScript-only AmberMonkey performance ladder (WebAssembly workloads are excluded): interpreter only, AmberMonkey-IC (blinterp + IC corpus), AmberMonkey (adds AOT Baseline functions), default without Ion, default. AM variants run with the native regex JIT disabled to match AOT-only semantics."
+# One complete JetStream invocation per variant. JetStream retains its own
+# per-workload iteration and worst-case loops inside that invocation.
+default_iterations = 1
+allow_failure = true
+
+[analyze]
+jetstream-detail = "analyses/parse_jetstream3.py"
+
+[figures.subtest-bars]
+analysis = "jetstream-detail"
+script   = "figures/subtest_bars.py"
+
+[figures.js3-ablation-perf]
+analysis = "jetstream-detail"
+script   = "figures/js3_ablation_perf.py"
+
+[tables.perf]
+analysis = "jetstream-detail"
+script   = "figures/jetstream_table.py"
+
+[variables]
+# JetStream 3 runs one page-cycle per browser-cycle by design; the harness
+# aggregates repetitions across fossil iterations rather than page-cycles.
+# Selecting JetStream's `js` tag prevents every future record from running
+# workloads tagged `wasm`.
+# Three internal samples retain First/Worst/Average scores without making the
+# interpreter configuration run the suite's default 120 samples per workload.
+MACH    = "./mach raptor -t jetstream3 --app firefox --browser-cycles 1 --page-cycles 1 --binary @BIN_AOT --setenv MOZ_HEADLESS=1 --test-url-params 'tag=js&iterationCount=3&worstCaseCount=1'"
+ION_OFF = "--setpref javascript.options.ion=false"
+RESULT  = "cat testing/mozharness/build/raptor.json"
+
+INTERP   = "JIT_OPTION_disableJitBackend=true"
+INTERP_TIMEOUT = "--page-timeout 7200000"
+INTERP_MOZHARNESS = "EXTRA_MOZHARNESS_CONFIG='{\"raptor_output_timeout\":9000}'"
+AOT      = "JIT_OPTION_useAOTImage=true JIT_OPTION_aotOnly=true"
+IC_ONLY  = "JIT_OPTION_aotSkipBaselineFn=true"
+NO_REGEX = "JIT_OPTION_nativeRegExp=false"
+
+[variants]
+interp-only    = "@CLEAN_AOT $INTERP $INTERP_MOZHARNESS $MACH $INTERP_TIMEOUT 1>&2 && $RESULT"
+aot-corpus-ic  = "@CLEAN_AOT $AOT    $IC_ONLY $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
+aot-corpus     = "@CLEAN_AOT $AOT             $NO_REGEX $MACH $ION_OFF 1>&2 && $RESULT"
+default-no-ion = "@CLEAN_AOT                            $MACH $ION_OFF 1>&2 && $RESULT"
+default        = "@CLEAN_AOT                            $MACH          1>&2 && $RESULT"

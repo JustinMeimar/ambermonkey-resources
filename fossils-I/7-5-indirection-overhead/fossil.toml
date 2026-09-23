@@ -1,0 +1,38 @@
+name = "7-5-indirection-overhead"
+description = "User-mode cycle and retired-instruction cost of jsshell hot loops across Baseline JIT and three AmberMonkey indirection-ablation build states: RIT only, RIT plus native linker, and RIT plus native linker plus value mirroring."
+default_iterations = 50
+allow_failure = false
+
+[analyze]
+cycles = "analyses/parse_cycles.py"
+
+[artifacts.cycles-bars]
+format = "pdf"
+analysis = "cycles"
+script   = "figures/cycles_bars.py"
+
+[artifacts.cycles-hbars]
+format = "pdf"
+analysis = "cycles"
+script   = "figures/cycles_hbars.py"
+
+[artifacts.instruction-overhead]
+format = "pdf"
+analysis = "cycles"
+script   = "figures/instruction_overhead.py"
+
+[artifacts.cycles]
+format = "json"
+analysis = "cycles"
+script   = "figures/cycles_table.py"
+
+[variables]
+RUN_ALL                            = "bash \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/scripts/run_all_microbenches.sh\""
+FLAGS_AOT                          = "--blinterp-eager --aot --aot-enforce --no-ion"
+FLAGS_DEFAULT                      = "--blinterp-eager --no-ion"
+
+[variants]
+baseline-jit = "$RUN_ALL @JSSHELL_NATIVE_LINKER_VALUE_MIRROR $FLAGS_DEFAULT"
+am-rit       = "$RUN_ALL @JSSHELL_RIT $FLAGS_AOT"
+am-rit-nl    = "$RUN_ALL @JSSHELL_NATIVE_LINKER $FLAGS_AOT"
+am-rit-nl-vm = "$RUN_ALL @JSSHELL_NATIVE_LINKER_VALUE_MIRROR $FLAGS_AOT"

@@ -30,8 +30,8 @@ def main():
     observation = json.load(sys.stdin)
     records = [json.loads(line) for line in observation["stdout"]]
     summaries = [item for item in records if item["event"] == "summary"]
-    if len(summaries) != 1 or summaries[0]["raptor_exit_code"] != 0:
-        raise SystemExit("Raptor did not complete successfully")
+    if len(summaries) != 1 or summaries[0].get("exit_code", summaries[0].get("raptor_exit_code")) != 0:
+        raise SystemExit("browser recording did not complete successfully")
     if summaries[0]["install"] == 0:
         raise SystemExit("no Baseline installations recorded")
     installs = sorted(
@@ -53,8 +53,10 @@ def main():
         "variable_size_keys": sum(len(values) > 1 for values in sizes.values()),
         "malformed_lines": summaries[0]["malformed"],
         "processes": len({item["pid"] for item in installs}),
-        "candidate_lru_hits": {f"{mib}mib": replay(installs, mib * 1024 * 1024)
-                               for mib in (4, 8, 16)},
+        "candidate_lru_hits": {
+            **{f"{mib}mib": replay(installs, mib * 1024 * 1024) for mib in (4, 8, 16)},
+            "unlimited": len(installs) - len(keys),
+        },
     }
     json.dump(result, sys.stdout)
     sys.stdout.write("\n")

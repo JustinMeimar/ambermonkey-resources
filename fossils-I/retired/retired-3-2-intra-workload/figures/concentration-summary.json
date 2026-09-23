@@ -1,0 +1,54 @@
+{
+  "columns": [
+    {
+      "key": "workload",
+      "label": "Workload",
+      "format": "str",
+      "align": "left"
+    },
+    {
+      "key": "top10_share",
+      "label": "Top 10% share",
+      "format": "percent",
+      "align": "right"
+    },
+    {
+      "key": "bodies_90",
+      "label": "Bodies to 90%",
+      "format": "int",
+      "align": "right"
+    }
+  ],
+  "rows": [
+    [
+      "amazon",
+      0.8199694539265887,
+      114
+    ],
+    [
+      "bing-search",
+      0.8308896636985027,
+      101
+    ],
+    [
+      "median",
+      0.8254295588125458,
+      107
+    ],
+    [
+      "min",
+      0.8199694539265887,
+      101
+    ],
+    [
+      "max",
+      0.8308896636985027,
+      114
+    ],
+    [
+      "params",
+      0.1,
+      90
+    ]
+  ]
+}

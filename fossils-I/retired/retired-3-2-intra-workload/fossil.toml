@@ -1,0 +1,33 @@
+name = "intra-workload"
+description = "Intra-workload IC concentration across the first eight alphabetical desktop TP6 sites. Content-process IC bodies ranked by stub-entry counts over three cold page loads."
+default_iterations = 1
+allow_failure = false
+
+[analyze]
+ic-rank      = "analyses/ic_rank.py"
+ic-top-table = "analyses/ic_top_table.py"
+
+[figures.pareto-band-ic]
+analysis = "ic-rank"
+script   = "figures/pareto_band_ic.py"
+
+[tables.concentration]
+analysis = "ic-rank"
+script   = "figures/concentration_summary.py"
+
+[variables]
+INIT   = "D=$(mktemp -d /tmp/amber-3-2.XXXXXX)"
+EMIT   = "python3 /home/justin/spidermonkey/ambermonkey/fossils/3-2-intra-workload/scripts/emit_ranks.py \"$D\" && rm -rf \"$D\""
+# Raptor ignores --browser-cycles for warm pageload tests. --cold makes each cycle
+# a fresh browser process; all three write into $D and pool.
+RAPTOR = "cd @FIREFOX && @MC_BROWSER ./mach raptor -t $SITE --binary @BIN_RELEASE --setenv JS_INSTR=all --setenv JS_INSTR_DIR=$D --setenv JS_INSTR_MODE=structural --setenv JS_INSTR_RUN_ID=$(basename $D) --setenv @SANDBOX --setenv MOZ_HEADLESS=1 --cold --page-cycles 1 --browser-cycles 3 --post-startup-delay 1000"
+
+[variants]
+amazon      = "SITE=amazon;      $INIT && $RAPTOR 1>&2 && $EMIT"
+bing-search = "SITE=bing-search; $INIT && $RAPTOR 1>&2 && $EMIT"
+buzzfeed    = "SITE=buzzfeed;    $INIT && $RAPTOR 1>&2 && $EMIT"
+cnn         = "SITE=cnn;         $INIT && $RAPTOR 1>&2 && $EMIT"
+ebay        = "SITE=ebay;        $INIT && $RAPTOR 1>&2 && $EMIT"
+espn        = "SITE=espn;        $INIT && $RAPTOR 1>&2 && $EMIT"
+expedia     = "SITE=expedia;     $INIT && $RAPTOR 1>&2 && $EMIT"
+facebook    = "SITE=facebook;    $INIT && $RAPTOR 1>&2 && $EMIT"

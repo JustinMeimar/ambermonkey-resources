@@ -1,0 +1,14 @@
+name = "7-6-binary-size"
+description = "On-disk binary-size cost for matched release builds: libxul.so + AOT image (engine view), and firefox launcher + full dist/bin (whole-browser view)."
+default_iterations = 1
+allow_failure = false
+
+# Requires a preceding `mach jit-aot build` so AOTImage.inc holds real content.
+# The selected source corpus is @SELECTED_CORPUS.
+[artifacts.libxul]
+format = "json"
+script = "scripts/measure.py"
+
+[artifacts.browser]
+format = "json"
+script = "scripts/measure.py"

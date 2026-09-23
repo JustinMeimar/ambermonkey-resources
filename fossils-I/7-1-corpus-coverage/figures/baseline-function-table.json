@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "key": "metric",
+      "label": "Metric",
+      "align": "left",
+      "format": "str"
+    },
+    {
+      "key": "jetstream3",
+      "label": "JetStream 3.0",
+      "align": "right",
+      "format": "str"
+    },
+    {
+      "key": "speedometer3",
+      "label": "Speedometer 3.1",
+      "align": "right",
+      "format": "str"
+    }
+  ],
+  "rows": [
+    [
+      "#BL Functions",
+      "236",
+      "236"
+    ],
+    [
+      "Installed",
+      "46",
+      "48"
+    ],
+    [
+      "Utilization",
+      "19.6%",
+      "20.5%"
+    ],
+    [
+      "AOT hit rate",
+      "0.2%",
+      "1.0%"
+    ]
+  ]
+}

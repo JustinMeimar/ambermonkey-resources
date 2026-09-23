@@ -1,0 +1,21 @@
+name = "7-4-artifact-installation-cost"
+description = "Per-artifact AOT installation and runtime-codegen costs during cpstartup under the current matched execution configurations."
+default_iterations = 10
+allow_failure = false
+
+[analyze]
+timing = "analyses/parse_timing.py"
+
+[artifacts.attachment]
+format = "json"
+analysis = "timing"
+script = "figures/attachment_table.py"
+
+[variables]
+CPSTARTUP = "JIT_OPTION_ion=false JIT_OPTION_nativeRegExp=false ./mach talos-test -a cpstartup"
+AOT_IC = "JIT_OPTION_useAOTIC=true JIT_OPTION_aotOnly=true"
+
+[variants]
+default-no-ion = "@AOT_BROWSER JS_AOT_TIMING=1         $CPSTARTUP 2>&1"
+aot-corpus-ic  = "@AOT_BROWSER JS_AOT_TIMING=1 $AOT_IC $CPSTARTUP 2>&1"
+aot-corpus     = "@AOT_BROWSER JS_AOT_TIMING=1 @AOT_ONLY_ENV $CPSTARTUP 2>&1"

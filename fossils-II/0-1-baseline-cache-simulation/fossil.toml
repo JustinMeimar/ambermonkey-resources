@@ -1,11 +1,13 @@
 name = "0-1-baseline-cache-simulation"
 default_iterations = 1
 allow_failure = true
+runner = "record.py"
+variants = ["speedometer3", "jetstream3", "tp6", "manual"]
 
 [analyze]
 recurrence = "analyze.py"
+detail = "analyze_detail.py"
 
-[variants]
-speedometer3 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" speedometer3"
-jetstream3 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" jetstream3"
-tp6 = "python3 \"$FOSSIL_PROJECT_DIR/$FOSSIL_NAME/record.py\" tp6"
+[artifacts.detail]
+script = "analyze_detail.py"
+format = "json"

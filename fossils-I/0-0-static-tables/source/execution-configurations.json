@@ -1,0 +1,15 @@
+{
+  "columns": [
+    {"key": "configuration", "label": "Configuration", "align": "left",   "format": "str"},
+    {"key": "aot",           "label": "AOT",           "align": "center", "format": "str"},
+    {"key": "guest_jit",     "label": "Guest-code JIT", "align": "center", "format": "str"},
+    {"key": "bootstrap",     "label": "Bootstrap generation", "align": "center", "format": "str"},
+    {"key": "aot_miss",      "label": "AOT miss",      "align": "left",   "format": "str"}
+  ],
+  "rows": [
+    ["Bytecode-only",    "No",  "Disabled",  "Enabled", "Interpret"],
+    ["AOT-only",         "Yes", "Disabled",  "Enabled", "Interpret"],
+    ["Default JIT",      "No",  "All tiers", "Enabled", "Compile"],
+    ["Default JIT + AOT","Yes", "All tiers", "Enabled", "Compile"]
+  ]
+}

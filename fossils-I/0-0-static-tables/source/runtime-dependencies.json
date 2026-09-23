@@ -1,0 +1,17 @@
+{
+  "text_size": 7.2,
+  "cell_inset": 2.3,
+  "column_weights": [1.4, 2.2, 1.4],
+  "columns": [
+    {"key": "dependency", "label": "Dependency", "align": "left", "format": "str"},
+    {"key": "examples", "label": "Examples", "align": "left", "format": "str"},
+    {"key": "resolution", "label": "Resolution", "align": "left", "format": "str"}
+  ],
+  "rows": [
+    ["Artifact-local", "Basic blocks, handlers, return sites", "Relative artifact offset"],
+    ["Engine symbol", "Helpers, classes, C++ ABI functions", "Native linker"],
+    ["Runtime address", "Contexts, caches, embedder symbols, permanent atoms", "Per-runtime table"],
+    ["Deterministic runtime code", "VM wrappers, barrier stubs, debug and exception tails", "Trusted initialization"],
+    ["Unsupported", "Movable GC cells and retargetable pointers", "Reject artifact"]
+  ]
+}
