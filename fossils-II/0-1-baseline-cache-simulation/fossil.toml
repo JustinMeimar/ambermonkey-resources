@@ -1,8 +1,11 @@
 name = "0-1-baseline-cache-simulation"
 default_iterations = 1
 allow_failure = true
-runner = "record.py"
-variants = ["speedometer3", "jetstream3", "tp6", "manual"]
+[variants]
+speedometer3 = "record.py"
+jetstream3 = "record.py"
+tp6 = "record.py"
+manual = "record.py"
 
 [analyze]
 recurrence = "analyze.py"
