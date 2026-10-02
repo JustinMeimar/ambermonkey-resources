@@ -64,7 +64,7 @@ def write_csv(path, rows, fields=None):
         writer.writerows(rows)
 
 
-def finish(plt, fig, output, name, data, bottom=0.16):
+def finish(plt, fig, output, name, data, bottom):
     caption = CAPTIONS[name]
     fig.subplots_adjust(bottom=bottom)
     fig.text(0.03, 0.075, textwrap.fill(caption, 145), fontsize=8, va="bottom")
@@ -93,7 +93,7 @@ def recurrence(plt, output, data):
             rows.append({"workload": variant, "scope": scope, "installs": n, "share": pct / 100})
             left += pct
         ax.text(101, y, f"n = {c['installs']:,}", va="center", fontsize=9)
-    ax.set(yticks=range(3), yticklabels=[LABELS[v] for v in WORKLOADS], xlim=(0, 116), xlabel="Share of eligible installations (%)", title="Where Baseline compilation recurs")
+    ax.set(yticks=range(len(WORKLOADS)), yticklabels=[LABELS[v] for v in WORKLOADS], xlim=(0, 116), xlabel="Share of eligible installations (%)", title="Where Baseline compilation recurs")
     ax.set_xticks(range(0, 101, 20))
     ax.invert_yaxis()
     ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.2), ncol=2, frameon=False, fontsize=9)
@@ -102,13 +102,18 @@ def recurrence(plt, output, data):
     summary = []
     for variant, w in data.items():
         c = w["candidate"]
-        summary.append({"workload": variant, "record_id": w["record_id"], "installs": c["installs"], "keys": c["keys"], "repeats": c["installs"] - c["keys"], "linked_compiles": c["linked_compiles"], "linked_repeat_compiles": w["linked_repeat_compiles"], "compile_us": w["compile_us"], "repeat_compile_us": w["repeat_compile_us"]})
+        summary.append({
+            "workload": variant, "record_id": w["record_id"],
+            "installs": c["installs"], "keys": c["keys"],
+            "repeats": c["installs"] - c["keys"], "linked_compiles": c["linked_compiles"],
+            **{key: w[key] for key in ("linked_repeat_compiles", "compile_us", "repeat_compile_us")},
+        })
     write_csv(output / "compilation-work.csv", summary)
-    finish(plt, fig, output, "recurrence", data, bottom=0.39)
+    return fig, 0.39
 
 
 def returns(plt, output, data):
-    fig, axes = plt.subplots(3, 2, figsize=(11, 8.5))
+    fig, axes = plt.subplots(len(WORKLOADS), 2, figsize=(11, 8.5))
     timeline_rows, gap_rows = [], []
     last_second = max(w["timeline"][-1]["second"] for w in data.values()) + 1
     peak_installs = max(b["first"] + b["repeat"] for w in data.values() for b in w["timeline"])
@@ -147,11 +152,11 @@ def returns(plt, output, data):
     fig.subplots_adjust(left=0.08, right=0.97, top=0.94, hspace=0.55, wspace=0.3)
     write_csv(output / "timeline.csv", timeline_rows)
     write_csv(output / "recurrence-gaps.csv", gap_rows, ["workload", "gap_us", "repeats", "cumulative_share"])
-    finish(plt, fig, output, "returns", data, bottom=0.20)
+    return fig, 0.20
 
 
 def multiplicity(plt, output, data):
-    fig, axes = plt.subplots(1, 3, figsize=(11, 4.8), sharey=True)
+    fig, axes = plt.subplots(1, len(WORKLOADS), figsize=(11, 4.8), sharey=True)
     rows = []
     maximum = max(row["installs_per_key"] for w in data.values() for row in w["multiplicity"])
     for ax, variant in zip(axes, WORKLOADS):
@@ -166,7 +171,7 @@ def multiplicity(plt, output, data):
     axes[0].set_ylabel("Share of distinct candidate keys (%)")
     fig.subplots_adjust(left=0.08, right=0.98, top=0.86, wspace=0.15)
     write_csv(output / "multiplicity.csv", rows)
-    finish(plt, fig, output, "multiplicity", data, bottom=0.29)
+    return fig, 0.29
 
 
 def source_label(filename):
@@ -179,11 +184,11 @@ def source_label(filename):
 
 
 def sources(plt, output, data):
-    fig, axes = plt.subplots(3, 1, figsize=(12, 10))
+    fig, axes = plt.subplots(len(WORKLOADS), 1, figsize=(12, 10))
     all_rows, display_rows = [], []
     for ax, variant in zip(axes, WORKLOADS):
         w = data[variant]
-        rows = [dict(r) for r in w["sources"][:5]]
+        rows = w["sources"][:5]
         rest = w["sources"][5:]
         if rest:
             other = {key: sum(r[key] for r in rest) for key in ("keys", "installs", "repeats", "repeat_share", "compile_us", "repeat_compile_us")}
@@ -212,7 +217,7 @@ def sources(plt, output, data):
     fig.subplots_adjust(left=0.03, right=0.97, top=0.94, hspace=0.36)
     write_csv(output / "sources.csv", all_rows)
     write_csv(output / "sources-displayed.csv", display_rows)
-    finish(plt, fig, output, "sources", data, bottom=0.17)
+    return fig, 0.17
 
 
 def main(name):
@@ -221,7 +226,8 @@ def main(name):
     output.mkdir(parents=True, exist_ok=True)
     data = load_measurements()
     renderers = {"recurrence": recurrence, "returns": returns, "sources": sources, "multiplicity": multiplicity}
-    renderers[name](plt, output, data)
+    fig, bottom = renderers[name](plt, output, data)
+    finish(plt, fig, output, name, data, bottom)
     metadata = {
         "schema_version": 1, "artifact": name, "caption": CAPTIONS[name], "methodology": METHOD,
         "recordings": {v: {k: w[k] for k in ("record_id", "manifest", "firefox_revisions", "candidate", "recording")} for v, w in data.items()},

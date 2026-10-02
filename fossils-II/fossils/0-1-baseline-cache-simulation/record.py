@@ -68,6 +68,7 @@ def main():
         for name in ("MOZ_LOG", "MOZ_LOG_FILE", "IONFLAGS"):
             env.pop(name, None)
         env["MOZCONFIG"] = str(project.parent / "mozconfigs/browser-release.mozconfig")
+        trace_env = {"MOZ_LOG": "baselineCache:4,sync", "MOZ_LOG_FILE": str(log_base)}
         run_metadata = {}
         if benchmark == "manual":
             profile = Path(directory) / "profile"
@@ -75,12 +76,11 @@ def main():
             (profile / "user.js").write_text(PROFILE_PREFS)
             command = [str(browser), "--no-remote", "--profile", str(profile), "about:blank"]
             env.pop("MOZ_HEADLESS", None)
-            env.update(MOZ_LOG="baselineCache:4,sync", MOZ_LOG_FILE=str(log_base))
+            env.update(trace_env)
             run_metadata["capture_duration_seconds"] = MANUAL_SECONDS
         else:
             command = raptor_command(['./mach'], browser, benchmark, {
-                'MOZ_LOG': 'baselineCache:4,sync',
-                'MOZ_LOG_FILE': str(log_base),
+                **trace_env,
                 'MOZ_HEADLESS': '1',
             })
         started_us = time.time_ns() // 1000
@@ -102,16 +102,15 @@ def main():
             role = "parent" if path.name.startswith("trace-main.") else "child"
             with path.open(encoding="utf-8", errors="replace") as stream:
                 for number, line in enumerate(stream, 1):
-                    if "BCACHE\t" not in line:
-                        continue
                     try:
                         item = parser.parse_line(line, None)
                     except (KeyError, ValueError, UnicodeError) as error:
-                        counts["malformed"] += 1
-                        emit({"event": "malformed", "file": path.name,
-                              "line": number, "error": str(error), "raw": line.rstrip("\n")})
+                        item = {"event": "malformed", "file": path.name,
+                                "line": number, "error": str(error), "raw": line.rstrip("\n")}
+                    if item is None:
                         continue
-                    item["process_role"] = role
+                    if item["event"] != "malformed":
+                        item["process_role"] = role
                     counts[item["event"]] += 1
                     emit(item)
         emit({"event": "summary", "timestamp_us": time.time_ns() // 1000,

@@ -3,8 +3,8 @@
 from collections import Counter, defaultdict
 
 
-WORKLOADS = ("speedometer3", "jetstream3", "tp6")
 LABELS = {"speedometer3": "Speedometer 3", "jetstream3": "JetStream 3", "tp6": "TP6"}
+WORKLOADS = tuple(LABELS)
 SCOPES = ("first", "same_runtime", "same_process", "cross_process")
 METHOD = {
     "population": "Guest Baseline installations with a source fingerprint; one latest recording per workload.",
@@ -16,50 +16,52 @@ METHOD = {
 }
 
 
+def source_summary(installs):
+    sources = {}
+    for event in installs:
+        row = sources.setdefault(event["filename"], {
+            "filename": event["filename"], "keys": set(), "installs": 0,
+            "repeats": 0, "compile_us": 0, "repeat_compile_us": 0,
+            "cache_bytes": 0,
+        })
+        repeat = event["recurrence_scope"] != "first"
+        row["keys"].add(event["key_id"])
+        row["installs"] += 1
+        row["repeats"] += repeat
+        row["compile_us"] += event.get("compile_us", 0)
+        row["repeat_compile_us"] += event.get("compile_us", 0) if repeat else 0
+        row["cache_bytes"] += event["cache_bytes"]
+    repeats = sum(row["repeats"] for row in sources.values())
+    repeat_compile = sum(row["repeat_compile_us"] for row in sources.values())
+    for row in sources.values():
+        row["keys"] = len(row["keys"])
+        row["repeat_share"] = row["repeats"] / max(1, repeats)
+        row["repeat_compile_share"] = row["repeat_compile_us"] / repeat_compile if repeat_compile else None
+    return list(sources.values())
+
+
 def measure(workload):
-    installs = [e for e in workload["events"] if e["event"] == "install" and "key_id" in e]
+    installs = workload["installs"]
     if not installs:
         raise ValueError("recording contains no eligible guest installations")
     origin = installs[0]["elapsed_us"]
     timeline = defaultdict(lambda: {"first": 0, "repeat": 0})
-    sources = {}
-    repeat_compile = total_compile = linked_repeats = 0
-    for e in installs:
-        repeat = e["recurrence_scope"] != "first"
-        timeline[(e["elapsed_us"] - origin) // 1_000_000]["repeat" if repeat else "first"] += 1
-        row = sources.setdefault(e["filename"], {
-            "filename": e["filename"], "keys": set(), "installs": 0,
-            "repeats": 0, "compile_us": 0, "repeat_compile_us": 0,
-        })
-        row["keys"].add(e["key_id"])
-        row["installs"] += 1
-        row["repeats"] += repeat
-        compile_us = e.get("compile_us", 0)
-        row["compile_us"] += compile_us
-        row["repeat_compile_us"] += compile_us if repeat else 0
-        total_compile += compile_us
-        repeat_compile += compile_us if repeat else 0
-        linked_repeats += repeat and "compile_us" in e
-    source_rows = []
-    for row in sources.values():
-        row["keys"] = len(row["keys"])
-        row["repeat_share"] = row["repeats"] / max(1, len(installs) - workload["candidate"]["keys"])
-        row["repeat_compile_share"] = row["repeat_compile_us"] / repeat_compile if repeat_compile else None
-        source_rows.append(row)
-    source_rows.sort(key=lambda row: (-row["repeats"], row["filename"]))
+    for event in installs:
+        kind = "first" if event["recurrence_scope"] == "first" else "repeat"
+        timeline[(event["elapsed_us"] - origin) // 1_000_000][kind] += 1
+    sources = [{k: v for k, v in row.items() if k != "cache_bytes"}
+               for row in workload["sources"]]
+    sources.sort(key=lambda row: (-row["repeats"], row["filename"]))
     multiplicity = Counter(row["installs"] for row in workload["keys"])
     return {
-        "record_id": workload["record_id"],
-        "manifest": workload["manifest"],
-        "recording": workload["recording"],
+        **{key: workload[key] for key in ("record_id", "manifest", "recording", "candidate")},
         "firefox_revisions": sorted({e["firefox_revision"] for e in workload["events"] if e["event"] == "run" and "firefox_revision" in e}),
-        "candidate": workload["candidate"],
-        "compile_us": total_compile,
-        "repeat_compile_us": repeat_compile,
-        "linked_repeat_compiles": linked_repeats,
+        "compile_us": sum(row["compile_us"] for row in sources),
+        "repeat_compile_us": sum(row["repeat_compile_us"] for row in sources),
+        "linked_repeat_compiles": sum(e["recurrence_scope"] != "first" and "compile_us" in e for e in installs),
         "timeline_origin_after_runner_us": origin,
         "timeline": [{"second": second, **timeline[second]} for second in range(max(timeline) + 1)],
         "recurrence_gaps_us": sorted(e["recurrence_gap_us"] for e in installs if "recurrence_gap_us" in e),
         "multiplicity": [{"installs_per_key": n, "keys": count} for n, count in sorted(multiplicity.items())],
-        "sources": source_rows,
+        "sources": sources,
     }

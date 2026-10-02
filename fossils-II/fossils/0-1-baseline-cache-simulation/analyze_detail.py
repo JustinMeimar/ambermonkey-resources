@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-from collections import Counter, defaultdict
+from collections import Counter
 import json
 from pathlib import Path
 import statistics
 import sys
 
 
-SCOPE_ORDER = ("first", "same_runtime", "same_process", "cross_process")
+from measurements import SCOPES, source_summary
 
 
 def distribution(values):
@@ -71,33 +71,26 @@ def provenance_summary(events):
 
 def analyze_record(path, observation=None):
     manifest = json.loads((path / "manifest.json").read_text())
-    results = ({"observations": [observation]} if observation is not None else
-               json.loads((path / "results.json").read_text()))
-    events = []
-    if len(results["observations"]) != 1:
-        raise ValueError("analyze each observation separately; process addresses cannot span recordings")
-    for observation in results["observations"]:
-        for line in observation["stdout"]:
-            event = json.loads(line)
-            event["iteration"] = observation["iteration"]
-            event["original_order"] = len(events)
-            events.append(event)
+    if observation is None:
+        observations = json.loads((path / "results.json").read_text())["observations"]
+        if len(observations) != 1:
+            raise ValueError("analyze each observation separately; process addresses cannot span recordings")
+        observation = observations[0]
+    events = [dict(json.loads(line), iteration=observation["iteration"])
+              for line in observation["stdout"]]
     summaries = [event for event in events if event["event"] == "summary"]
     if len(summaries) != 1:
         raise ValueError(f"expected one recording summary: {path}")
-    events.sort(key=lambda event: (event.get("timestamp_us", float("inf")), event["original_order"]))
+    summary = summaries[0]
+    if summary.get("exit_code", summary.get("raptor_exit_code")) != 0 or not summary.get("log_files"):
+        raise ValueError(f"incomplete browser recording: {path}")
+    events.sort(key=lambda event: event.get("timestamp_us", float("inf")))
 
     seen = {}
     key_rows = {}
-    source_rows = defaultdict(lambda: {"installs": 0, "repeats": 0, "cache_bytes": 0})
     compile_by_script = {}
     install_by_baseline = {}
-    counts = Counter()
-    scopes = Counter()
     compile_times = []
-    candidate_compile_times = []
-    cache_sizes = []
-    recurrence_gaps = []
     lifetimes = []
     linked_compiles = 0
     matched_discards = 0
@@ -107,7 +100,6 @@ def analyze_record(path, observation=None):
         event["event_index"] = index
         event["elapsed_us"] = event.get("timestamp_us", run_start) - run_start
         kind = event["event"]
-        counts[kind] += 1
 
         if kind == "compile":
             if event["success"]:
@@ -131,11 +123,9 @@ def analyze_record(path, observation=None):
         install_by_baseline[(event["pid"], event["baseline"])] = index
         compile_index = compile_by_script.pop((event["pid"], event["script"]), None)
         event["compile_event_index"] = compile_index
-        compile_us = None
         if compile_index is not None:
             linked_compiles += 1
-            compile_us = events[compile_index]["duration_us"]
-            event["compile_us"] = compile_us
+            event["compile_us"] = events[compile_index]["duration_us"]
             events[compile_index]["install_event_index"] = index
 
         if event["provenance"] != "guest" or not event["key_has_source"]:
@@ -151,72 +141,43 @@ def analyze_record(path, observation=None):
             scope = "same_process"
         else:
             scope = "cross_process"
-        scopes[scope] += 1
         event["recurrence_scope"] = scope
-        event["previous_install_event_index"] = prior["index"] if prior else None
+        event["previous_install_event_index"] = prior["event_index"] if prior else None
         if prior:
-            gap = event["timestamp_us"] - prior["timestamp_us"]
-            event["recurrence_gap_us"] = gap
-            recurrence_gaps.append(gap)
-        seen[key] = {"pid": event["pid"], "runtime": event["runtime"],
-                     "timestamp_us": event["timestamp_us"], "index": index}
+            event["recurrence_gap_us"] = event["timestamp_us"] - prior["timestamp_us"]
+        seen[key] = event
 
         row = key_rows.get(key)
         if row is None:
-            row = {"id": len(key_rows), "cache_key": event["cache_key"],
-                   "filename": event["filename"], "first_event_index": index,
-                   "last_event_index": index, "installs": 0, "pids": set(),
-                   "runtimes": set(), "cache_bytes_min": event["cache_bytes"],
-                   "cache_bytes_max": event["cache_bytes"], "compile_us": 0,
-                   "cache_bytes_first": event["cache_bytes"],
-                   "code_bytes_first": event["code_bytes"],
-                   "allocated_code_bytes_first": event["allocated_code_bytes"],
-                   "linked_compiles": 0}
+            row = {"id": len(key_rows), "installs": 0,
+                   "cache_bytes_min": event["cache_bytes"],
+                   "cache_bytes_max": event["cache_bytes"]}
             key_rows[key] = row
         event["key_id"] = row["id"]
         row["installs"] += 1
-        row["last_event_index"] = index
-        row["pids"].add(event["pid"])
-        row["runtimes"].add((event["pid"], event["runtime"]))
         row["cache_bytes_min"] = min(row["cache_bytes_min"], event["cache_bytes"])
         row["cache_bytes_max"] = max(row["cache_bytes_max"], event["cache_bytes"])
-        if compile_us is not None:
-            row["linked_compiles"] += 1
-            row["compile_us"] += compile_us
-            candidate_compile_times.append(compile_us)
-        cache_sizes.append(event["cache_bytes"])
-
-        source = source_rows[event["filename"]]
-        source["installs"] += 1
-        source["repeats"] += scope != "first"
-        source["cache_bytes"] += event["cache_bytes"]
-
-    rows = []
-    for row in key_rows.values():
-        row["pids"] = sorted(row["pids"])
-        row["runtime_count"] = len(row.pop("runtimes"))
-        row["repeat_installs"] = row["installs"] - 1
-        rows.append(row)
-    summary = next((event for event in events if event["event"] == "summary"), {})
-    if summary.get("exit_code", summary.get("raptor_exit_code")) != 0 or not summary.get("log_files"):
-        raise ValueError(f"incomplete browser recording: {path}")
+    rows = list(key_rows.values())
     installs = [event for event in events if event["event"] == "install"
                 and "key_id" in event]
+    sources = source_summary(installs)
+    scopes = Counter(event["recurrence_scope"] for event in installs)
+    candidate_compile_times = [event["compile_us"] for event in installs if "compile_us" in event]
     variable_keys = {row["id"] for row in rows
                      if row["cache_bytes_min"] != row["cache_bytes_max"]}
     return {
         "record_id": path.name,
         "manifest": manifest,
-        "observation_count": len(results["observations"]),
+        "observation_count": 1,
         "recording": summary,
-        "counts": dict(counts),
+        "counts": dict(Counter(event["event"] for event in events)),
         "provenance_summary": provenance_summary(events),
         "candidate": {
             "installs": sum(scopes.values()),
             "keys": len(rows),
-            "recurrence_scope": {scope: scopes[scope] for scope in SCOPE_ORDER},
+            "recurrence_scope": {scope: scopes[scope] for scope in SCOPES},
             "linked_compiles": len(candidate_compile_times),
-            "variable_size_keys": sum(row["cache_bytes_min"] != row["cache_bytes_max"] for row in rows),
+            "variable_size_keys": len(variable_keys),
             "variable_size_repeats": sum(event["key_id"] in variable_keys
                                          and event["recurrence_scope"] != "first"
                                          for event in installs),
@@ -226,13 +187,15 @@ def analyze_record(path, observation=None):
         "distributions": {
             "successful_compile_us": distribution(compile_times),
             "candidate_compile_us": distribution(candidate_compile_times),
-            "candidate_cache_bytes": distribution(cache_sizes),
-            "recurrence_gap_us": distribution(recurrence_gaps),
+            "candidate_cache_bytes": distribution(event["cache_bytes"] for event in installs),
+            "recurrence_gap_us": distribution(event["recurrence_gap_us"] for event in installs if "recurrence_gap_us" in event),
             "installed_lifetime_us": distribution(lifetimes),
             "installs_per_key": distribution([row["installs"] for row in rows]),
         },
-        "top_sources": [{"filename": name, **data} for name, data in
-                        sorted(source_rows.items(), key=lambda pair: pair[1]["repeats"], reverse=True)[:30]],
+        "top_sources": [{key: row[key] for key in ("filename", "installs", "repeats", "cache_bytes")}
+                        for row in sorted(sources, key=lambda row: row["repeats"], reverse=True)[:30]],
+        "sources": sources,
+        "installs": installs,
         "keys": rows,
         "events": events,
     }
