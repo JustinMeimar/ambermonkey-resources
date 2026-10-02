@@ -36,7 +36,7 @@ def main():
         if result.returncode:
             raise SystemExit(f'{workload}/{label} failed (exit {result.returncode}). '
                              f'Incomplete experiment; logs: {output / workload / label / "harness.log"}')
-    print(f'[{workload}] Analyzing projection recurrence for 1/2/4 variants', file=sys.stderr, flush=True)
+    print(f'[{workload}] Analyzing feedback recurrence and site divergence', file=sys.stderr, flush=True)
     result = subprocess.check_output(
         [sys.executable, str(output / 'fossil/analyze.py'), '--directory',
          str(output / workload)], text=True)

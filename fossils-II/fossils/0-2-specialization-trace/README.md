@@ -1,130 +1,157 @@
-# Ion specialization recurrence
+# Ion feedback recurrence
 
-This fossil asks whether independent executions compile the same functions with
-recurring **recorded specialization projections**. It does not install cached Ion
-code, change compilation thresholds, or measure a cache speedup. The adjacent
-Baseline-cache simulation remains a separate experiment.
+This experiment asks whether recurring functions reach Ion compilation with
+recurring type feedback, and how Warp's choices add or remove variation.
+AmberMonkey supplies the motivation for sharing compiled artifacts. Native code
+identity, native addresses, and native code size are not recurrence criteria.
+The instrumentation leaves normal compilation thresholds and optimization
+choices in place. There is one current schema, with no compatibility support.
 
-One iteration runs two fresh training executions and one fresh evaluation
-execution. Training ranks variants by number of training runs, then compilation
-frequency, then signature. Evaluation tests membership in the frozen top 1, 2
-and 4 variants per function key. A variant may occur in only one training run;
-the report separately counts variants and function keys seen in both.
+## Observations
 
-## What is recorded
+Every compilation attempt records an entry profile before its root Warp oracle
+starts selecting or folding ICs. Each attempted inlinee has its own profile,
+captured before that inlinee's oracle runs, with a unique context, parent, and
+call-site offset. Inlinee profiles are therefore observations at recursive
+oracle entry, not a simultaneous snapshot of the entire potential call graph.
+Failed inline attempts remain in the raw data but are excluded from the accepted
+inlining tree. A root attempt remains an observation even if compilation fails.
 
-At Ion compilation, the patch records function identities, the CacheIR selected
-by Warp for the root and inlinees, dependency types, backend/oracle/link times,
-code and metadata sizes, link outcomes, and local bailout/invalidation counts.
-It does not trace IC attachments, fallbacks, full pre-Warp IC histories, Baseline
-installations, or script lifetimes. Script identities are initialized lazily at
-compilation. Ordinary engine warmup thresholds remain in force.
+Each IC site records its ordered CacheIR chain, field descriptors, cumulative
+entered counts, fallback count, mode, attachment-failure state, trial-inlining
+state, and folding hint. Warp's decisions are recorded separately: selected
+CacheIR, inlining, ordered polymorphic type data, cold/invalid-fuse bailouts, and
+reasons for generic IC execution. Completed script snapshots also record all
+snapshot kinds and offsets, including non-CacheIR snapshots. Missing decisions
+at sites Warp does not consult are distinct from generic decisions.
 
-The function key hashes source text, bytecode, source encoding and immutable
-flags; filenames and source locations do not participate. This is an advisory
-content key, not a proof of semantic identity. Missing source is an exclusion;
-encoding differences can split equivalent functions and hash collisions remain
-possible.
+There is no continuous attachment/fallback history. A profile is captured only
+when an oracle begins. Synchronous framed logging prevents records from forked
+processes corrupting each other. Extraction rejects incomplete, duplicated, or
+malformed frames; it never repairs or skips corruption. Use `sync,append`.
 
-Two projections are reported:
+## Comparison layers
 
-- `root`: selected CacheIR bytes, type data, scalar stub fields and recorded
-  native shape layouts at each root bytecode offset.
-- `snapshot`: the root and an unordered multiset of inlinee projections, content
-  keys and dependency types. It also requires source for every inlinee.
+| Layer | Compared | Deliberately separate |
+| --- | --- | --- |
+| `entry` | Ordered chains, CacheIR, type data, normalized fields, IC mode and attachment-failure state | Exact counters and optimization hints |
+| `active` | The same descriptors for cases with nonzero successes, plus fallback activity | Exact frequencies |
+| `consumed` | Root Warp decisions, selected CacheIR, ordered polymorphic types | Inlinee contents and compilation history |
+| `context` | Consumed feedback through the accepted inlining tree, call sites, history flags, OSR offset, IC hints, snapshot kinds, dependency kinds | Unrecorded snapshot/dependency payloads |
 
-Process-local pointer bits are erased. Symbols, prototypes, objects, shape-list
-contents, constants behind pointers, inline call topology and optimizer guards
-are not resolved. Non-CacheIR Warp snapshots and polymorphic type-data
-specializations are not compared. Equal projections can therefore conceal incompatible native
-code. Different projections show divergent compiler inputs, but do not prove a
-more general cached variant would be unusable. Local bailouts are counts only;
-they are not failures of a hypothetical transferred artifact.
+A stub's success count is its entered count minus its successor's entered count,
+with the same unsigned arithmetic as Warp. Raw counts remain available to study
+frequency effects, but count differences alone do not split entry profiles.
+Empty profiles and cold sites are retained.
 
-The unit is a **successful local Ion compilation**, not an invocation or a
-Baseline installation. Reports retain explicit denominators, missing-source and
-no-selected-root exclusions, unlinked requests, variant growth, opaque field
-counts, and compilation work associated with recurring projections. Backend
-times are instrumented work weights; summed median code sizes are storage
-estimates, excluding binding costs. There is no lifetime survival or
-first-conflict metric. This sampling also says nothing about functions that
-never reach Ion. Broader inputs and a real rebinding/guard-validation experiment
-are needed before assessing safe cross-site reuse.
+Guest function keys combine source text, bytecode, encoding and immutable
+flags, without filenames. They are advisory content identities, not semantic
+proofs. Self-hosted keys use bytecode, source coordinates and immutable flags
+within the exact engine build. All compared recordings must use that build.
+Unresolved guest identities are reported and excluded from key-based matches.
 
-## Why the previous Speedometer run failed
+Scalar field values and linear-string contents participate in comparisons.
+Shapes contribute recorded property layouts. Interpreted function/script fields
+contribute content keys when available. Native addresses do not participate.
+Shape identity/prototypes, closure environments, native callee identities,
+folded shape-list contents, and other pointer-backed values remain unresolved.
+The report counts those occurrences and identifies matched entry profiles with
+no unresolved fields. Descriptor matches with unresolved fields are coarse
+profile recurrence, not fully characterized equality. Non-CacheIR snapshot and
+dependency payload gaps are reported separately. `context` is not a complete
+compiler-input identity, and differing contexts do not prove reuse impossible.
 
-In bundle `fcae11e02eb3405181873c0ac5021cff`, both training harnesses completed;
-train-b then failed during JSON extraction. At line 360 of
-`trace-child.11128.child-2.moz_log`, PID 11232's record occurs inside PID 11229's
-record. Forked children shared a log file despite `%PID` naming. This was
-interprocess record corruption, not a benchmark early exit.
+## Analysis
 
-Train-a generated 4,205,469,636 raw bytes. IC events alone occupied
-3,545,236,611 bytes (84%); full profiles occupied another 256,438,785 bytes (6%).
-Those event streams have been removed. This predicts a large reduction in trace
-volume, but runtime overhead still needs measurement with the rebuilt browser.
+The default burial collects two fresh training executions and one held-out
+execution of a workload. It reports each layer's recurrence **conditional on
+function recurrence**, as well as the denominator over all eligible attempts.
+There is a separate view restricted to successful compilations in both training
+and evaluation. Compiler work is associated with observations; instrumented
+elapsed durations are not saved wall-clock time.
 
-Version 2 emits hex-encoded 512-byte JSON fragments in short `SPCACHE2` log
-lines, identified by PID, process-start timestamp, event sequence and fragment
-index/count. A process-local mutex serializes the writes across compiler
-threads. **Use synchronous append logging** and retain every child log.
-Extraction reassembles interleaved records and rejects duplicate, malformed,
-legacy and incomplete records with file/line diagnostics where available.
-It never repairs or skips corruption. Real browser validation is still required.
+The report includes:
+
+- Per-function variant counts and growth in supplied recording order.
+- Repetition from earlier recordings versus repetition first seen within the
+  current recording. This does not infer page-load boundaries.
+- New consumed feedback despite recurring entry feedback, changed entry
+  feedback despite recurring consumed feedback, and new optimization contexts
+  despite recurring consumed feedback.
+- Entry-profile mismatch distances and categories, against the nearest observed
+  training profile by differing-site count. Categories can overlap; they are
+  descriptive, not causal optimization ablations.
+- Top-1/2/4 profile concentration, ranked using training recording frequency,
+  then compilation frequency, then signature. This is not a cache policy.
+- Explicit missing-identity, unresolved-field, incomplete-oracle and successful
+  compilation populations. No code-size-based reuse inference is made.
+
+The full report contains per-function details and bounded divergence examples.
+Fossil's metrics adapter omits provenance, detailed examples, recording names,
+and undefined percentages while retaining their denominators.
+
+Repeated benchmark inputs measure repeatability. Cross-workload analysis accepts
+independently recorded directories, in the intended learning order:
+
+```sh
+python3 analyze.py --training /path/to/earlier/run \
+  --training /path/to/another/run --evaluation /path/to/held-out/run > report.json
+```
+
+This permits shared-library recurrence across workloads without requiring equal
+workload names. It does not manufacture a browsing timeline from benchmark
+iterations. Navigation boundaries, changed-input cohorts, actual bounded-cache
+policies, and targeted optimization ablations are follow-on experiments after
+validating these observations. Do not disable optimizations merely to reduce
+the number of variants.
 
 ## Build and validate
 
-From `/home/justin/spidermonkey`, rebuild using the existing browser mozconfig,
-Nix environment and sccache configuration:
+From `/home/justin/spidermonkey`:
 
 ```sh
 bash ambermonkey/fossils-II/fossils/0-2-specialization-trace/run-browser build
-python3 -m unittest discover \
-  -s ambermonkey/fossils-II/fossils/0-2-specialization-trace -p 'test_*.py'
 ```
 
-The recorder checks that libxul contains the v2 framing marker before launching
-a workload. It never rebuilds automatically. The launcher sources the single
-cached `.direnv/flake-profile-*.rc`; `SPECIALIZATION_ENV_FILE` overrides it.
-`FIREFOX_ROOT` defaults to `/home/justin/spidermonkey/firefox`.
+The recorder checks libxul for the feedback framing marker and refuses to run
+without it. It never builds automatically. The launcher uses the provisioned
+Nix environment, browser mozconfig and sccache configuration.
+`SPECIALIZATION_ENV_FILE` and `FIREFOX_ROOT` override their default locations.
 
-First validate one traced run. Compare it with an untraced fresh run to assess
-recording overhead; a single pair is diagnostic, not a performance claim:
+Start with one traced recording and validate it before a full burial:
 
 ```sh
 cd /home/justin/spidermonkey/ambermonkey/fossils-II/fossils/0-2-specialization-trace
-python3 capture.py speedometer3 --run probe --output /tmp/ion-recurrence-check
-python3 capture.py speedometer3 --run untraced --no-trace --output /tmp/ion-recurrence-check
+python3 capture.py speedometer3 --run probe --output /tmp/ion-feedback-check
+python3 capture.py speedometer3 --run untraced --no-trace --output /tmp/ion-feedback-check
 ```
 
-Check `summary.json`, `harness.log`, trace bytes and Raptor scores. Trace extraction
-must complete without corruption. The harness uses CPU 2, headless mode, one
-browser cycle and one page cycle for Speedometer/JetStream (two for tp6).
-JetStream uses `tag=js&iterationCount=3&worstCaseCount=1`. Keep host settings and
-benchmark revisions consistent. Then collect the independent three-run bundle:
+Capture validates the feedback graph after extracting the logs. Check unresolved
+coverage in the full report, trace bytes, harness time and
+Raptor scores. Hashing and synchronous output perturb execution; a traced versus
+untraced pair is an overhead diagnostic, not evidence of a cache speedup. The
+harness pins to CPU 2 and retains normal warmup thresholds. Speedometer's internal
+iterations are not independent page-load observations. Browser execution still
+needs validation after rebuilding; C++ syntax checks do not
+replace it.
+
+Then collect the full bundle:
 
 ```sh
 fossil bury 0-2-specialization-trace --project ambermonkey-oopsla --variant speedometer3
+fossil analyze 0-2-specialization-trace:speedometer3 \
+  --project ambermonkey-oopsla --analysis specialization --last 1
 ```
 
-`jetstream3` and `tp6` are also supported. tp6 historically took roughly
-36 minutes per execution. `capture.py --dry-run` prints the planned launch.
-Existing recording directories are never overwritten.
+`jetstream3` and `tp6` are also available. `capture.py --dry-run` prints the launch
+without running it. Existing output directories are never overwritten.
 
-Raw traces, frozen Python tools, source diff, new instrumentation files, build
-metadata and reports stay under
+Raw traces, scripts, source changes, build identity, metadata, and the full
+report stay under
 `$FIREFOX_ROOT/artifacts/specialization-browser/fossil-runs/<uuid>/`.
-Archive the entire bundle. The binary/libxul/mozinfo hash must agree across all
-three recordings, and analysis rejects overlapping process recordings.
-Source snapshots describe the checkout; they do not prove those sources were
-built. Frozen scripts mean edits take effect on the next invocation.
-
-To repeat analysis of a completed v2 bundle:
+Frozen scripts document what an experiment ran. Source snapshots do not prove
+that those sources were built. Archive the entire bundle.
 
 ```sh
 python3 analyze.py --directory /path/to/bundle/speedometer3 > report.json
 ```
-
-The v1 traces and reports remain historical artifacts and are intentionally
-incompatible with this narrower v2 experiment. No successful browser build or
-new workload measurement is claimed by the Python checks.

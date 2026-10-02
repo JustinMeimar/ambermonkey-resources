@@ -29,11 +29,11 @@ def build_identity(require_trace=True):
             previous = b''
             for chunk in iter(lambda: stream.read(1024 * 1024), b''):
                 digest.update(chunk)
-                if path.name == 'libxul.so' and b'SPCACHE2\t' in previous + chunk:
+                if path.name == 'libxul.so' and b'IONFEEDBACK\t' in previous + chunk:
                     framed_trace = True
                 previous = chunk[-16:]
     if require_trace and not framed_trace:
-        raise RuntimeError('Browser lacks v2 specialization framing; rebuild before recording.')
+        raise RuntimeError('Browser lacks compilation feedback instrumentation; rebuild before recording.')
     return 'browser-x64-opt-' + digest.hexdigest()[:20]
 
 
@@ -59,16 +59,17 @@ def extract(directory, label, build_id):
                 raise RuntimeError('Mismatched build ID in browser trace.')
             counts[event['event']] += 1
             stream.write(json.dumps(event, separators=(',', ':')) + '\n')
-    if not counts['ion_request'] or not counts['selected'] or not counts['ion_link']:
+    if not counts['ion_request'] or not counts['profile'] or not counts['ion_link']:
         raise RuntimeError('Trace has no analyzable Ion activity.')
     temporary.replace(directory / 'specialization.jsonl')
-    return {'trace_version': sc.VERSION, 'log_files': len(logs),
+    sc.read_recording(directory)
+    return {'log_files': len(logs),
             'trace_bytes': sum(p.stat().st_size for p in logs),
             'specialization_events': dict(counts)}
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Record Ion compilation projections at default thresholds.')
+    parser = argparse.ArgumentParser(description='Record Ion compilation feedback at default thresholds.')
     parser.add_argument('workload', choices=[*TESTS, 'manual'])
     parser.add_argument('--run', required=True, help='Unique independent recording label, e.g. train-a')
     parser.add_argument('--output', type=Path, default=ROOT / 'artifacts/specialization-browser/runs')
@@ -94,7 +95,7 @@ def main():
     plan = {'workload': args.workload, 'run': args.run, 'directory': str(directory),
             'command': command, 'environment': overrides, 'cpu': 2, 'manual_seconds': MANUAL_SECONDS,
             'notes': ['Fresh execution; original Baseline logs cannot supply IC/Ion history.',
-                      'Framed v2 events; synchronous logs; strict extraction.',
+                      'Framed feedback events; synchronous logs; strict extraction.',
                       'Training and evaluation must use separate browser recordings.']}
     if args.dry_run:
         print(json.dumps(plan, indent=2))
