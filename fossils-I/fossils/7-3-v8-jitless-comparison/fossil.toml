@@ -1,0 +1,36 @@
+name = "7-3-v8-jitless-comparison"
+description = "Speedometer 3 and Octane 2 performance retained relative to each engine's default configuration."
+default_iterations = 3
+allow_failure = false
+
+[variants]
+speedometer-am = "run.py"
+speedometer-am-oracle = "run.py"
+speedometer-baseline = "run.py"
+speedometer-default = "run.py"
+speedometer-v8-default = "run.py"
+speedometer-v8-jitless = "run.py"
+octane-am = "run.py"
+octane-am-oracle = "run.py"
+octane-baseline = "run.py"
+octane-default = "run.py"
+octane-v8-default = "run.py"
+octane-v8-jitless = "run.py"
+
+[analyses]
+performance = "analyses/parse_performance.py"
+
+[artifacts.performance-retained]
+required-variants = ["*"]
+analysis = "performance"
+script = "figures/performance_retained.py"
+
+[artifacts.performance-retained-dots]
+required-variants = ["*"]
+analysis = "performance"
+script = "figures/performance_retained_dots.py"
+
+[artifacts.performance-retained-hbars]
+required-variants = ["*"]
+analysis = "performance"
+script = "figures/performance_retained_hbars.py"

@@ -1,0 +1,15 @@
+name = "7-5-indirection-e2e-s3"
+description = "Speedometer 3 indirection overhead with Ion and native RegExp disabled."
+default_iterations = 10
+allow_failure = false
+
+[variants]
+default-no-ion = "run.py"
+aot-corpus = "run.py"
+
+[analyses]
+speedometer-detail = "analyses/parse_speedometer.py"
+
+[artifacts.perf]
+analysis = "speedometer-detail"
+script = "figures/perf_table.py"

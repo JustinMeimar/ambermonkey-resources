@@ -1,0 +1,40 @@
+name = "7-2-ambermonkey-perf-s3"
+description = "Speedometer 3 performance across the interpreter, AmberMonkey ablations, and the default JIT."
+default_iterations = 3
+allow_failure = true
+
+[variants]
+interp-only = "run.py"
+blinterp-only = "run.py"
+aot-corpus-ic = "run.py"
+aot-corpus = "run.py"
+default-no-ion = "run.py"
+default = "run.py"
+
+[analyses]
+speedometer-detail = "analyses/parse_speedometer.py"
+
+[artifacts.subtest-bars]
+required-variants = ["interp-only"]
+analysis = "speedometer-detail"
+script = "figures/subtest_bars.py"
+
+[artifacts.tier-throughput]
+required-variants = ["interp-only"]
+analysis = "speedometer-detail"
+script = "figures/tier_throughput.py"
+
+[artifacts.s3-ablation-perf]
+required-variants = ["interp-only"]
+analysis = "speedometer-detail"
+script = "figures/s3_ablation_perf.py"
+
+[artifacts.aot-tradeoff]
+required-variants = ["interp-only", "aot-corpus", "default-no-ion"]
+analysis = "speedometer-detail"
+script = "figures/aot_tradeoff.py"
+
+[artifacts.perf]
+required-variants = ["interp-only"]
+analysis = "speedometer-detail"
+script = "figures/speedometer_table.py"

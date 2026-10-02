@@ -1,0 +1,22 @@
+name = "7-4-artifact-installation-startup"
+description = "First-iteration latency for JetStream 3's startup workloads under matched Baseline JIT and AmberMonkey configurations."
+default_iterations = 30
+allow_failure = false
+
+[variants]
+default-no-ion = "run.py"
+aot-corpus-ic = "run.py"
+aot-corpus = "run.py"
+
+[analyses]
+startup = "analyses/parse_startup.py"
+
+[artifacts.startup-bars]
+required-variants = ["default-no-ion"]
+analysis = "startup"
+script = "figures/startup_bars.py"
+
+[artifacts.startup]
+required-variants = ["default-no-ion", "aot-corpus"]
+analysis = "startup"
+script = "figures/startup_table.py"

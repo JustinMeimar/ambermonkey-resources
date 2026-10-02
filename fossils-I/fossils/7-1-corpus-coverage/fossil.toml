@@ -1,0 +1,28 @@
+name = "7-1-corpus-coverage"
+description = "AOT corpus coverage on held-out workloads: tp6_test (frozen in 6-1's test.txt), Speedometer 3.1, JetStream 3.0, and Octane 2.0."
+default_iterations = 3
+allow_failure = false
+
+[variants]
+jetstream3 = "run.py"
+speedometer3 = "run.py"
+octane2 = "run.py"
+tp6_test = "run.py"
+
+[analyses]
+coverage = "analyses/parse_coverage.py"
+
+[artifacts.baseline-function-table]
+analysis = "coverage"
+script = "figures/baseline_function_table.py"
+
+[artifacts.baseline-interpreter-table]
+analysis = "coverage"
+script = "figures/baseline_interpreter_table.py"
+
+[artifacts.ic-table]
+analysis = "coverage"
+script = "figures/ic_table.py"
+
+[artifacts.missing-ic-stubs]
+script = "scripts/emit_missing_ic_stubs.py"

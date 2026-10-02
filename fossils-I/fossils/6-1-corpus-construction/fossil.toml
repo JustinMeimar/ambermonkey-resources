@@ -1,0 +1,45 @@
+name = "6-1-corpus-construction"
+description = "Record the AOT artifact corpus one tp6 site at a time, plus the self-hosted baseline set. train.txt and test.txt freeze the 24/8 partition."
+default_iterations = 1
+allow_failure = false
+
+[variants]
+self-hosted = "run.py"
+amazon = "run.py"
+bing-search = "run.py"
+buzzfeed = "run.py"
+cnn = "run.py"
+ebay = "run.py"
+espn = "run.py"
+expedia = "run.py"
+facebook = "run.py"
+fandom = "run.py"
+google-docs = "run.py"
+google-mail = "run.py"
+google-search = "run.py"
+google-slides = "run.py"
+imdb = "run.py"
+imgur = "run.py"
+instagram = "run.py"
+linkedin = "run.py"
+microsoft = "run.py"
+netflix = "run.py"
+nytimes = "run.py"
+office = "run.py"
+outlook = "run.py"
+paypal = "run.py"
+pinterest = "run.py"
+reddit = "run.py"
+tumblr = "run.py"
+twitch = "run.py"
+twitter = "run.py"
+wikia = "run.py"
+wikipedia = "run.py"
+yahoo-mail = "run.py"
+youtube = "run.py"
+
+[artifacts.composition]
+script = "scripts/emit_composition.py"
+
+[artifacts.loso]
+script = "scripts/loso.py"

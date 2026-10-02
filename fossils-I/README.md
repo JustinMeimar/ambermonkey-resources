@@ -7,15 +7,20 @@ analyses, figures, and tables.
 ## Layout
 
 ```
-fossils/
-  project.toml          shared constants (@FIREFOX, @JSSHELL, ...)
-  scripts/              cross-fossil utilities (figure_style, corpus, ...)
-  <N-M-slug>/
-    fossil.toml         experiment definition
-    scripts/            experiment-local helpers (record, reduce, ...)
-    analyses/           per-observation parsers
-    figures/            figure and table emitters
-    records/            fossil-managed observation store (do not edit)
+fossils-I/
+  project.toml          project identity and artifact destination
+  configurations.toml   display names and colors
+  common/               launch settings, browser/shell helpers, Octane harness
+  scripts/              shared parsers and figure utilities (../scripts)
+  fossils/
+    <N-M-slug>/
+      fossil.toml       variants, analyses, and artifact scripts
+      run.py            variant runner
+      scripts/          experiment-local helpers
+      analyses/         per-observation parsers
+      figures/          plot and table emitters
+      records/          fossil-managed observations
+  retired/              unmigrated experiments
 ```
 
 ## Fossils
@@ -61,27 +66,43 @@ directory name so provenance stays legible.
 
 ## Running
 
-```
-fossil bury <fossil>                          # run all variants
-fossil bury <fossil> --variant <v1,v2...>     # run one
-fossil bury <fossil> --dry-run                # print the expanded command
-fossil analyze <fossil>                       # (re-)run analyses on records
-fossil figure  <fossil> <figure-name>         # render a figure
-fossil table   <fossil> <table-name>          # emit a JSON table
+```sh
+fossil --project ambermonkey-cgo list
+fossil --project ambermonkey-cgo bury 7-2-ambermonkey-perf-s3 --variant default
+fossil --project ambermonkey-cgo analyze 7-2-ambermonkey-perf-s3 --analysis speedometer-detail
+fossil --project ambermonkey-cgo emit 7-2-ambermonkey-perf-s3 --artifact perf
+fossil serve --project ambermonkey-cgo
 ```
 
-Variant strings are shell fragments with `@CONST` (from `project.toml`) and
-`$VAR` (from the fossil's `[variables]`) substituted before execution.
-Substitution is single-pass, so `$VAR` inside another variable is left
-literal — inline instead of nesting.
+Variant scripts receive the variant as argument 1. Analysis scripts receive
+variant and record directory as arguments 1 and 2, with one observation JSON
+on stdin. Artifact scripts receive an output directory as argument 1 and,
+when configured with an analysis, aggregated metrics on stdin.
 
-All subprocesses receive `FOSSIL_PROJECT_DIR`, `FOSSIL_NAME`,
-`FOSSIL_PREFIX`, and project constants as `FOSSIL_CONST_<NAME>`. Each also
-receives its operation name: `FOSSIL_VARIANT_NAME`, `FOSSIL_ANALYSIS_NAME`,
-`FOSSIL_FIGURE_NAME`, or `FOSSIL_TABLE_NAME`. Analysis scripts additionally
-receive `FOSSIL_RUN_DIR` and the record's variant. External paths belong in
-`project.toml`; variant commands locate fossil-local scripts below
-`$FOSSIL_PROJECT_DIR/$FOSSIL_NAME`.
+Artifacts live below `cgo-2027/artifacts/<fossil>/<artifact>/`. The scripts
+choose filenames and may write JSON, PDF, and PNG together. They do not need
+an output-format field or Fossil-provided environment variables.
+
+`common/settings.py` owns build paths, mozconfigs, corpus directories, and
+scratch location. `common/browser.py` and `common/shell.py` define shared
+launch arguments. Each adjacent `run.py` owns its experiment's variants,
+cycle counts, instrumentation, and failure behavior. Shared Raptor,
+Speedometer, JetStream, and Octane parsers live in `../scripts/benchmarks`.
+
+Runners write `AMBER_EXECUTION=` JSON lines to stderr containing the actual
+launch arguments, explicit environment settings, removed environment names,
+and working directory. Analyses use these captured launches for flag checks;
+older records retain their expanded manifest commands. Existing manifests
+and observations are preserved verbatim.
+
+Oracle variants still require the corresponding oracle image to be built
+before recording. They use the same executable paths as corpus variants;
+the variant name does not select or rebuild an embedded image. Likewise,
+indirection variants require the three separately prepared shell binaries.
+
+The corpus-construction runner replaces its selected site's corpus directory.
+The memory runner retains samples even when Raptor exits unsuccessfully, and
+waits for its sidecar to finish before reducing the measurements.
 
 ## Style
 - Fossil descriptions are one line: what is measured, not why.

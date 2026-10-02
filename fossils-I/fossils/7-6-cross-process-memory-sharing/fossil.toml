@@ -1,0 +1,25 @@
+name = "7-6-cross-process-memory-sharing"
+description = "Speedometer 3 content-process PSS and USS across interpreter, default-JIT, and AmberMonkey configurations."
+default_iterations = 3
+allow_failure = true
+
+[variants]
+interp-only = "run.py"
+default = "run.py"
+default-no-ion = "run.py"
+aot-corpus = "run.py"
+
+[analyses]
+memory = "analyses/parse_memory.py"
+
+[artifacts.aggregate]
+analysis = "memory"
+script = "figures/aggregate_table.py"
+
+[artifacts.composition-bars]
+analysis = "memory"
+script = "figures/composition_bars.py"
+
+[artifacts.per-proc-pss-lines]
+analysis = "memory"
+script = "figures/per_proc_pss_lines.py"

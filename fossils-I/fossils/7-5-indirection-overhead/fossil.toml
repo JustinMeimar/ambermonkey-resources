@@ -1,0 +1,33 @@
+name = "7-5-indirection-overhead"
+description = "User-mode cycle and retired-instruction cost of jsshell hot loops across Baseline JIT and three AmberMonkey indirection-ablation build states: RIT only, RIT plus native linker, and RIT plus native linker plus value mirroring."
+default_iterations = 50
+allow_failure = false
+
+[variants]
+baseline-jit = "run.py"
+am-rit = "run.py"
+am-rit-nl = "run.py"
+am-rit-nl-vm = "run.py"
+
+[analyses]
+cycles = "analyses/parse_cycles.py"
+
+[artifacts.cycles-bars]
+required-variants = ["baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm"]
+analysis = "cycles"
+script = "figures/cycles_bars.py"
+
+[artifacts.cycles-hbars]
+required-variants = ["baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm"]
+analysis = "cycles"
+script = "figures/cycles_hbars.py"
+
+[artifacts.instruction-overhead]
+required-variants = ["baseline-jit"]
+analysis = "cycles"
+script = "figures/instruction_overhead.py"
+
+[artifacts.cycles]
+required-variants = ["baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm"]
+analysis = "cycles"
+script = "figures/cycles_table.py"

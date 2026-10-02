@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -eo pipefail
+repo=${FIREFOX_ROOT:-/home/justin/spidermonkey/firefox}
+cd "$repo"
+if [[ -n ${SPECIALIZATION_ENV_FILE:-} ]]; then
+  source "$SPECIALIZATION_ENV_FILE"
+else
+  shopt -s nullglob
+  environments=("$repo"/../.direnv/flake-profile-*.rc)
+  if [[ ${#environments[@]} != 1 ]]; then
+    echo 'Set SPECIALIZATION_ENV_FILE to the provisioned Nix environment file.' >&2
+    exit 1
+  fi
+  source "${environments[0]}"
+fi
+set -u
+export MOZCONFIG
+MOZCONFIG=$(python3 -c 'import json; print(json.load(open("build-browser-release/mozinfo.json"))["mozconfig"])')
+export MOZBUILD_STATE_PATH="$repo/artifacts/specialization-browser/mach-state"
+mkdir -p "$MOZBUILD_STATE_PATH"
+if [[ ${1:-} == exec ]]; then
+  shift
+  exec "$@"
+fi
+exec ./mach "$@"

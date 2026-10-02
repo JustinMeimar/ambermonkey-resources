@@ -1,0 +1,30 @@
+name = "7-2-ambermonkey-perf-octane"
+description = "Held-out Octane 2 performance across the interpreter, AmberMonkey ablations, and the default JIT."
+default_iterations = 3
+allow_failure = false
+
+[variants]
+interp-only = "run.py"
+blinterp-only = "run.py"
+aot-corpus-ic = "run.py"
+aot-corpus = "run.py"
+default-no-ion = "run.py"
+default = "run.py"
+
+[analyses]
+octane-detail = "analyses/parse_octane.py"
+
+[artifacts.subtest-bars]
+required-variants = ["interp-only"]
+analysis = "octane-detail"
+script = "figures/subtest_bars.py"
+
+[artifacts.octane-ablation-perf]
+required-variants = ["interp-only"]
+analysis = "octane-detail"
+script = "figures/octane_ablation_perf.py"
+
+[artifacts.perf]
+required-variants = ["interp-only"]
+analysis = "octane-detail"
+script = "figures/octane_table.py"

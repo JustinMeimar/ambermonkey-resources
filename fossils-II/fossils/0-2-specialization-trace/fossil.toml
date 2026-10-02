@@ -1,0 +1,11 @@
+name = "0-2-specialization-trace"
+default_iterations = 1
+allow_failure = false
+
+[variants]
+speedometer3 = "record.py"
+jetstream3 = "record.py"
+tp6 = "record.py"
+
+[analyses]
+specialization = "analyze.py"

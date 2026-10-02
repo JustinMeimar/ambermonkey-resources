@@ -1,0 +1,96 @@
+name = "3-3-cross-workload-reuse"
+description = "Static and dynamic intersection from cumulative tp6-Train prefixes to held-out tp6-Test for content-process Baseline functions and IC bodies."
+default_iterations = 1
+allow_failure = false
+
+[variants]
+amazon = "run.py"
+bing-search = "run.py"
+buzzfeed = "run.py"
+cnn = "run.py"
+ebay = "run.py"
+espn = "run.py"
+expedia = "run.py"
+facebook = "run.py"
+fandom = "run.py"
+google-docs = "run.py"
+google-mail = "run.py"
+google-search = "run.py"
+google-slides = "run.py"
+imdb = "run.py"
+imgur = "run.py"
+instagram = "run.py"
+linkedin = "run.py"
+microsoft = "run.py"
+netflix = "run.py"
+nytimes = "run.py"
+office = "run.py"
+outlook = "run.py"
+paypal = "run.py"
+pinterest = "run.py"
+reddit = "run.py"
+tumblr = "run.py"
+twitch = "run.py"
+twitter = "run.py"
+wikia = "run.py"
+wikipedia = "run.py"
+yahoo-mail = "run.py"
+youtube = "run.py"
+
+[analyses]
+artifact-sets = "analyses/ic_set.py"
+corpus-growth-sets = "analyses/corpus_growth_set.py"
+
+[artifacts.artifact-overlap]
+analysis = "artifact-sets"
+script = "figures/ic_intersection.py"
+
+[artifacts.corpus-growth]
+required-variants = [
+    "amazon",
+    "bing-search",
+    "buzzfeed",
+    "cnn",
+    "ebay",
+    "espn",
+    "expedia",
+    "facebook",
+    "fandom",
+    "google-docs",
+    "google-mail",
+    "google-search",
+    "google-slides",
+    "imdb",
+    "imgur",
+    "instagram",
+    "linkedin",
+    "microsoft",
+    "netflix",
+    "nytimes",
+    "office",
+    "outlook",
+    "paypal",
+    "pinterest",
+    "reddit",
+    "tumblr",
+    "twitch",
+    "twitter",
+    "wikia",
+    "wikipedia",
+    "yahoo-mail",
+    "youtube",
+]
+analysis = "corpus-growth-sets"
+script = "figures/corpus_growth.py"
+
+[artifacts.coverage]
+script = "scripts/emit_summary_json.py"
+
+[artifacts.baseline-static]
+script = "scripts/emit_baseline_static_table.py"
+
+[artifacts.baseline-dynamic]
+script = "scripts/emit_baseline_dynamic_table.py"
+
+[artifacts.corpus-growth-table]
+script = "scripts/emit_corpus_growth.py"

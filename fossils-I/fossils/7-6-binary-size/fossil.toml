@@ -1,0 +1,10 @@
+name = "7-6-binary-size"
+description = "On-disk binary-size cost for matched release builds: libxul.so + AOT image (engine view), and firefox launcher + full dist/bin (whole-browser view)."
+default_iterations = 1
+allow_failure = false
+
+[artifacts.libxul]
+script = "emit_libxul.py"
+
+[artifacts.browser]
+script = "emit_browser.py"

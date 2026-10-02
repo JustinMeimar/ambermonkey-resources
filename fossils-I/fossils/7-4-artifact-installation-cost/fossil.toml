@@ -1,0 +1,17 @@
+name = "7-4-artifact-installation-cost"
+description = "Per-artifact AOT installation and runtime-codegen costs during cpstartup under the current matched execution configurations."
+default_iterations = 10
+allow_failure = false
+
+[variants]
+default-no-ion = "run.py"
+aot-corpus-ic = "run.py"
+aot-corpus = "run.py"
+
+[analyses]
+timing = "analyses/parse_timing.py"
+
+[artifacts.attachment]
+required-variants = ["default-no-ion"]
+analysis = "timing"
+script = "figures/attachment_table.py"

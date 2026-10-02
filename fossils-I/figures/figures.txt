@@ -1,0 +1,10 @@
+Figure support belongs to this project. Run `uv sync --project fossils-I`
+from the AmberMonkey root once to install the locked plotting dependencies.
+Plotting entrypoints select fossils-I/.venv themselves, including when Fossil
+runs them from the web UI. No virtualenv activation or Python package install
+for the Fossil tool is needed.
+
+figure_data.py decodes analysis JSON and formats table JSON without plotting
+dependencies. Callers read stdin and write table files at their entrypoints.
+figure_style.py owns the paper typography and configurations.toml supplies
+variant colors. Individual figures own their plotting code.

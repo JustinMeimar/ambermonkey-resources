@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 
@@ -21,16 +22,28 @@ def fail(prefix: str, msg: str) -> "NoReturn":
     raise SystemExit(1)
 
 
-def load(prefix: str = "manifest") -> dict:
-    """Read manifest.json from $FOSSIL_RUN_DIR."""
-    run_dir = os.environ.get("FOSSIL_RUN_DIR")
+def load(prefix: str = "manifest", *, run_dir=None, observation=None) -> dict:
+    run_dir = run_dir or os.environ.get("FOSSIL_RUN_DIR")
     if not run_dir:
-        fail(prefix, "FOSSIL_RUN_DIR is required")
+        fail(prefix, "record directory is required")
     path = Path(run_dir) / "manifest.json"
     try:
-        return json.loads(path.read_text())
+        result = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError) as exc:
         fail(prefix, f"cannot read {path}: {exc}")
+    launches = []
+    stream = (observation or {}).get("stderr", [])
+    lines = stream.splitlines() if isinstance(stream, str) else stream
+    for line in lines:
+        if line.startswith("AMBER_EXECUTION="):
+            launches.append(json.loads(line.removeprefix("AMBER_EXECUTION=")))
+    if launches:
+        result["command"] = " && ".join(
+            shlex.join([*(f"{key}={value}" for key, value in launch["environment"].items()),
+                        *launch["argv"]])
+            for launch in launches
+        )
+    return result
 
 
 def command_flag(command: str, name: str) -> bool:

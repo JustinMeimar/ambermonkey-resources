@@ -1,0 +1,10 @@
+name = "0-0-static-tables"
+description = "Hand-authored runtime-dependency and execution-configuration tables."
+default_iterations = 1
+allow_failure = false
+
+[artifacts.runtime-dependencies]
+script = "emit_runtime_dependencies.py"
+
+[artifacts.execution-configurations]
+script = "emit_execution_configurations.py"

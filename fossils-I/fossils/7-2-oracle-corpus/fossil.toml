@@ -1,0 +1,19 @@
+name = "7-2-oracle-corpus"
+description = "Speedometer 3 performance with its benchmark-oracle AOT corpus."
+default_iterations = 3
+allow_failure = false
+
+[variants]
+speedometer3-default = "run.py"
+speedometer3-aot-only = "run.py"
+
+[analyses]
+benchmark = "analyses/parse_benchmark.py"
+
+[artifacts.speedometer3]
+analysis = "benchmark"
+script = "emit_speedometer3.py"
+
+[artifacts.jetstream3]
+analysis = "benchmark"
+script = "emit_jetstream3.py"
