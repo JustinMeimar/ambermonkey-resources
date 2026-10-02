@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
 
-from collections import Counter, OrderedDict, defaultdict
+from collections import Counter, defaultdict
 import json
 from pathlib import Path
 import statistics
 import sys
 
 
-CAPACITIES = (4, 8, 16, 32)
-CURVE_MIB = (1, 2, 3, 4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 10, 12, 16, 24, 32)
-SIZE_FIELDS = {
-    "instructions": "code_bytes",
-    "allocated_code": "allocated_code_bytes",
-    "code_plus_metadata": "cache_bytes",
-    "code_plus_metadata_size_split": "cache_bytes",
-}
 SCOPE_ORDER = ("first", "same_runtime", "same_process", "cross_process")
 
 
@@ -40,53 +32,6 @@ def distribution(values):
         "max": values[-1],
         "mean": statistics.fmean(values),
     }
-
-
-def new_cache(capacity):
-    return {"capacity_bytes": capacity, "entries": OrderedDict(), "used_bytes": 0,
-            "hits": 0, "misses": 0, "oversize": 0, "evictions": 0,
-            "hit_compile_us": 0, "hit_link_us": 0, "peak_bytes": 0}
-
-
-def access(cache, key, size, compile_us, link_us):
-    entries = cache["entries"]
-    if key in entries:
-        entries.move_to_end(key)
-        cache["hits"] += 1
-        cache["hit_compile_us"] += compile_us or 0
-        cache["hit_link_us"] += link_us
-        return True
-    cache["misses"] += 1
-    if size > cache["capacity_bytes"]:
-        cache["oversize"] += 1
-        return False
-    while cache["used_bytes"] + size > cache["capacity_bytes"]:
-        _, evicted_size = entries.popitem(last=False)
-        cache["used_bytes"] -= evicted_size
-        cache["evictions"] += 1
-    entries[key] = size
-    cache["used_bytes"] += size
-    cache["peak_bytes"] = max(cache["peak_bytes"], cache["used_bytes"])
-    return False
-
-
-def capacity_curve(installs):
-    curves = {}
-    for model, field in SIZE_FIELDS.items():
-        caches = [new_cache(int(mib * 1024 * 1024)) for mib in CURVE_MIB]
-        for event in installs:
-            key = event["key_id"]
-            if model == "code_plus_metadata_size_split":
-                key = (key, event["code_bytes"], event["allocated_code_bytes"],
-                       event["metadata_bytes"])
-            for cache in caches:
-                access(cache, key, event[field],
-                       event.get("compile_us"), event["link_us"])
-        curves[model] = [
-            {key: value for key, value in cache.items() if key != "entries"}
-            for cache in caches
-        ]
-    return curves
 
 
 def provenance_summary(events):
@@ -129,12 +74,17 @@ def analyze_record(path, observation=None):
     results = ({"observations": [observation]} if observation is not None else
                json.loads((path / "results.json").read_text()))
     events = []
+    if len(results["observations"]) != 1:
+        raise ValueError("analyze each observation separately; process addresses cannot span recordings")
     for observation in results["observations"]:
         for line in observation["stdout"]:
             event = json.loads(line)
             event["iteration"] = observation["iteration"]
             event["original_order"] = len(events)
             events.append(event)
+    summaries = [event for event in events if event["event"] == "summary"]
+    if len(summaries) != 1:
+        raise ValueError(f"expected one recording summary: {path}")
     events.sort(key=lambda event: (event.get("timestamp_us", float("inf")), event["original_order"]))
 
     seen = {}
@@ -142,7 +92,6 @@ def analyze_record(path, observation=None):
     source_rows = defaultdict(lambda: {"installs": 0, "repeats": 0, "cache_bytes": 0})
     compile_by_script = {}
     install_by_baseline = {}
-    caches = {f"{mib}mib": new_cache(mib * 1024 * 1024) for mib in CAPACITIES}
     counts = Counter()
     scopes = Counter()
     compile_times = []
@@ -241,9 +190,6 @@ def analyze_record(path, observation=None):
         source["installs"] += 1
         source["repeats"] += scope != "first"
         source["cache_bytes"] += event["cache_bytes"]
-        for cache in caches.values():
-            hit = access(cache, key, event["cache_bytes"], compile_us, event["link_us"])
-            event.setdefault("lru_hits", {})[str(cache["capacity_bytes"])] = hit
 
     rows = []
     for row in key_rows.values():
@@ -254,25 +200,8 @@ def analyze_record(path, observation=None):
     summary = next((event for event in events if event["event"] == "summary"), {})
     if summary.get("exit_code", summary.get("raptor_exit_code")) != 0 or not summary.get("log_files"):
         raise ValueError(f"incomplete browser recording: {path}")
-    cache_models = {}
-    for name, cache in caches.items():
-        cache_models[name] = {key: value for key, value in cache.items() if key != "entries"}
-    cache_models["unlimited"] = {
-        "hits": sum(row["repeat_installs"] for row in rows),
-        "misses": len(rows),
-        "unique_cache_bytes": sum(row["cache_bytes_first"] for row in rows),
-    }
     installs = [event for event in events if event["event"] == "install"
                 and "key_id" in event]
-    footprints = {model: sum(row[f"{field}_first"] for row in rows)
-                  for model, field in SIZE_FIELDS.items()
-                  if model != "code_plus_metadata_size_split"}
-    split_entries = {}
-    for event in installs:
-        signature = (event["key_id"], event["code_bytes"],
-                     event["allocated_code_bytes"], event["metadata_bytes"])
-        split_entries.setdefault(signature, event["cache_bytes"])
-    footprints["code_plus_metadata_size_split"] = sum(split_entries.values())
     variable_keys = {row["id"] for row in rows
                      if row["cache_bytes_min"] != row["cache_bytes_max"]}
     return {
@@ -302,9 +231,6 @@ def analyze_record(path, observation=None):
             "installed_lifetime_us": distribution(lifetimes),
             "installs_per_key": distribution([row["installs"] for row in rows]),
         },
-        "cache_models": cache_models,
-        "capacity_curve": capacity_curve(installs),
-        "unique_footprint_bytes": footprints,
         "top_sources": [{"filename": name, **data} for name, data in
                         sorted(source_rows.items(), key=lambda pair: pair[1]["repeats"], reverse=True)[:30]],
         "keys": rows,
@@ -317,7 +243,6 @@ def main():
     result = analyze_record(Path(sys.argv[2]), observation)
     json.dump({key: result[key] for key in
                ("counts", "candidate", "event_links", "distributions",
-                "cache_models", "capacity_curve", "unique_footprint_bytes",
                 "provenance_summary",
                 "top_sources")}, sys.stdout, separators=(",", ":"))
     sys.stdout.write("\n")

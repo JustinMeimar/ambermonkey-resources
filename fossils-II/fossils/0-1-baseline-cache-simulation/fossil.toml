@@ -1,4 +1,5 @@
 name = "0-1-baseline-cache-simulation"
+description = "Observed Baseline compilation recurrence, timing, and source concentration."
 default_iterations = 1
 allow_failure = true
 
@@ -12,5 +13,14 @@ manual = "record.py"
 recurrence = "analyze.py"
 detail = "analyze_detail.py"
 
-[artifacts.detail]
-script = "emit_detail.py"
+[artifacts.recurrence]
+script = "emit_recurrence.py"
+
+[artifacts.returns]
+script = "emit_returns.py"
+
+[artifacts.sources]
+script = "emit_sources.py"
+
+[artifacts.multiplicity]
+script = "emit_multiplicity.py"
