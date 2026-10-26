@@ -1,0 +1,19 @@
+name = "0-4-ion-recurrence"
+description = "Ion function and template recurrence in a directly launched Firefox session."
+default_iterations = 1
+allow_failure = false
+
+[variants]
+workspace-shuffle = "record.py"
+media-pinball = "record.py"
+wiki-rabbit-hole = "record.py"
+cake-quest = "record.py"
+compiler-coffee = "record.py"
+debugging-detour = "record.py"
+headline-hop = "record.py"
+comparison-cart = "record.py"
+weekend-wayfinder = "record.py"
+paper-trail = "record.py"
+
+[analyses]
+recurrence = "analyze.py"

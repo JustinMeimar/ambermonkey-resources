@@ -41,11 +41,16 @@ def main():
             f"missing column {BASELINE!r}; found {sorted(data.columns)}"
         )
     candidates = [item for item in AOT_VARIANTS if item[0] in data.columns]
-    if not candidates:
-        raise SystemExit("no AOT variants found")
     runtime = data.columns[BASELINE]
 
     rows = []
+    if not candidates:
+        for key, artifact_label in ROWS:
+            compiles = scalar(runtime, 'artifacts', key, 'compiles_per_proc')
+            if compiles:
+                rows.append(['Baseline JIT', artifact_label, 0, round(compiles, 2),
+                             None, round(scalar(runtime, 'artifacts', key,
+                                                'compile_us_per_call'), 2), None])
     for variant, variant_label in candidates:
         aot = data.columns[variant]
         for key, artifact_label in ROWS:
@@ -65,7 +70,7 @@ def main():
                     round(compiles, 2),
                     round(install_us, 2),
                     round(compile_us, 2),
-                    round(compile_us / install_us, 2),
+                    round(compile_us / install_us, 2) if install_us else None,
                 ]
             )
 

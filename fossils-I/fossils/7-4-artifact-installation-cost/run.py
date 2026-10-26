@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 from pathlib import Path
 
@@ -9,10 +10,12 @@ from execution import JIT_ENVIRONMENT, Run, run
 from settings import MOZCONFIG_AOT
 
 environment = {'default-no-ion': {}, 'aot-corpus-ic': IC_ONLY, 'aot-corpus': AOT_ONLY}
+launcher = os.environ.get('AMBERMONKEY_TALOS_LAUNCHER')
+argv = ('./mach', 'python', launcher) if launcher else ('./mach', 'talos-test')
 run(Run(
-    ('./mach', 'talos-test', '-a', 'cpstartup'),
+    (*argv, '-a', 'cpstartup'),
     environment={'MOZCONFIG': MOZCONFIG_AOT, 'MOZ_DISABLE_CONTENT_SANDBOX': '1',
-                 'JS_AOT_TIMING': '1', 'JIT_OPTION_ion': 'false',
+                 'MOZ_HEADLESS': '1', 'JS_AOT_TIMING': '1', 'JIT_OPTION_ion': 'false',
                  **NO_REGEX, **environment[sys.argv[1]]},
     unset=JIT_ENVIRONMENT,
 ), stderr=subprocess.STDOUT)

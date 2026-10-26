@@ -44,8 +44,8 @@ def main():
     columns = [
         {"key": "config",                 "label": "config",                 "align": "left",  "format": "str"},
         {"key": "n_procs",                "label": "content procs",          "align": "right", "format": "int"},
-        {"key": "libxul_exec_rss_mb",     "label": ".text.aot RSS (MB)",     "align": "right", "format": "float"},
-        {"key": "libxul_exec_pss_mb",     "label": ".text.aot PSS (MB)",     "align": "right", "format": "float"},
+        {"key": "libxul_exec_rss_mb",     "label": "libxul executable RSS (MB)",     "align": "right", "format": "float"},
+        {"key": "libxul_exec_pss_mb",     "label": "libxul executable PSS (MB)",     "align": "right", "format": "float"},
         {"key": "sharing_ratio",          "label": "RSS/PSS (sharing)",      "align": "right", "format": "float"},
         {"key": "anon_exec_pss_mb",       "label": "anon-exec PSS (MB)",     "align": "right", "format": "float"},
         {"key": "per_proc_engine_pss_mb", "label": "engine PSS / proc (MB)", "align": "right", "format": "float"},

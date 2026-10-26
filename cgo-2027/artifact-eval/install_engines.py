@@ -4,9 +4,11 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 from pathlib import Path
 import tarfile
 import tempfile
+import zipfile
 from urllib.request import urlopen
 
 MANIFEST = Path(__file__).with_name("releases.json")
@@ -47,8 +49,20 @@ def install(name, archives, destination, base_url=None):
         unpacked = scratch / "unpacked"
         unpacked.mkdir()
         print(f"Unpacking {name}", flush=True)
-        with tarfile.open(archive) as package:
-            package.extractall(unpacked, filter="data")
+        if archive.suffix == '.zip':
+            with zipfile.ZipFile(archive) as package:
+                package.extractall(unpacked)
+            (unpacked / entry['executable']).chmod(0o755)
+        elif archive.suffix == '.zst':
+            with subprocess.Popen(['zstd', '-dc', str(archive)], stdout=subprocess.PIPE) as decoded:
+                with tarfile.open(fileobj=decoded.stdout, mode='r|') as package:
+                    members = (m for m in package if m.name not in entry.get('exclude', []))
+                    package.extractall(unpacked, members=members, filter='data')
+                if decoded.wait():
+                    raise ValueError(f'zstd decompression failed: {archive}')
+        else:
+            with tarfile.open(archive) as package:
+                package.extractall(unpacked, filter="data")
         binary = unpacked / entry["executable"]
         if not binary.is_file() or not os.access(binary, os.X_OK):
             raise ValueError(f"executable missing from archive: {entry['executable']}")

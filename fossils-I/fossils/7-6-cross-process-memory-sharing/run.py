@@ -31,7 +31,8 @@ with (Path(directory) / 'sidecar.log').open('w') as log:
     try:
         run(Run(
             ('./mach', 'raptor', '-t', 'speedometer3', '--app', 'firefox',
-             '--browser-cycles', '1', '--page-cycles', '3', '--binary', binary, *options),
+             '--browser-cycles', '1', '--page-cycles', '3', '--binary', binary,
+             '--setenv', 'MOZ_HEADLESS=1', *options),
             environment={'MOZCONFIG': mozconfig, 'MOZ_DISABLE_CONTENT_SANDBOX': '1'},
             unset=CLEAN,
         ), stdout=sys.stderr, check=False)

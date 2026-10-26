@@ -18,5 +18,57 @@
     "archive": "shell-release.tar.xz",
     "sha256": "a4b973ca2b33b5f10347f99b6aea8f68f79b74dd85605bedabf335e83ce59cce",
     "executable": "js"
+  },
+  "chromium-no-pgo": {
+    "archive": "chromium-no-pgo.tar.zst",
+    "sha256": "916f4c19ae9cba053de21b3415bff89e75f2c998686d5b9f378e475bb4f07441",
+    "executable": "chromium/Default/chrome",
+    "optional": true,
+    "exclude": [
+      "chromium/Default/siso.INFO"
+    ],
+    "experiments": [
+      "7-3-v8-jitless-comparison"
+    ]
+  },
+  "chromedriver-155": {
+    "archive": "chromedriver-155.0.8042.0-linux64.zip",
+    "sha256": "44bb17570f48d693631953e654c01f46081b648d6573f01eefcfbdfdb0526496",
+    "executable": "chromedriver-linux64/chromedriver",
+    "optional": true,
+    "url": "https://storage.googleapis.com/chrome-for-testing-public/155.0.8042.0/linux64/chromedriver-linux64.zip",
+    "experiments": [
+      "7-3-v8-jitless-comparison"
+    ]
+  },
+  "indirection-rit-candidate": {
+    "archive": "indirection-rit-candidate.tar.gz",
+    "sha256": "11c680d0a0b47293247c9ed6fc70a254ecd762a2bbf58a0c196855488e4bdb58",
+    "executable": "js",
+    "optional": true,
+    "experiments": [
+      "7-5-indirection-overhead"
+    ],
+    "provenance": "Existing firefox/js-perf-eval-rit; source revision unverified; embedded image kept with binary."
+  },
+  "indirection-native-linker-candidate": {
+    "archive": "indirection-native-linker-candidate.tar.gz",
+    "sha256": "b1dd841788a37dfb8154bf34d064aeeb6e245172016724f1b2f7f2e491c660b4",
+    "executable": "js",
+    "optional": true,
+    "experiments": [
+      "7-5-indirection-overhead"
+    ],
+    "provenance": "Existing firefox/js-perf-eval-native-linker; source revision unverified; embedded image kept with binary."
+  },
+  "indirection-native-linker-value-mirror-candidate": {
+    "archive": "indirection-native-linker-value-mirror-candidate.tar.gz",
+    "sha256": "3943508658aa281bef6c652713c23cb22a7932f75d69b0ce8f8ae38d60535e7a",
+    "executable": "js",
+    "optional": true,
+    "experiments": [
+      "7-5-indirection-overhead"
+    ],
+    "provenance": "Existing firefox/js-perf-eval-native-linker-value-mirror; source revision unverified; embedded image kept with binary."
   }
 }

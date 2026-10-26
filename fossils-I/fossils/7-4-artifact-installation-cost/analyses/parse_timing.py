@@ -37,7 +37,9 @@ def validate_manifest(record):
         manifest.fail(PREFIX, f"invalid manifest variant {variant!r}")
     if not isinstance(command, str) or not command:
         manifest.fail(PREFIX, f"{variant}: manifest command is missing")
-    if "talos-test -a cpstartup" not in command or not command_flag(
+    cpstartup = any(entry in command for entry in (
+        "talos-test -a cpstartup", "run_talos.py -a cpstartup"))
+    if not cpstartup or not command_flag(
         command, "JS_AOT_TIMING", "1"
     ):
         manifest.fail(PREFIX, f"{variant}: cpstartup timing is not enabled")

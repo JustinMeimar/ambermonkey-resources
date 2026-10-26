@@ -6,6 +6,7 @@ tree for the two synthetic checkpoints Peak and Final."""
 
 import json
 import os
+import shlex
 import sys
 from pathlib import Path
 
@@ -44,10 +45,16 @@ def validate_manifest(m):
     if variant not in CONTRACT:
         manifest.fail(PREFIX, f"unknown variant {variant!r}")
     c = CONTRACT[variant]
-    if c["binary"] not in command:
-        manifest.fail(PREFIX, f"{variant}: expected binary fragment {c['binary']!r}")
-    if c["mc"] not in command:
-        manifest.fail(PREFIX, f"{variant}: expected mozconfig fragment {c['mc']!r}")
+    tokens = shlex.split(command)
+    suffix = 'AOT' if variant in ('aot', 'aot-corpus') else 'RELEASE'
+    binary = os.environ.get(f'AMBERMONKEY_BIN_{suffix}')
+    mozconfig = os.environ.get(f'AMBERMONKEY_MOZCONFIG_{suffix}')
+    packaged_binary = binary and any(
+        tokens[i:i + 2] == ['--binary', binary] for i in range(len(tokens) - 1))
+    if c['binary'] not in command and not packaged_binary:
+        manifest.fail(PREFIX, f"{variant}: expected binary {binary or c['binary']!r}")
+    if c['mc'] not in command and not (mozconfig and f'MOZCONFIG={mozconfig}' in tokens):
+        manifest.fail(PREFIX, f"{variant}: expected mozconfig {mozconfig or c['mc']!r}")
     has_aot_only = "JIT_OPTION_aotOnly=1" in command or "JIT_OPTION_aotOnly=true" in command
     if c["aot_only"] and not has_aot_only:
         manifest.fail(PREFIX, f"{variant}: JIT_OPTION_aotOnly not present")

@@ -16,14 +16,30 @@ RESULTS = Path(os.environ.get("AMBERMONKEY_RESULTS", "/results"))
 FOSSIL = os.environ.get("FOSSIL_BIN", "fossil")
 FOSSIL_HOME = Path(os.environ.get("FOSSIL_HOME", str(Path.home() / ".fossil")))
 SUPPORTED = {
+    "7-3-v8-jitless-comparison": None,
+    "6-1-corpus-construction": "am-browser-release-tp6",
+    "7-5-indirection-e2e-s3": "am-browser-release-oracle-sp3",
+    "7-5-indirection-overhead": None,
+    "7-4-artifact-installation-cost": "am-browser-release-tp6",
+    "7-1-corpus-coverage": "am-browser-release-tp6",
+    "7-4-artifact-installation-startup": "am-browser-release-tp6",
+    "7-6-cross-process-memory-sharing": "am-browser-release-tp6",
     "7-2-oracle-corpus": "am-browser-release-oracle-sp3",
     "7-2-ambermonkey-perf-s3": "am-browser-release-tp6",
     "7-2-ambermonkey-perf-octane": "default-shell-release",
     "7-6-binary-size": "am-browser-release-tp6",
 }
-VARIANTS = {"7-2-ambermonkey-perf-octane": ("default-no-ion", "default")}
-TABLES = {"7-2-ambermonkey-perf-octane": (), "7-6-binary-size": ("browser",)}
-FIGURES = {"7-2-ambermonkey-perf-octane": ()}
+UNAVAILABLE = {
+    '3-3-cross-workload-reuse': (
+        'requires an instrumented browser package with JS_INSTR hooks; '
+        'source exists on justin/ambermonkey-preliminary-evals '
+        '(4af61d93c9d73f8d9bda10a0085b8e5cb96cdbc4), but available browsers lack it'),
+}
+VARIANTS = {
+    "7-3-v8-jitless-comparison": ("speedometer-v8-default", "speedometer-v8-jitless"),
+    "7-2-ambermonkey-perf-octane": ("default-no-ion", "default"),
+    "7-1-corpus-coverage": ("speedometer3", "jetstream3", "tp6_test"),
+}
 
 
 def executable(name):
@@ -47,29 +63,19 @@ def run(command, **kwargs):
     subprocess.run(list(map(str, command)), check=True, **kwargs)
 
 
-def configure_fossil(binary=None):
-    config = RESOURCES / "fossils/project.toml"
+def configure_fossil():
+    config = RESOURCES / "fossils-I/project.toml"
     if not config.is_file():
         raise ValueError(f"resources project missing: {config}")
     RESULTS.mkdir(parents=True, exist_ok=True)
     replacements = {"artifact_dir": str(RESULTS / "artifacts")}
-    constants = {"FIREFOX": str(FIREFOX)}
-    default_browser = executable("default-browser-release")
-    if default_browser.is_file():
-        constants["BIN_RELEASE"] = str(browser_layout(default_browser))
-    if binary:
-        if binary.name == "js":
-            constants["JSSHELL_AOT"] = str(binary)
-        else:
-            constants["BIN_AOT"] = str(browser_layout(binary))
-            constants["AOT_BROWSER"] = "cd $FIREFOX && $CLEAN_JIT_ENV $NO_CONTENT_SANDBOX_ENV"
     section = ""
     lines = []
     for line in config.read_text().splitlines():
         if line.strip().startswith("["):
             section = line.strip()
         key = line.split("=", 1)[0].strip()
-        values = constants if section == "[constants]" else replacements if not section else {}
+        values = replacements if not section else {}
         lines.append(f"{key} = {json.dumps(values[key])}" if key in values else line)
     config.write_text("\n".join(lines) + "\n")
     projects = FOSSIL_HOME / "projects"
@@ -84,7 +90,7 @@ def configure_fossil(binary=None):
 
 
 def configure_records(name):
-    records = RESOURCES / "fossils" / name / "records"
+    records = RESOURCES / "fossils-I/fossils" / name / "records"
     target = RESULTS / "records" / name
     target.mkdir(parents=True, exist_ok=True)
     if records.is_symlink() and records.resolve() == target.resolve():
@@ -111,19 +117,14 @@ def main():
     parser.add_argument("--register-only", action="store_true", help="register Fossil without installing engines or benchmark dependencies")
     parser.add_argument("--skip-benchmarks", action="store_true", help="skip checking benchmark dependencies")
     args = parser.parse_args()
-    binary = None
     if not args.register_only:
-        for name in args.release or releases():
-            installed = install(name, args.archives, ENGINES, args.base_url)
-            if binary is None or installed.name == "firefox":
-                binary = installed
-        if not args.release:
-            binary = executable("am-browser-release-oracle-sp3")
+        for name in args.release or [n for n, r in releases().items() if not r.get('optional')]:
+            install(name, args.archives, ENGINES, args.base_url)
     print("Registering the Fossil project", flush=True)
-    configure_fossil(binary)
+    configure_fossil()
     print("Configuring result directories", flush=True)
     for name in SUPPORTED:
-        if (RESOURCES / "fossils" / name / "fossil.toml").is_file():
+        if (RESOURCES / "fossils-I/fossils" / name / "fossil.toml").is_file():
             configure_records(name)
     if not args.register_only and not args.skip_benchmarks:
         print("Checking Raptor dependencies", flush=True)

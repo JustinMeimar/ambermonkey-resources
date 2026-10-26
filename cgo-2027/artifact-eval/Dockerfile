@@ -1,3 +1,5 @@
+# Historical image recipe: pins below use the old Fossil API/resource layout.
+# For current no-build smoke runs, use docker-run.sh; see README.md.
 #=== STEP 1: Download the pinned Firefox source for the Raptor benchmark harness.
 FROM rust:1-bookworm AS checkouts
 WORKDIR /workspace

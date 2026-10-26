@@ -1,0 +1,76 @@
+# Two passes in one browser session; no profile/cache reset between passes.
+passes = 2
+warmup_ms = 0
+dwell_ms = 3000
+blank_ms = 1000
+
+[pages]
+docs-a = "https://docs.google.com/document/d/1US-07msg12slQtI_xchzYxcKlTs6Fp7WqIc6W5GK5M8/edit?usp=sharing"
+sheets = "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit"
+slides = "https://docs.google.com/presentation/d/1Ici0ceWwpFvmIb3EmKeWSq_vAQdmmdFcWqaiLqUkJng/edit?usp=sharing"
+docs-b = "https://docs.google.com/document/d/1jFJGi9O9kmuipJPlTO_cjc9D87KMVLXVoChr9CAqEnw/edit"
+bluesky = "https://bsky.app/profile/bsky.app"
+substack = "https://timduggan.substack.com/p/a-useful-user-manual"
+mandelbrot = "https://en.wikipedia.org/wiki/Mandelbrot_set"
+fractal = "https://en.wikipedia.org/wiki/Fractal"
+julia = "https://en.wikipedia.org/wiki/Julia_set"
+complex-number = "https://en.wikipedia.org/wiki/Complex_number"
+complex-dynamics = "https://en.wikipedia.org/wiki/Complex_dynamics"
+sally-cake = "https://sallysbakingaddiction.com/triple-chocolate-layer-cake/"
+preppy-cake = "https://preppykitchen.com/ultimate-chocolate-cake/"
+king-arthur-cake = "https://www.kingarthurbaking.com/recipes/chocolate-cake-recipe"
+flourless-cake = "https://www.kingarthurbaking.com/recipes/flourless-chocolate-cake-recipe"
+maglev = "https://v8.dev/blog/maglev"
+branch-prediction = "https://danluu.com/branch-prediction/"
+sparkplug = "https://v8.dev/blog/sparkplug"
+input-latency = "https://danluu.com/input-lag/"
+promise = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"
+async-function = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function"
+mdn-issues = "https://github.com/mdn/content/issues"
+using-promises = "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises"
+bbc = "https://www.bbc.com/news/"
+guardian-report = "https://www.theguardian.com/science/2022/jul/12/nasa-publishes-flurry-of-images-from-james-webb-space-telescope"
+nasa = "https://www.nasa.gov/news-release/nasa-reveals-webb-telescopes-first-images-of-unseen-universe/"
+guardian-analysis = "https://www.theguardian.com/science/2022/jul/12/james-webb-telescope-promises-a-glimpse-of-the-birth-of-the-universe"
+amazon-xm5 = "https://www.amazon.ca/s?k=WH-1000XM5"
+rtings-xm5 = "https://www.rtings.com/headphones/reviews/sony/wh-1000xm5-wireless"
+bestbuy-xm5 = "https://www.bestbuy.ca/en-ca/search?search=WH-1000XM5"
+amazon-xm4 = "https://www.amazon.ca/s?k=WH-1000XM4"
+maps-banff = "https://www.google.com/maps/search/?api=1&query=Banff%2C+Alberta"
+wiki-banff = "https://en.wikipedia.org/wiki/Banff,_Alberta"
+fairmont = "https://www.fairmont.com/en/hotels/banff/fairmont-banff-springs.html"
+gondola = "https://www.banfflakelouise.com/experiences/banff-gondola"
+attention-abstract = "https://arxiv.org/abs/1706.03762"
+attention-html = "https://ar5iv.labs.arxiv.org/html/1706.03762"
+bert-abstract = "https://arxiv.org/abs/1810.04805"
+bert-html = "https://ar5iv.labs.arxiv.org/html/1810.04805"
+
+[routes.workspace-shuffle]
+visits = ["docs-a", "sheets", "docs-a", "slides", "sheets", "docs-b"]
+
+[routes.media-pinball]
+visits = ["bluesky", "substack"]
+
+[routes.wiki-rabbit-hole]
+visits = ["mandelbrot", "fractal", "julia", "complex-number", "complex-dynamics", "julia", "mandelbrot"]
+
+[routes.cake-quest]
+visits = ["sally-cake", "preppy-cake", "king-arthur-cake", "sally-cake", "flourless-cake", "preppy-cake"]
+
+[routes.compiler-coffee]
+visits = ["maglev", "branch-prediction", "sparkplug", "input-latency", "maglev", "branch-prediction"]
+
+[routes.debugging-detour]
+visits = ["promise", "async-function", "mdn-issues", "using-promises", "promise", "mdn-issues"]
+
+[routes.headline-hop]
+visits = ["bbc", "guardian-report", "nasa", "guardian-analysis", "bbc", "guardian-report"]
+
+[routes.comparison-cart]
+visits = ["amazon-xm5", "rtings-xm5", "bestbuy-xm5", "amazon-xm4", "rtings-xm5", "amazon-xm5"]
+
+[routes.weekend-wayfinder]
+visits = ["maps-banff", "wiki-banff", "fairmont", "gondola", "maps-banff", "fairmont"]
+
+[routes.paper-trail]
+visits = ["attention-abstract", "attention-html", "bert-abstract", "bert-html", "attention-html", "bert-abstract"]

@@ -1,0 +1,21 @@
+name = "0-6-ion-warmup"
+description = "Lower-tier execution before Ion installation, joined to Ion template recurrence, across independent benchmark and NavBench route runs."
+default_iterations = 1
+allow_failure = false
+
+[variants]
+speedometer3 = "record.py"
+jetstream3 = "record.py"
+workspace-shuffle = "record.py"
+media-pinball = "record.py"
+wiki-rabbit-hole = "record.py"
+cake-quest = "record.py"
+compiler-coffee = "record.py"
+debugging-detour = "record.py"
+headline-hop = "record.py"
+comparison-cart = "record.py"
+weekend-wayfinder = "record.py"
+paper-trail = "record.py"
+
+[analyses]
+warmup = "analyze.py"

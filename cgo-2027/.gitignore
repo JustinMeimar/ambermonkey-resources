@@ -10,3 +10,7 @@
 /*.toc
 /*.bcf
 /*.run.xml
+
+/artifact-smoke-results/
+
+/artifact-image-results/
