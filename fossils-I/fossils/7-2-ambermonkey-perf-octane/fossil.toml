@@ -1,6 +1,6 @@
 name = "7-2-ambermonkey-perf-octane"
 description = "Held-out Octane 2 performance across the interpreter, AmberMonkey ablations, and the default JIT."
-default_iterations = 3
+default_iterations = 10
 allow_failure = false
 
 [variants]

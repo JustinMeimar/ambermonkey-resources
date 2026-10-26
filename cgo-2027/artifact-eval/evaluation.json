@@ -1,0 +1,70 @@
+[
+  {
+    "experiment": "7-1-corpus-coverage",
+    "iterations": 3,
+    "variants": ["speedometer3", "jetstream3", "tp6_test"],
+    "artifacts": ["baseline-function-table", "baseline-interpreter-table", "ic-table"],
+    "note": "octane2 variant omitted: needs an AmberMonkey AOT jsshell (not packaged)."
+  },
+  {
+    "experiment": "7-2-ambermonkey-perf-s3",
+    "iterations": 10,
+    "variants": ["interp-only", "blinterp-only", "aot-corpus-ic", "aot-corpus", "default-no-ion", "default"],
+    "artifacts": ["subtest-bars", "tier-throughput", "s3-ablation-perf", "aot-tradeoff", "perf"]
+  },
+  {
+    "experiment": "7-2-oracle-corpus",
+    "iterations": 10,
+    "variants": ["speedometer3-default", "speedometer3-aot-only"],
+    "artifacts": ["speedometer3"],
+    "env": {"AMBERMONKEY_BIN_AOT": "/opt/engines/am-browser-release-oracle-sp3/dist/bin/firefox"}
+  },
+  {
+    "experiment": "7-3-v8-jitless-comparison",
+    "iterations": 10,
+    "variants": ["speedometer-default", "speedometer-baseline", "speedometer-am", "speedometer-am-oracle",
+                 "speedometer-v8-default", "speedometer-v8-jitless"],
+    "artifacts": [],
+    "variant_env": {
+      "speedometer-am-oracle": {"AMBERMONKEY_BIN_AOT": "/opt/engines/am-browser-release-oracle-sp3/dist/bin/firefox"}
+    },
+    "note": "Speedometer half only; the figures require the Octane variants (AmberMonkey jsshell, d8), which are not packaged. Results are the per-variant analyses."
+  },
+  {
+    "experiment": "7-4-artifact-installation-cost",
+    "iterations": 10,
+    "variants": ["default-no-ion", "aot-corpus-ic", "aot-corpus"],
+    "artifacts": ["attachment"]
+  },
+  {
+    "experiment": "7-4-artifact-installation-startup",
+    "iterations": 30,
+    "variants": ["default-no-ion", "aot-corpus-ic", "aot-corpus"],
+    "artifacts": ["startup-bars", "startup"]
+  },
+  {
+    "experiment": "7-5-indirection-overhead",
+    "iterations": 50,
+    "variants": ["baseline-jit", "am-rit", "am-rit-nl", "am-rit-nl-vm"],
+    "artifacts": ["instruction-overhead", "cycles", "cycles-hbars"]
+  },
+  {
+    "experiment": "7-5-indirection-e2e-s3",
+    "iterations": 10,
+    "variants": ["default-no-ion", "aot-corpus"],
+    "artifacts": ["perf"],
+    "env": {"AMBERMONKEY_BIN_AOT": "/opt/engines/am-browser-release-oracle-sp3/dist/bin/firefox"}
+  },
+  {
+    "experiment": "7-6-cross-process-memory-sharing",
+    "iterations": 3,
+    "variants": ["interp-only", "default", "default-no-ion", "aot-corpus"],
+    "artifacts": ["aggregate", "composition-bars", "per-proc-pss-lines"]
+  },
+  {
+    "experiment": "7-6-binary-size",
+    "iterations": 1,
+    "variants": [],
+    "artifacts": ["browser", "libxul", "image"]
+  }
+]

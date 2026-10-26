@@ -4,6 +4,8 @@
 import json
 import os
 import subprocess
+import struct
+import tempfile
 import sys
 from pathlib import Path
 
@@ -66,7 +68,7 @@ def sum_pt_load_bytes(libxul):
     return total
 
 
-def linked_image_bytes(libxul):
+def image_bounds(libxul):
     out = subprocess.run(
         ["nm", str(libxul)],
         capture_output=True, text=True, check=True,
@@ -82,13 +84,54 @@ def linked_image_bytes(libxul):
             end = int(parts[0], 16)
     if start is None or end is None:
         die(f"aot_image_{{start,end}} symbols not found in {libxul}")
+    return start, end
+
+
+def linked_image_bytes(libxul):
+    start, end = image_bounds(libxul)
     return end - start
+
+
+def embedded_image(libxul):
+    start, end = image_bounds(libxul)
+    with libxul.open('rb') as stream:
+        header = stream.read(64)
+        if header[:6] != b'\x7fELF\x02\x01':
+            die('expected a little-endian ELF64 library')
+        phoff = struct.unpack_from('<Q', header, 32)[0]
+        size, count = struct.unpack_from('<HH', header, 54)
+        for index in range(count):
+            stream.seek(phoff + index * size)
+            entry = stream.read(size)
+            kind, flags, offset, address, physical, filesz, memsz, align = struct.unpack_from('<IIQQQQQQ', entry)
+            if kind == 1 and address <= start < end <= address + filesz:
+                stream.seek(offset + start - address)
+                data = stream.read(end - start)
+                if data[:4] != b'AOTI' or len(data) < 36:
+                    die('invalid embedded image header')
+                image_size = struct.unpack_from('<I', data, 32)[0]
+                if not 36 <= image_size <= len(data):
+                    die('embedded image extends outside its symbols')
+                return data[:image_size]
+    die('image symbols do not fall inside a file-backed LOAD segment')
+
+
+def build_image_table():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'scripts'))
+    from aot_image_stats import parse_image
+    with tempfile.TemporaryDirectory() as directory:
+        image = Path(directory) / 'linked-image.bin'
+        image.write_bytes(embedded_image(AOT_LIBXUL))
+        stats, _ = parse_image(image)
+    stats['source'] = str(AOT_LIBXUL) + '#aot_image_start'
+    stats['representation'] = 'linked image; relocations differ from the original packed input'
+    return stats
 
 
 def corpus_files_bytes():
     d = SELECTED_CORPUS
     if not d.is_dir():
-        return 0
+        return None
     total = 0
     for root, _dirs, files in os.walk(d):
         rp = Path(root)
@@ -120,7 +163,7 @@ def build_libxul_table():
     default_pt_load = sum_pt_load_bytes(DEFAULT_LIBXUL)
     aot_pt_load = sum_pt_load_bytes(AOT_LIBXUL)
     aot_linked = linked_image_bytes(AOT_LIBXUL)
-    aot_packed = file_bytes(AOT_PACKED_IMAGE)
+    aot_packed = file_bytes(AOT_PACKED_IMAGE) if AOT_PACKED_IMAGE.is_file() else len(embedded_image(AOT_LIBXUL))
     aot_corpus = corpus_files_bytes()
     rows = [
         ["Default JIT", default_pt_load, 0, 0, 0],
@@ -150,7 +193,14 @@ def build_browser_table():
             aot_dist_files,
         ],
     ]
-    return {"columns": BROWSER_COLUMNS, "rows": rows}
+    columns = list(BROWSER_COLUMNS)
+    release_manifest = os.environ.get('AMBERMONKEY_RELEASE_MANIFEST')
+    if release_manifest:
+        releases = json.loads(Path(release_manifest).read_text())
+        columns.append({'key': 'archive_bytes', 'label': 'Compressed package bytes', 'align': 'right', 'format': 'int'})
+        for row, release in zip(rows, ('default-browser-release', 'am-browser-release-tp6')):
+            row.append(releases[release]['archive_bytes'])
+    return {"columns": columns, "rows": rows}
 
 
 def emit(builder, destination):

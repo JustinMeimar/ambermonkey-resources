@@ -1,6 +1,6 @@
 name = "7-3-v8-jitless-comparison"
 description = "Speedometer 3 and Octane 2 performance retained relative to each engine's default configuration."
-default_iterations = 3
+default_iterations = 10
 allow_failure = false
 
 [variants]

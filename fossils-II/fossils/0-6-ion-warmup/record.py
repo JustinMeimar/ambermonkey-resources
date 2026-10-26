@@ -18,7 +18,7 @@ import navbench_routes
 ROOT = Path(os.environ.get('FIREFOX_ROOT', '/home/justin/spidermonkey/firefox')).resolve()
 BROWSER = ROOT / 'build-browser-release/dist/bin/firefox'
 ANALYZER = ROOT / 'js/src/jit/ion_recurrence.py'
-SCHEMA = 6
+SCHEMA = 7
 # Ion keys include profiler instrumentation, so both phases are profiled alike.
 PROFILER = {
     'MOZ_PROFILER_STARTUP': '1',
@@ -27,6 +27,8 @@ PROFILER = {
     'MOZ_PROFILER_STARTUP_INTERVAL': '1',
     'MOZ_PROFILER_STARTUP_ENTRIES': '1GiB',
 }
+# Hints lower Ion thresholds within a runtime; the analysis derives their effect.
+PREFS = {'javascript.options.jithints': 'false'}
 
 
 def digest(path):
@@ -40,12 +42,15 @@ def command(variant, plan, directory):
         'MOZ_LOG_FILE': str(directory / 'trace%PID'),
         **PROFILER,
         'MOZ_PROFILER_SHUTDOWN': str(directory / 'profile.json'),
+        'MOZ_HEADLESS': '1',
     }
     if plan:
         return navbench_routes.browsertime_command(ROOT, BROWSER, plan, directory,
                                                    environment)
-    return raptor_command(['./mach'], BROWSER, variant,
-                          {**environment, 'MOZ_HEADLESS': '1'})
+    command = raptor_command(['./mach'], BROWSER, variant, environment)
+    for name, value in PREFS.items():
+        command.extend(['--setpref', f'{name}={value}'])
+    return command
 
 
 def check_coverage(replay, records, profile):
@@ -85,7 +90,7 @@ def main():
     metadata = {
         'variant': args.variant, 'directory': str(directory), 'schema': SCHEMA,
         'workload': plan, 'commands': commands, 'browser': str(BROWSER),
-        'profiler': PROFILER,
+        'profiler': PROFILER, 'prefs': PREFS,
         'libxul_sha256': digest(BROWSER.parent / 'libxul.so'),
         'analyzer_sha256': digest(ANALYZER),
         'firefox_revision': subprocess.check_output(
@@ -110,6 +115,9 @@ def main():
         capture.mkdir()
         if plan:
             navbench_routes.prepare_profile(ROOT, capture)
+            with (capture / 'profile/user.js').open('a') as prefs:
+                for name, value in PREFS.items():
+                    prefs.write(f'user_pref("{name}", {value});\n')
         print(f'{args.variant}: {phase}; logs in {capture}', file=sys.stderr, flush=True)
         with (capture / 'harness.log').open('w') as log:
             status = subprocess.run(invocation, cwd=ROOT, env=env,

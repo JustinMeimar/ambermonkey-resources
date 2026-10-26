@@ -14,3 +14,11 @@
 /artifact-smoke-results/
 
 /artifact-image-results/
+
+/dist/
+
+/artifact-eval/v8-build-output/
+
+/releases
+/artifact-eval/releases/
+/artifact-eval/results/

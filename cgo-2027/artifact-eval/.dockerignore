@@ -1,7 +1,11 @@
 *
 !Dockerfile
-!artifact_eval.py
-!configure.py
-!prepare_raptor.py
-!install_engines.py
+!README.md
+!evaluation.json
 !releases.json
+!install_releases.py
+!prepare_raptor.py
+!run_talos.py
+!run.py
+!releases/
+releases/shell-release.tar.xz

@@ -1,6 +1,6 @@
 name = "7-2-oracle-corpus"
 description = "Speedometer 3 performance with its benchmark-oracle AOT corpus."
-default_iterations = 3
+default_iterations = 10
 allow_failure = false
 
 [variants]

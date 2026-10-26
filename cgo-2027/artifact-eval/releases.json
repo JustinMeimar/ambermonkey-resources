@@ -1,74 +1,64 @@
 {
+  "default-browser-release": {
+    "archive": "browser-release.tar.xz",
+    "sha256": "cf3613d53f7ba0f484257405c2eeb3bc149bb70eaf07181363dc177f783e7600",
+    "archive_bytes": 91759360,
+    "executable": "dist/bin/firefox",
+    "env": "AMBERMONKEY_BIN_RELEASE",
+    "description": "Stock Firefox v146.0.1 release build (Default JIT baseline)."
+  },
   "am-browser-release-tp6": {
     "archive": "am-browser-release-tp6.tar.xz",
     "sha256": "64f418a6bc1bb540366da7d586a2611359652be79cf41490559e4765a4d3904f",
-    "executable": "firefox/firefox"
+    "archive_bytes": 91892164,
+    "executable": "dist/bin/firefox",
+    "env": "AMBERMONKEY_BIN_AOT",
+    "description": "AmberMonkey browser with the paper's default AOT image (tp6 training corpus)."
   },
   "am-browser-release-oracle-sp3": {
     "archive": "am-browser-release-oracle-sp3.tar.xz",
     "sha256": "b034734e9bdc88ee4161fb535b29a757a1056b847cd3bbd8d10a8f54e33bb0f8",
-    "executable": "firefox/firefox"
-  },
-  "default-browser-release": {
-    "archive": "browser-release.tar.xz",
-    "sha256": "cf3613d53f7ba0f484257405c2eeb3bc149bb70eaf07181363dc177f783e7600",
-    "executable": "firefox/firefox"
-  },
-  "default-shell-release": {
-    "archive": "shell-release.tar.xz",
-    "sha256": "a4b973ca2b33b5f10347f99b6aea8f68f79b74dd85605bedabf335e83ce59cce",
-    "executable": "js"
-  },
-  "chromium-no-pgo": {
-    "archive": "chromium-no-pgo.tar.zst",
-    "sha256": "916f4c19ae9cba053de21b3415bff89e75f2c998686d5b9f378e475bb4f07441",
-    "executable": "chromium/Default/chrome",
-    "optional": true,
-    "exclude": [
-      "chromium/Default/siso.INFO"
-    ],
-    "experiments": [
-      "7-3-v8-jitless-comparison"
-    ]
-  },
-  "chromedriver-155": {
-    "archive": "chromedriver-155.0.8042.0-linux64.zip",
-    "sha256": "44bb17570f48d693631953e654c01f46081b648d6573f01eefcfbdfdb0526496",
-    "executable": "chromedriver-linux64/chromedriver",
-    "optional": true,
-    "url": "https://storage.googleapis.com/chrome-for-testing-public/155.0.8042.0/linux64/chromedriver-linux64.zip",
-    "experiments": [
-      "7-3-v8-jitless-comparison"
-    ]
+    "archive_bytes": 92942036,
+    "executable": "dist/bin/firefox",
+    "description": "AmberMonkey browser with the Speedometer 3 oracle AOT image."
   },
   "indirection-rit-candidate": {
     "archive": "indirection-rit-candidate.tar.gz",
     "sha256": "11c680d0a0b47293247c9ed6fc70a254ecd762a2bbf58a0c196855488e4bdb58",
+    "archive_bytes": 98480738,
     "executable": "js",
-    "optional": true,
-    "experiments": [
-      "7-5-indirection-overhead"
-    ],
-    "provenance": "Existing firefox/js-perf-eval-rit; source revision unverified; embedded image kept with binary."
+    "env": "AMBERMONKEY_JSSHELL_RIT",
+    "description": "AmberMonkey shell, RIT indirection only (firefox tag perf-eval-rit, 1352023c)."
   },
   "indirection-native-linker-candidate": {
     "archive": "indirection-native-linker-candidate.tar.gz",
     "sha256": "b1dd841788a37dfb8154bf34d064aeeb6e245172016724f1b2f7f2e491c660b4",
+    "archive_bytes": 98602460,
     "executable": "js",
-    "optional": true,
-    "experiments": [
-      "7-5-indirection-overhead"
-    ],
-    "provenance": "Existing firefox/js-perf-eval-native-linker; source revision unverified; embedded image kept with binary."
+    "env": "AMBERMONKEY_JSSHELL_NATIVE_LINKER",
+    "description": "AmberMonkey shell, RIT + native linker (firefox tag perf-eval-native-linker, ca0fb9df)."
   },
   "indirection-native-linker-value-mirror-candidate": {
     "archive": "indirection-native-linker-value-mirror-candidate.tar.gz",
     "sha256": "3943508658aa281bef6c652713c23cb22a7932f75d69b0ce8f8ae38d60535e7a",
+    "archive_bytes": 98397049,
     "executable": "js",
-    "optional": true,
-    "experiments": [
-      "7-5-indirection-overhead"
-    ],
-    "provenance": "Existing firefox/js-perf-eval-native-linker-value-mirror; source revision unverified; embedded image kept with binary."
+    "env": "AMBERMONKEY_JSSHELL_NATIVE_LINKER_VALUE_MIRROR",
+    "description": "AmberMonkey shell, RIT + native linker + value mirroring (firefox tag perf-eval, b0f0c269)."
+  },
+  "chromium-no-pgo": {
+    "archive": "chromium-no-pgo.tar.zst",
+    "sha256": "916f4c19ae9cba053de21b3415bff89e75f2c998686d5b9f378e475bb4f07441",
+    "archive_bytes": 434234136,
+    "executable": "chromium/Default/chrome",
+    "exclude": ["chromium/Default/siso.INFO"],
+    "description": "Chromium 155.0.8042.0 (V8 15.4.80), built without PGO."
+  },
+  "chromedriver-155": {
+    "archive": "chromedriver-155.0.8042.0-linux64.zip",
+    "sha256": "44bb17570f48d693631953e654c01f46081b648d6573f01eefcfbdfdb0526496",
+    "archive_bytes": 11870340,
+    "executable": "chromedriver-linux64/chromedriver",
+    "description": "ChromeDriver matching the Chromium build (Chrome for Testing)."
   }
 }

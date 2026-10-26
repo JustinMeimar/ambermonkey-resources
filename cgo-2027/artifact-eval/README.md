@@ -1,90 +1,66 @@
-# AmberMonkey artifact smoke runs
+# AmberMonkey artifact (CGO 2027)
 
-Use the packaged image from `cgo-2027`:
+Reproduces the evaluation (Section 7) of the AmberMonkey paper using prebuilt
+engines. Nothing is compiled except the small Fossil benchmark harness.
 
-```sh
-mkdir -p artifact-results
-docker run --rm --init --shm-size=2g \
-  --mount "type=bind,src=$PWD/artifact-results,dst=/results" \
-  ambermonkey-artifact-eval:smoke --suite
-```
+## Requirements
 
-This runs the verified ordinary paths sequentially: **one selected variant per
-experiment, one observation, 180-second command deadlines**. It continues after
-an experiment fails and exits nonzero if any failed. This is a readiness check,
-not a full reproduction of the paper's statistics. No engines are built.
+- x86-64 Linux with Docker, ~40 GB free disk, internet access (image build and
+  Raptor page-load recordings).
+- For `7-5-indirection-overhead`: hardware performance counters visible to
+  containers (bare metal or a VM with a virtual PMU).
+
+## Run
 
 ```sh
-# Inspect the exact selection without running anything.
-docker run --rm ambermonkey-artifact-eval:smoke --suite --list
-# Run only one suite entry.
-docker run --rm --init --shm-size=2g \
-  --mount "type=bind,src=$PWD/artifact-results,dst=/results" \
-  ambermonkey-artifact-eval:smoke --suite --only 7-1-corpus-coverage
-# Select an experiment/variant directly.
-docker run --rm --init --shm-size=2g \
-  --mount "type=bind,src=$PWD/artifact-results,dst=/results" \
-  ambermonkey-artifact-eval:smoke \
-  7-2-oracle-corpus --variant speedometer3-aot-only -n 1 --timeout 180
-# Emit from saved records, without another benchmark run.
-docker run --rm \
-  --mount "type=bind,src=$PWD/artifact-results,dst=/results" \
-  ambermonkey-artifact-eval:smoke \
-  7-2-oracle-corpus --variant speedometer3-aot-only \
-  --artifact speedometer3 --emit-only --timeout 30
+./reproduce.sh --list                            # show experiments, variants, repetitions
+./reproduce.sh                                   # run everything (many hours)
+./reproduce.sh --only 7-2-ambermonkey-perf-s3    # one experiment (repeatable)
+./reproduce.sh --only 7-6-binary-size -n 1       # quick check with 1 repetition
+./reproduce.sh --resume run-YYYYMMDD-HHMMSS      # continue a run; passed steps are skipped
 ```
 
-Results persist under the mounted directory:
+The first call builds the `ambermonkey-artifact` image (about 30 minutes);
+later calls reuse it. Each run writes to `results/run-<timestamp>/`:
 
-- `smoke-*.json`: suite status and each experiment's duration/outcome.
-- `logs/*.json` and `logs/*.log`: individual command status and complete output.
-- `records/`: Fossil observations and captured launch arguments.
-- `artifacts/`: emitted tables/figures.
-- `corpus/`: raw corpus artifacts produced by corpus construction.
+- `artifacts/<experiment>/`: the paper's tables and figures
+- `status.json`: pass/fail and duration for every step
+- `logs/`: full output of every step
+- `records/`: raw Fossil observations
 
-A timeout terminates the subprocess group and reports `timed_out`. Failed or
-partial observations are not reported as successful analyses. `--dry-run`
-previews commands, and suite reports say `previewed`. `-n 1` retains the
-experiment's normal internal benchmark cycles. Cross-variant artifacts can
-require additional records; this runner intentionally selects one variant.
+A step fails if any repetition fails. If a variant fails, its experiment's
+figures are not emitted.
 
-The image includes the engines, current Fossil, uv, perf and their native runtime
-libraries. It requires no host `/nix/store`, source checkout, or executable mounts.
-Internet access may still be needed for pinned Raptor workload/replay downloads.
-Static tables, binary size and Octane have passed with `--network none`.
+## Experiments
 
-## Indirection counters
+| Experiment | Paper | Engines | n |
+|---|---|---|---|
+| 7-1-corpus-coverage | AOT corpus coverage on held-out workloads | AM browser (tp6) | 3 |
+| 7-2-ambermonkey-perf-s3 | Speedometer 3 tier ladder | default + AM browser | 10 |
+| 7-2-oracle-corpus | Speedometer 3 with oracle corpus | AM browser (oracle) | 10 |
+| 7-3-v8-jitless-comparison | Retained performance vs V8 jitless | AM browsers, Chromium | 10 |
+| 7-4-artifact-installation-cost | Per-artifact installation cost (Talos) | AM browser | 10 |
+| 7-4-artifact-installation-startup | JetStream 3 startup latency | AM browser | 30 |
+| 7-5-indirection-overhead | Indirection microbenchmarks (perf counters) | 3 AM shells | 50 |
+| 7-5-indirection-e2e-s3 | Indirection overhead on Speedometer 3 | AM browser (oracle) | 10 |
+| 7-6-cross-process-memory-sharing | Content-process PSS/USS | default + AM browser | 3 |
+| 7-6-binary-size | On-disk size of libxul, image, browser | default + AM browser | 1 |
 
-This optional path requires `CAP_PERFMON`; the ordinary suite does not request it.
+Not included: the Octane 2 experiments (7-2 Octane, the Octane half of 7-3,
+the `octane2` variant of 7-1). They need an AmberMonkey AOT jsshell and d8,
+which are not part of this artifact. As a result, 7-3 produces per-variant
+Speedometer analyses but not its combined figure.
 
-```sh
-docker run --rm --init --cap-add PERFMON \
-  --mount "type=bind,src=$PWD/artifact-results,dst=/results" \
-  ambermonkey-artifact-eval:smoke \
-  7-5-indirection-overhead --variant am-rit -n 1 --timeout 180
-```
+## Contents
 
-Each of the three existing indirection binaries is now in a separate checksummed
-archive with its embedded image. They are explicitly marked **candidate** because
-their source revisions still need verification. The `am-rit` candidate passed
-all ten microbenchmarks and counter analysis; the other variants were not run.
+| File | Purpose |
+|---|---|
+| `reproduce.sh` | builds the image and runs `run.py` inside it |
+| `run.py` | runs the plan with Fossil: bury, check, analyze, emit |
+| `evaluation.json` | the plan: experiments, variants, repetitions, outputs |
+| `releases.json` | checksums and layout of the prebuilt engines in `releases/` |
+| `Dockerfile` | pinned Fossil, experiment definitions, Firefox harness, engines |
+| `install_releases.py`, `prepare_raptor.py`, `run_talos.py` | image build/runtime helpers |
 
-## Local development and image packaging
-
-`bash artifact-eval/docker-run.sh ...` overlays the current source and host tools
-on the cached base image. It supports the same arguments, including `--suite`.
-It requires local `fossil`, `uv`, the archives and Docker access; indirection also
-requires local `perf`. This route mounts Nix libraries read-only when present.
-
-`bash artifact-eval/package-image.sh` assembles a new standalone local image from
-these existing assets. It verifies/extracts archive caches, installs prebuilt
-figure wheels from `uv.lock`, copies current scripts and native tool dependencies,
-and prepares the Talos environment. It does not compile Firefox, V8, or Fossil.
-The base image is pinned by digest in the script. The image contains
-`/workspace/artifact-eval-current/bundle-manifest.json` with native tool hashes.
-
-The historical Dockerfile bootstraps old source and Fossil revisions and is not
-the supported packaging route. Use `package-image.sh` for this no-compilation
-workflow. Nothing has been pushed to a registry.
-
-See `../ARTIFACT_EVAL_PROGRESS.md` for the per-experiment evidence and blockers.
+Engines are unpacked to `/opt/engines/<name>` in the image. Experiment
+definitions live in `/workspace/fossils-I` (from `ambermonkey-resources`).

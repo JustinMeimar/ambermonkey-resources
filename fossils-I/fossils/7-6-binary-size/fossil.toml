@@ -8,3 +8,6 @@ script = "emit_libxul.py"
 
 [artifacts.browser]
 script = "emit_browser.py"
+
+[artifacts.image]
+script = "emit_image.py"
