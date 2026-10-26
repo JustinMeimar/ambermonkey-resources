@@ -37,8 +37,9 @@ figures are not emitted.
 |---|---|---|---|
 | 7-1-corpus-coverage | AOT corpus coverage on held-out workloads | AM browser (tp6) | 3 |
 | 7-2-ambermonkey-perf-s3 | Speedometer 3 tier ladder | default + AM browser | 10 |
+| 7-2-ambermonkey-perf-octane | Octane 2 tier ladder | AM jsshell (tp6) | 10 |
 | 7-2-oracle-corpus | Speedometer 3 with oracle corpus | AM browser (oracle) | 10 |
-| 7-3-v8-jitless-comparison | Retained performance vs V8 jitless | AM browsers, Chromium | 10 |
+| 7-3-v8-jitless-comparison | Retained performance vs V8 jitless | AM browsers, AM jsshell, Chromium | 10 |
 | 7-4-artifact-installation-cost | Per-artifact installation cost (Talos) | AM browser | 10 |
 | 7-4-artifact-installation-startup | JetStream 3 startup latency | AM browser | 30 |
 | 7-5-indirection-overhead | Indirection microbenchmarks (perf counters) | 3 AM shells | 50 |
@@ -46,10 +47,12 @@ figures are not emitted.
 | 7-6-cross-process-memory-sharing | Content-process PSS/USS | default + AM browser | 3 |
 | 7-6-binary-size | On-disk size of libxul, image, browser | default + AM browser | 1 |
 
-Not included: the Octane 2 experiments (7-2 Octane, the Octane half of 7-3,
-the `octane2` variant of 7-1). They need an AmberMonkey AOT jsshell and d8,
-which are not part of this artifact. As a result, 7-3 produces per-variant
-Speedometer analyses but not its combined figure.
+Not included:
+
+- 7-1 `octane2`: the packaged jsshell has no AOT coverage dump.
+- 7-3 `octane-v8-*`: they need d8, which is not part of this artifact. Because
+  the 7-3 figures require every variant, 7-3 produces per-variant analyses but
+  not its combined figure.
 
 ## Contents
 

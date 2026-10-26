@@ -4,7 +4,13 @@
     "iterations": 3,
     "variants": ["speedometer3", "jetstream3", "tp6_test"],
     "artifacts": ["baseline-function-table", "baseline-interpreter-table", "ic-table"],
-    "note": "octane2 variant omitted: needs an AmberMonkey AOT jsshell (not packaged)."
+    "note": "octane2 variant omitted: the packaged jsshell (perf-eval) has no AOT coverage dump."
+  },
+  {
+    "experiment": "7-2-ambermonkey-perf-octane",
+    "iterations": 10,
+    "variants": ["interp-only", "blinterp-only", "aot-corpus-ic", "aot-corpus", "default-no-ion", "default"],
+    "artifacts": ["subtest-bars", "octane-ablation-perf", "perf"]
   },
   {
     "experiment": "7-2-ambermonkey-perf-s3",
@@ -23,12 +29,14 @@
     "experiment": "7-3-v8-jitless-comparison",
     "iterations": 10,
     "variants": ["speedometer-default", "speedometer-baseline", "speedometer-am", "speedometer-am-oracle",
-                 "speedometer-v8-default", "speedometer-v8-jitless"],
+                 "speedometer-v8-default", "speedometer-v8-jitless",
+                 "octane-default", "octane-baseline", "octane-am", "octane-am-oracle"],
     "artifacts": [],
     "variant_env": {
-      "speedometer-am-oracle": {"AMBERMONKEY_BIN_AOT": "/opt/engines/am-browser-release-oracle-sp3/dist/bin/firefox"}
+      "speedometer-am-oracle": {"AMBERMONKEY_BIN_AOT": "/opt/engines/am-browser-release-oracle-sp3/dist/bin/firefox"},
+      "octane-am-oracle": {"AMBERMONKEY_JSSHELL_AOT": "/opt/engines/am-shell-release-oracle-octane/js"}
     },
-    "note": "Speedometer half only; the figures require the Octane variants (AmberMonkey jsshell, d8), which are not packaged. Results are the per-variant analyses."
+    "note": "octane-v8-* need d8, which is not packaged, and the figures require every variant. Results are the per-variant analyses."
   },
   {
     "experiment": "7-4-artifact-installation-cost",

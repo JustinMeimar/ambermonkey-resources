@@ -22,6 +22,21 @@
     "executable": "dist/bin/firefox",
     "description": "AmberMonkey browser with the Speedometer 3 oracle AOT image."
   },
+  "am-shell-release-tp6": {
+    "archive": "am-shell-release-tp6.tar.xz",
+    "sha256": "19a71044cd24bd1aba62b3788c5ab495c5672bf9bed85b8503e954cb808ca79d",
+    "archive_bytes": 58567736,
+    "executable": "js",
+    "env": "AMBERMONKEY_JSSHELL_AOT",
+    "description": "AmberMonkey jsshell with the tp6 training-corpus image (firefox tag perf-eval, b0f0c269)."
+  },
+  "am-shell-release-oracle-octane": {
+    "archive": "am-shell-release-oracle-octane.tar.xz",
+    "sha256": "16f4ecfe8a1059597c3c9dae95f6399ec3d76b14a592d8ce0b1f64b1b317f14c",
+    "archive_bytes": 59091008,
+    "executable": "js",
+    "description": "AmberMonkey jsshell with the Octane 2 oracle AOT image (firefox tag perf-eval, b0f0c269)."
+  },
   "indirection-rit-candidate": {
     "archive": "indirection-rit-candidate.tar.gz",
     "sha256": "11c680d0a0b47293247c9ed6fc70a254ecd762a2bbf58a0c196855488e4bdb58",

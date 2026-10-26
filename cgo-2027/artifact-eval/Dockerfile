@@ -9,7 +9,7 @@ RUN cargo install --locked --root /opt/fossil \
 
 #=== Experiment definitions (fossils-I), pinned.
 FROM alpine/git:v2.47.2 AS resources-checkout
-ARG RESOURCES_REV=ed47851563e034254e922cf7e928f0e89c4e24e9
+ARG RESOURCES_REV=4a747a93633d3401d12f03bb93be0bd7ea2850c0
 RUN git init /src && cd /src \
     && git remote add origin https://github.com/JustinMeimar/ambermonkey-resources.git \
     && git fetch --depth 1 origin "$RESOURCES_REV" && git checkout --detach FETCH_HEAD
@@ -62,6 +62,7 @@ RUN ./mach python /workspace/artifact-eval/prepare_raptor.py
 COPY --from=engines /opt/engines /opt/engines
 ENV AMBERMONKEY_BIN_RELEASE=/opt/engines/default-browser-release/dist/bin/firefox \
     AMBERMONKEY_BIN_AOT=/opt/engines/am-browser-release-tp6/dist/bin/firefox \
+    AMBERMONKEY_JSSHELL_AOT=/opt/engines/am-shell-release-tp6/js \
     AMBERMONKEY_JSSHELL_RIT=/opt/engines/indirection-rit-candidate/js \
     AMBERMONKEY_JSSHELL_NATIVE_LINKER=/opt/engines/indirection-native-linker-candidate/js \
     AMBERMONKEY_JSSHELL_NATIVE_LINKER_VALUE_MIRROR=/opt/engines/indirection-native-linker-value-mirror-candidate/js \
