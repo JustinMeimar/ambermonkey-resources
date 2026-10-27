@@ -15,6 +15,10 @@ RUN git init /src && cd /src \
     && git fetch --depth 1 origin "$RESOURCES_REV" && git checkout --detach FETCH_HEAD
 FROM scratch AS resources
 COPY --from=resources-checkout /src/fossils-I /fossils-I
+# fossils-I/scripts is a symlink to ../scripts.
+COPY --from=resources-checkout /src/scripts /scripts
+# Fossil stamps each record with the project's git commit.
+COPY --from=resources-checkout /src/.git /.git
 
 #=== Firefox source at the AmberMonkey revision: provides mach raptor/talos and Octane.
 FROM alpine/git:v2.47.2 AS firefox
@@ -80,12 +84,14 @@ RUN mkdir /opt/v8-project \
 
 # Experiment definitions, their locked figure dependencies, and Fossil registration.
 COPY --from=resources /fossils-I /workspace/fossils-I
-RUN uv export --project /workspace/fossils-I --locked --no-dev --no-hashes --format requirements-txt \
-       > /tmp/requirements.txt \
-    && uv pip install --system --break-system-packages --no-build -r /tmp/requirements.txt \
+COPY --from=resources /scripts /workspace/scripts
+COPY --from=resources /.git /workspace/.git
+# Figure scripts re-exec into fossils-I/.venv; put it first on PATH so analyses share it.
+RUN uv sync --project /workspace/fossils-I --locked --no-dev --python /usr/bin/python3 \
     && mkdir -p /root/.fossil/projects \
     && ln -s /workspace/fossils-I /root/.fossil/projects/ambermonkey-cgo
 
+ENV PATH=/workspace/fossils-I/.venv/bin:$PATH
 COPY evaluation.json releases.json run.py README.md /workspace/artifact-eval/
 WORKDIR /workspace/artifact-eval
 ENTRYPOINT ["python3", "/workspace/artifact-eval/run.py"]

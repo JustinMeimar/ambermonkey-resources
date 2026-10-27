@@ -44,6 +44,12 @@ def main():
     parser.add_argument('--timeout', type=int, default=1200, help='seconds per observation (default 1200)')
     args = parser.parse_args()
     plan = [e for e in PLAN if not args.only or e['experiment'] in args.only]
+    # The prebuilt AOT images contain AVX2 and BMI2 instructions recorded on the build host.
+    flags = set(Path('/proc/cpuinfo').read_text().split())
+    missing = [flag for flag in ('avx2', 'bmi2') if flag not in flags]
+    if missing and not args.list:
+        sys.exit(f"error: this CPU lacks {', '.join(missing)}; the AmberMonkey AOT images need x86-64 with "
+                 "AVX2 and BMI2 (Intel Haswell 2013+, AMD Zen). In a VM, set the CPU type to 'host'.")
     if args.list:
         for entry in plan:
             print(f"{entry['experiment']}  n={args.iterations or entry['iterations']}")

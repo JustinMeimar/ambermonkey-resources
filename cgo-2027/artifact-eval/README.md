@@ -7,6 +7,10 @@ engines. Nothing is compiled except the small Fossil benchmark harness.
 
 - x86-64 Linux with Docker, ~40 GB free disk, internet access (image build and
   Raptor page-load recordings).
+- A CPU with AVX2 and BMI2 (Intel Haswell 2013 or later, any AMD Zen). The
+  prebuilt AOT images contain these instructions, so low-power chips such as
+  Intel Celeron/Atom (e.g. N5095) crash with SIGILL. In a VM, set the CPU type
+  to `host`. `run.py` checks this and exits early on an unsupported CPU.
 - For `7-5-indirection-overhead`: hardware performance counters visible to
   containers (bare metal or a VM with a virtual PMU).
 
